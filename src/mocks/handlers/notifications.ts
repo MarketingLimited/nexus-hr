@@ -34,7 +34,7 @@ export const notificationHandlers = [
 
     if (read !== null) {
       const isRead = read === 'true'
-      filteredNotifications = filteredNotifications.filter(n => n.read === isRead)
+      filteredNotifications = filteredNotifications.filter(n => n.isRead === isRead)
     }
 
     // Sort by creation date (newest first)

@@ -1,27 +1,27 @@
 import { http, HttpResponse } from 'msw'
 import { 
   generateUsers,
-  generateUserSessions,
-  generateUserRoles,
+  generateSessions,
+  roles,
   User,
-  UserSession,
+  Session,
   Permission
 } from '../data/auth'
 import { mockEmployees } from '../data/employees'
 
-let users = generateUsers(mockEmployees)
-let userSessions = generateUserSessions(users.map(u => u.id))
-let userRoles = generateUserRoles()
+let users = generateUsers(50)
+let userSessions = generateSessions(users.map(u => u.id))
+let userRoles = [...roles]
 
 // Default admin user for testing
-const adminUser = users.find(u => u.role === 'admin') || users[0]
+const adminUser = users.find(u => u.role.name === 'Admin') || users[0]
 
 export const authHandlers = [
   // Authentication
   http.post('/api/auth/login', async ({ request }) => {
     const { email, password } = await request.json() as { email: string, password: string }
     
-    const user = users.find(u => u.email === email && u.status === 'active')
+    const user = users.find(u => u.email === email && u.isActive === true)
     
     if (!user) {
       return HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 })

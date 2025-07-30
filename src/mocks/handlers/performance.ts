@@ -3,7 +3,6 @@ import {
   generatePerformanceReviews,
   generateGoals,
   generateFeedback,
-  mockPerformanceMetrics,
   PerformanceReview,
   Goal,
   Feedback
@@ -13,7 +12,6 @@ import { mockEmployees } from '../data/employees'
 let performanceReviews = generatePerformanceReviews(mockEmployees.map(emp => emp.id))
 let goals = generateGoals(mockEmployees.map(emp => emp.id))
 let feedback = generateFeedback(mockEmployees.map(emp => emp.id))
-let performanceMetrics = [...mockPerformanceMetrics]
 
 export const performanceHandlers = [
   // Performance Reviews
