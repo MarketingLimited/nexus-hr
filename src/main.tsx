@@ -1,6 +1,9 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryProvider } from './providers/QueryProvider';
+import App from './App.tsx';
+import './index.css';
 
 async function enableMocking() {
   if (process.env.NODE_ENV !== 'development') {
@@ -8,12 +11,17 @@ async function enableMocking() {
   }
 
   const { worker } = await import('./mocks/browser')
-
-  // `worker.start()` returns a Promise that resolves
-  // once the Service Worker is up and ready to intercept requests.
   return worker.start()
 }
 
 enableMocking().then(() => {
-  createRoot(document.getElementById("root")!).render(<App />);
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <QueryProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </QueryProvider>
+    </StrictMode>
+  );
 });
