@@ -8,8 +8,15 @@ import GoalTracking from "@/components/performance/GoalTracking";
 import FeedbackSystem from "@/components/performance/FeedbackSystem";
 import PerformanceAnalytics from "@/components/performance/PerformanceAnalytics";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePerformanceAnalytics, usePerformanceReviews, useGoals } from "@/hooks/usePerformance";
 
 const Performance = () => {
+  // API hooks
+  const { data: analytics, isLoading: analyticsLoading } = usePerformanceAnalytics();
+  const { data: reviews, isLoading: reviewsLoading } = usePerformanceReviews();
+  const { data: goals, isLoading: goalsLoading } = useGoals();
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
