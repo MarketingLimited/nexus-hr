@@ -11,7 +11,7 @@ class ConfigurationService {
     }
 
     try {
-      const response = await fetch('/src/data/config.json');
+      const response = await fetch('/api/config/system');
       if (!response.ok) {
         throw new Error('Failed to load system configuration');
       }
@@ -34,8 +34,11 @@ class ConfigurationService {
     }
 
     try {
-      const config = await this.loadSystemConfig();
-      const userPrefs = config.userPreferences[user] || this.getDefaultUserPreferences();
+      const response = await fetch(`/api/config/user/${user}`);
+      if (!response.ok) {
+        throw new Error('Failed to load user preferences');
+      }
+      const userPrefs = await response.json();
       this.cache.set(cacheKey, userPrefs);
       return userPrefs;
     } catch (error) {
@@ -50,15 +53,24 @@ class ConfigurationService {
     const cacheKey = `user_preferences_${user}`;
     
     try {
-      const config = await this.loadSystemConfig();
-      config.userPreferences[user] = preferences;
+      const response = await fetch(`/api/config/user/${user}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preferences),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save user preferences');
+      }
+      
+      const updatedPrefs = await response.json();
       
       // Update cache
-      this.cache.set(cacheKey, preferences);
-      this.cache.set('system_config', config);
+      this.cache.set(cacheKey, updatedPrefs);
       
-      // In a real application, this would persist to backend
-      console.log('User preferences saved:', preferences);
+      console.log('User preferences saved:', updatedPrefs);
     } catch (error) {
       console.error('Failed to save user preferences:', error);
       throw error;
@@ -68,15 +80,14 @@ class ConfigurationService {
   // Load dashboard layouts
   async loadDashboardLayouts(userRole?: string): Promise<DashboardLayout[]> {
     try {
-      const config = await this.loadSystemConfig();
-      let layouts = config.dashboardLayouts;
+      const url = userRole ? `/api/config/dashboards?role=${userRole}` : '/api/config/dashboards';
+      const response = await fetch(url);
       
-      if (userRole) {
-        layouts = layouts.filter(layout => 
-          layout.userRole === userRole || layout.userRole === 'all'
-        );
+      if (!response.ok) {
+        throw new Error('Failed to load dashboard layouts');
       }
       
+      const layouts = await response.json();
       return layouts;
     } catch (error) {
       console.error('Failed to load dashboard layouts:', error);
@@ -87,17 +98,20 @@ class ConfigurationService {
   // Save dashboard layout
   async saveDashboardLayout(layout: DashboardLayout): Promise<void> {
     try {
-      const config = await this.loadSystemConfig();
-      const existingIndex = config.dashboardLayouts.findIndex(l => l.id === layout.id);
+      const response = await fetch('/api/config/dashboards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(layout),
+      });
       
-      if (existingIndex >= 0) {
-        config.dashboardLayouts[existingIndex] = layout;
-      } else {
-        config.dashboardLayouts.push(layout);
+      if (!response.ok) {
+        throw new Error('Failed to save dashboard layout');
       }
       
-      this.cache.set('system_config', config);
-      console.log('Dashboard layout saved:', layout);
+      const savedLayout = await response.json();
+      console.log('Dashboard layout saved:', savedLayout);
     } catch (error) {
       console.error('Failed to save dashboard layout:', error);
       throw error;
@@ -107,12 +121,15 @@ class ConfigurationService {
   // Role-based access control
   async getUserRole(userId?: string): Promise<Role | null> {
     try {
-      const config = await this.loadSystemConfig();
       const user = userId || this.currentUserId;
+      const response = await fetch(`/api/config/role/${user}`);
       
-      // In a real app, this would come from user authentication
-      const defaultRole = config.roles.find(role => role.name === 'Employee');
-      return defaultRole || null;
+      if (!response.ok) {
+        throw new Error('Failed to get user role');
+      }
+      
+      const role = await response.json();
+      return role;
     } catch (error) {
       console.error('Failed to get user role:', error);
       return null;
@@ -121,25 +138,15 @@ class ConfigurationService {
 
   async hasPermission(permission: string, userId?: string): Promise<boolean> {
     try {
-      const userRole = await this.getUserRole(userId);
-      if (!userRole) return false;
-
-      const config = await this.loadSystemConfig();
+      const user = userId || this.currentUserId;
+      const response = await fetch(`/api/config/permission/${user}/${permission}`);
       
-      // Check direct permissions
-      if (userRole.permissions.includes(permission)) return true;
-      
-      // Check inherited permissions
-      if (userRole.inherits) {
-        for (const inheritedRoleId of userRole.inherits) {
-          const inheritedRole = config.roles.find(r => r.id === inheritedRoleId);
-          if (inheritedRole && inheritedRole.permissions.includes(permission)) {
-            return true;
-          }
-        }
+      if (!response.ok) {
+        throw new Error('Failed to check permission');
       }
       
-      return false;
+      const result = await response.json();
+      return result.hasPermission;
     } catch (error) {
       console.error('Failed to check permission:', error);
       return false;
@@ -149,8 +156,14 @@ class ConfigurationService {
   // Feature flags
   async isFeatureEnabled(featureName: string): Promise<boolean> {
     try {
-      const config = await this.loadSystemConfig();
-      return config.features[featureName]?.enabled || false;
+      const response = await fetch(`/api/config/features/${featureName}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to check feature flag');
+      }
+      
+      const feature = await response.json();
+      return feature.enabled || false;
     } catch (error) {
       console.error('Failed to check feature flag:', error);
       return false;
@@ -159,8 +172,14 @@ class ConfigurationService {
 
   async getFeatureConfig(featureName: string): Promise<Record<string, any> | null> {
     try {
-      const config = await this.loadSystemConfig();
-      return config.features[featureName]?.config || null;
+      const response = await fetch(`/api/config/features/${featureName}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to get feature config');
+      }
+      
+      const feature = await response.json();
+      return feature.config || null;
     } catch (error) {
       console.error('Failed to get feature config:', error);
       return null;
@@ -170,8 +189,14 @@ class ConfigurationService {
   // Company settings
   async getCompanySettings(): Promise<any> {
     try {
-      const config = await this.loadSystemConfig();
-      return config.company;
+      const response = await fetch('/api/config/company');
+      
+      if (!response.ok) {
+        throw new Error('Failed to get company settings');
+      }
+      
+      const settings = await response.json();
+      return settings;
     } catch (error) {
       console.error('Failed to get company settings:', error);
       return this.getDefaultCompanySettings();
@@ -181,13 +206,14 @@ class ConfigurationService {
   // Workflow management
   async getWorkflows(module?: string): Promise<any[]> {
     try {
-      const config = await this.loadSystemConfig();
-      let workflows = config.workflows.filter(w => w.isActive);
+      const url = module ? `/api/config/workflows?module=${module}` : '/api/config/workflows';
+      const response = await fetch(url);
       
-      if (module) {
-        workflows = workflows.filter(w => w.module === module);
+      if (!response.ok) {
+        throw new Error('Failed to get workflows');
       }
       
+      const workflows = await response.json();
       return workflows;
     } catch (error) {
       console.error('Failed to get workflows:', error);
@@ -198,13 +224,14 @@ class ConfigurationService {
   // Report templates
   async getReportTemplates(type?: string): Promise<any[]> {
     try {
-      const config = await this.loadSystemConfig();
-      let templates = config.reportTemplates;
+      const url = type ? `/api/config/reports?type=${type}` : '/api/config/reports';
+      const response = await fetch(url);
       
-      if (type) {
-        templates = templates.filter(t => t.type === type);
+      if (!response.ok) {
+        throw new Error('Failed to get report templates');
       }
       
+      const templates = await response.json();
       return templates;
     } catch (error) {
       console.error('Failed to get report templates:', error);

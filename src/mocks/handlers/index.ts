@@ -5,6 +5,7 @@ import { attendanceHandlers } from './attendance';
 import { payrollHandlers } from './payroll';
 import { performanceHandlers } from './performance';
 import { authHandlers } from './auth';
+import { configHandlers } from './config';
 
 export const handlers = [
   ...employeeHandlers,
@@ -13,5 +14,6 @@ export const handlers = [
   ...attendanceHandlers,
   ...payrollHandlers,
   ...performanceHandlers,
-  ...authHandlers
+  ...authHandlers,
+  ...configHandlers
 ];
