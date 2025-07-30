@@ -1,0 +1,255 @@
+{
+  "roles": [
+    {
+      "id": "admin",
+      "name": "Administrator",
+      "description": "Full system access with all permissions",
+      "level": 1,
+      "permissions": [
+        "user_management",
+        "role_management",
+        "employee_create",
+        "employee_edit",
+        "employee_delete",
+        "employee_view",
+        "payroll_view",
+        "payroll_edit",
+        "payroll_process",
+        "leave_approve",
+        "leave_reject",
+        "leave_view_all",
+        "performance_view_all",
+        "performance_edit_all",
+        "attendance_view_all",
+        "attendance_edit",
+        "asset_manage",
+        "report_generate",
+        "settings_modify",
+        "notification_send"
+      ]
+    },
+    {
+      "id": "hr_manager",
+      "name": "HR Manager",
+      "description": "Human resources management with employee oversight",
+      "level": 2,
+      "permissions": [
+        "employee_create",
+        "employee_edit",
+        "employee_view",
+        "leave_approve",
+        "leave_reject",
+        "leave_view_all",
+        "performance_view_all",
+        "performance_edit_all",
+        "attendance_view_all",
+        "attendance_edit",
+        "report_generate",
+        "notification_send",
+        "onboarding_manage"
+      ]
+    },
+    {
+      "id": "manager",
+      "name": "Manager",
+      "description": "Team management with departmental oversight",
+      "level": 3,
+      "permissions": [
+        "employee_view",
+        "leave_approve",
+        "leave_view_team",
+        "performance_view_team",
+        "performance_edit_team",
+        "attendance_view_team",
+        "report_generate_team",
+        "goal_assign",
+        "feedback_request"
+      ]
+    },
+    {
+      "id": "employee",
+      "name": "Employee",
+      "description": "Standard employee access for personal data and requests",
+      "level": 4,
+      "permissions": [
+        "profile_edit_own",
+        "profile_view_own",
+        "leave_request",
+        "leave_view_own",
+        "performance_view_own",
+        "attendance_view_own",
+        "attendance_clock",
+        "goal_view_own",
+        "goal_update_own",
+        "feedback_provide",
+        "asset_view_assigned"
+      ]
+    },
+    {
+      "id": "payroll_admin",
+      "name": "Payroll Administrator",
+      "description": "Specialized role for payroll processing and management",
+      "level": 2,
+      "permissions": [
+        "payroll_view",
+        "payroll_edit",
+        "payroll_process",
+        "employee_view",
+        "report_generate_payroll",
+        "tax_calculate"
+      ]
+    }
+  ],
+  "permissions": [
+    {
+      "id": "user_management",
+      "name": "User Management",
+      "description": "Create, edit, and delete user accounts",
+      "category": "administration"
+    },
+    {
+      "id": "role_management",
+      "name": "Role Management",
+      "description": "Manage roles and permissions",
+      "category": "administration"
+    },
+    {
+      "id": "employee_create",
+      "name": "Create Employee",
+      "description": "Add new employee records",
+      "category": "employee_management"
+    },
+    {
+      "id": "employee_edit",
+      "name": "Edit Employee",
+      "description": "Modify employee information",
+      "category": "employee_management"
+    },
+    {
+      "id": "employee_delete",
+      "name": "Delete Employee",
+      "description": "Remove employee records",
+      "category": "employee_management"
+    },
+    {
+      "id": "employee_view",
+      "name": "View Employees",
+      "description": "Access employee information",
+      "category": "employee_management"
+    },
+    {
+      "id": "payroll_view",
+      "name": "View Payroll",
+      "description": "Access payroll information",
+      "category": "payroll"
+    },
+    {
+      "id": "payroll_edit",
+      "name": "Edit Payroll",
+      "description": "Modify payroll data",
+      "category": "payroll"
+    },
+    {
+      "id": "payroll_process",
+      "name": "Process Payroll",
+      "description": "Execute payroll processing",
+      "category": "payroll"
+    },
+    {
+      "id": "leave_approve",
+      "name": "Approve Leave",
+      "description": "Approve leave requests",
+      "category": "leave_management"
+    },
+    {
+      "id": "leave_reject",
+      "name": "Reject Leave",
+      "description": "Reject leave requests",
+      "category": "leave_management"
+    },
+    {
+      "id": "leave_view_all",
+      "name": "View All Leave",
+      "description": "View all employee leave records",
+      "category": "leave_management"
+    },
+    {
+      "id": "leave_view_team",
+      "name": "View Team Leave",
+      "description": "View team member leave records",
+      "category": "leave_management"
+    },
+    {
+      "id": "leave_view_own",
+      "name": "View Own Leave",
+      "description": "View personal leave records",
+      "category": "leave_management"
+    },
+    {
+      "id": "performance_view_all",
+      "name": "View All Performance",
+      "description": "Access all performance reviews",
+      "category": "performance"
+    },
+    {
+      "id": "performance_edit_all",
+      "name": "Edit All Performance",
+      "description": "Modify all performance reviews",
+      "category": "performance"
+    },
+    {
+      "id": "attendance_view_all",
+      "name": "View All Attendance",
+      "description": "Access all attendance records",
+      "category": "attendance"
+    },
+    {
+      "id": "asset_manage",
+      "name": "Manage Assets",
+      "description": "Full asset management capabilities",
+      "category": "asset_management"
+    }
+  ],
+  "userRoles": [
+    {
+      "userId": "emp001",
+      "roleId": "employee",
+      "assignedDate": "2022-01-15",
+      "assignedBy": "emp005"
+    },
+    {
+      "userId": "emp002",
+      "roleId": "manager",
+      "assignedDate": "2021-03-10",
+      "assignedBy": "admin"
+    },
+    {
+      "userId": "emp005",
+      "roleId": "manager",
+      "assignedDate": "2019-01-08",
+      "assignedBy": "admin"
+    }
+  ],
+  "roleHierarchy": {
+    "admin": {
+      "level": 1,
+      "canManage": ["hr_manager", "manager", "employee", "payroll_admin"]
+    },
+    "hr_manager": {
+      "level": 2,
+      "canManage": ["manager", "employee"]
+    },
+    "manager": {
+      "level": 3,
+      "canManage": ["employee"]
+    },
+    "employee": {
+      "level": 4,
+      "canManage": []
+    },
+    "payroll_admin": {
+      "level": 2,
+      "canManage": []
+    }
+  }
+}

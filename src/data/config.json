@@ -1,0 +1,219 @@
+{
+  "company": {
+    "name": "TechCorp Solutions",
+    "logo": "/company-logo.png",
+    "address": {
+      "street": "123 Business Center",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94105",
+      "country": "USA"
+    },
+    "contact": {
+      "phone": "+1-555-123-4567",
+      "email": "info@techcorp.com",
+      "website": "https://techcorp.com"
+    },
+    "taxId": "12-3456789",
+    "founded": "2015-01-01",
+    "fiscalYearStart": "01-01"
+  },
+  "application": {
+    "name": "HRM System",
+    "version": "2.1.0",
+    "environment": "production",
+    "timezone": "America/Los_Angeles",
+    "dateFormat": "MM/dd/yyyy",
+    "timeFormat": "12-hour",
+    "currency": "USD",
+    "language": "en-US"
+  },
+  "features": {
+    "employee_management": true,
+    "leave_management": true,
+    "payroll": true,
+    "performance": true,
+    "attendance": true,
+    "onboarding": true,
+    "assets": true,
+    "notifications": true,
+    "reports": true,
+    "document_management": true,
+    "time_tracking": true,
+    "expense_management": false,
+    "recruitment": false,
+    "training": false
+  },
+  "workingDays": {
+    "monday": true,
+    "tuesday": true,
+    "wednesday": true,
+    "thursday": true,
+    "friday": true,
+    "saturday": false,
+    "sunday": false
+  },
+  "workingHours": {
+    "start": "09:00",
+    "end": "17:00",
+    "lunchBreak": {
+      "enabled": true,
+      "start": "12:00",
+      "end": "13:00"
+    }
+  },
+  "holidays": [
+    {
+      "date": "2024-01-01",
+      "name": "New Year's Day",
+      "type": "federal"
+    },
+    {
+      "date": "2024-07-04",
+      "name": "Independence Day",
+      "type": "federal"
+    },
+    {
+      "date": "2024-11-28",
+      "name": "Thanksgiving Day",
+      "type": "federal"
+    },
+    {
+      "date": "2024-12-25",
+      "name": "Christmas Day",
+      "type": "federal"
+    },
+    {
+      "date": "2024-03-15",
+      "name": "Company Founding Day",
+      "type": "company"
+    }
+  ],
+  "leavePolicy": {
+    "annual": {
+      "defaultDays": 25,
+      "maxCarryOver": 5,
+      "accrualRate": "monthly",
+      "probationPeriod": 90
+    },
+    "sick": {
+      "defaultDays": 10,
+      "maxCarryOver": 2,
+      "accrualRate": "monthly",
+      "requiresDocument": false
+    },
+    "personal": {
+      "defaultDays": 5,
+      "maxCarryOver": 0,
+      "accrualRate": "annual",
+      "advanceNotice": 3
+    },
+    "maternity": {
+      "defaultDays": 90,
+      "maxCarryOver": 0,
+      "accrualRate": "one-time",
+      "advanceNotice": 30
+    }
+  },
+  "payrollSettings": {
+    "payFrequency": "monthly",
+    "payDay": 31,
+    "overtimeRate": 1.5,
+    "taxSettings": {
+      "federalTaxEnabled": true,
+      "stateTaxEnabled": true,
+      "socialSecurityRate": 0.062,
+      "medicareRate": 0.0145
+    },
+    "benefits": {
+      "healthInsurance": {
+        "enabled": true,
+        "companyContribution": 80,
+        "employeeContribution": 20
+      },
+      "retirement401k": {
+        "enabled": true,
+        "companyMatch": 50,
+        "maxMatchPercentage": 6
+      }
+    }
+  },
+  "performanceSettings": {
+    "reviewFrequency": "quarterly",
+    "ratingScale": {
+      "min": 1,
+      "max": 5,
+      "labels": {
+        "1": "Needs Improvement",
+        "2": "Below Expectations",
+        "3": "Meets Expectations",
+        "4": "Exceeds Expectations",
+        "5": "Outstanding"
+      }
+    },
+    "goalTypes": ["Technical", "Professional", "Personal", "Team"],
+    "feedbackTypes": ["manager", "peer", "subordinate", "self", "customer"]
+  },
+  "attendanceSettings": {
+    "trackingMethod": "clock_in_out",
+    "allowedLateness": 15,
+    "breakDuration": 60,
+    "overtimeThreshold": 8,
+    "weeklyHoursLimit": 40,
+    "locationTracking": false,
+    "biometricRequired": false
+  },
+  "security": {
+    "passwordPolicy": {
+      "minLength": 8,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumbers": true,
+      "requireSpecialChars": true,
+      "expiryDays": 90
+    },
+    "sessionTimeout": 480,
+    "maxLoginAttempts": 5,
+    "twoFactorAuth": {
+      "enabled": false,
+      "required": false
+    },
+    "auditLogging": true,
+    "dataRetention": {
+      "employeeRecords": 7,
+      "auditLogs": 2,
+      "payrollRecords": 7
+    }
+  },
+  "notifications": {
+    "emailEnabled": true,
+    "smsEnabled": false,
+    "pushEnabled": true,
+    "reminderSettings": {
+      "performanceReview": 7,
+      "leaveExpiry": 30,
+      "assetReturn": 14,
+      "documentExpiry": 30
+    }
+  },
+  "integrations": {
+    "slack": {
+      "enabled": false,
+      "webhookUrl": ""
+    },
+    "email": {
+      "provider": "smtp",
+      "host": "smtp.company.com",
+      "port": 587,
+      "secure": true
+    },
+    "calendar": {
+      "provider": "google",
+      "enabled": true
+    },
+    "sso": {
+      "enabled": false,
+      "provider": ""
+    }
+  }
+}

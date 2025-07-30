@@ -1,0 +1,138 @@
+{
+  "salaryStructures": [
+    {
+      "id": "senior-engineer",
+      "title": "Senior Software Engineer",
+      "baseSalary": 95000,
+      "currency": "USD",
+      "payFrequency": "monthly",
+      "components": {
+        "base": 95000,
+        "healthAllowance": 1200,
+        "transportAllowance": 600,
+        "mealAllowance": 1200
+      },
+      "deductions": {
+        "federalTax": 0.22,
+        "stateTax": 0.08,
+        "socialSecurity": 0.062,
+        "medicare": 0.0145,
+        "healthInsurance": 150,
+        "retirement401k": 0.06
+      }
+    },
+    {
+      "id": "product-manager",
+      "title": "Product Manager",
+      "baseSalary": 110000,
+      "currency": "USD",
+      "payFrequency": "monthly",
+      "components": {
+        "base": 110000,
+        "healthAllowance": 1200,
+        "transportAllowance": 600,
+        "mealAllowance": 1200
+      },
+      "deductions": {
+        "federalTax": 0.24,
+        "stateTax": 0.09,
+        "socialSecurity": 0.062,
+        "medicare": 0.0145,
+        "healthInsurance": 150,
+        "retirement401k": 0.08
+      }
+    }
+  ],
+  "payslips": [
+    {
+      "id": "ps001",
+      "employeeId": "emp001",
+      "period": "2024-07",
+      "payDate": "2024-07-31",
+      "earnings": {
+        "baseSalary": 7916.67,
+        "healthAllowance": 100,
+        "transportAllowance": 50,
+        "mealAllowance": 100,
+        "overtime": 0,
+        "bonus": 0
+      },
+      "deductions": {
+        "federalTax": 1741.67,
+        "stateTax": 633.33,
+        "socialSecurity": 490.83,
+        "medicare": 114.79,
+        "healthInsurance": 150,
+        "retirement401k": 475
+      },
+      "netPay": 5551.05,
+      "grossPay": 8166.67,
+      "totalDeductions": 2615.62
+    }
+  ],
+  "taxBrackets": [
+    {
+      "min": 0,
+      "max": 10275,
+      "rate": 0.10,
+      "type": "federal"
+    },
+    {
+      "min": 10276,
+      "max": 41775,
+      "rate": 0.12,
+      "type": "federal"
+    },
+    {
+      "min": 41776,
+      "max": 89450,
+      "rate": 0.22,
+      "type": "federal"
+    },
+    {
+      "min": 89451,
+      "max": 190750,
+      "rate": 0.24,
+      "type": "federal"
+    }
+  ],
+  "payrollProcessing": {
+    "currentCycle": {
+      "period": "2024-07",
+      "status": "completed",
+      "employeesProcessed": 5,
+      "totalGrossPay": 40833.35,
+      "totalDeductions": 13078.10,
+      "totalNetPay": 27755.25,
+      "processedDate": "2024-07-31"
+    },
+    "steps": [
+      {
+        "name": "Calculate Gross Pay",
+        "status": "completed",
+        "duration": "2 mins"
+      },
+      {
+        "name": "Calculate Deductions",
+        "status": "completed",
+        "duration": "3 mins"
+      },
+      {
+        "name": "Generate Payslips",
+        "status": "completed",
+        "duration": "1 min"
+      },
+      {
+        "name": "Bank Transfer",
+        "status": "completed",
+        "duration": "5 mins"
+      }
+    ]
+  },
+  "statistics": {
+    "totalPayrollCost": 40833.35,
+    "averageSalary": 99000,
+    "totalTaxDeductions": 13078.10,
+    "employeesCount": 5
+  }
+}

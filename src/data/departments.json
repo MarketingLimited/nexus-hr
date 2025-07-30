@@ -1,0 +1,94 @@
+{
+  "departments": [
+    {
+      "id": "engineering",
+      "name": "Engineering",
+      "description": "Software development and technical infrastructure",
+      "head": "emp005",
+      "location": "Remote/Hybrid",
+      "budget": 2500000,
+      "employeeCount": 25,
+      "teams": [
+        {
+          "id": "frontend",
+          "name": "Frontend Team",
+          "lead": "emp001",
+          "members": ["emp001", "emp003"]
+        },
+        {
+          "id": "backend",
+          "name": "Backend Team",
+          "lead": "emp005",
+          "members": ["emp005"]
+        }
+      ]
+    },
+    {
+      "id": "product",
+      "name": "Product",
+      "description": "Product strategy and management",
+      "head": "emp002",
+      "location": "Hybrid",
+      "budget": 800000,
+      "employeeCount": 8,
+      "teams": [
+        {
+          "id": "product-strategy",
+          "name": "Product Strategy",
+          "lead": "emp002",
+          "members": ["emp002"]
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "name": "Design",
+      "description": "User experience and visual design",
+      "head": "emp003",
+      "location": "Office",
+      "budget": 600000,
+      "employeeCount": 6,
+      "teams": [
+        {
+          "id": "ux-design",
+          "name": "UX Design",
+          "lead": "emp003",
+          "members": ["emp003"]
+        }
+      ]
+    },
+    {
+      "id": "marketing",
+      "name": "Marketing",
+      "description": "Brand, growth, and customer acquisition",
+      "head": "emp004",
+      "location": "Hybrid",
+      "budget": 1200000,
+      "employeeCount": 12,
+      "teams": [
+        {
+          "id": "digital-marketing",
+          "name": "Digital Marketing",
+          "lead": "emp004",
+          "members": ["emp004"]
+        }
+      ]
+    },
+    {
+      "id": "hr",
+      "name": "Human Resources",
+      "description": "People operations and talent management",
+      "head": "emp009",
+      "location": "Office",
+      "budget": 500000,
+      "employeeCount": 4,
+      "teams": []
+    }
+  ],
+  "statistics": {
+    "totalDepartments": 5,
+    "totalTeams": 4,
+    "averageTeamSize": 6.8,
+    "largestDepartment": "engineering"
+  }
+}
