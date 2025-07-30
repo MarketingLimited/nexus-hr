@@ -10,82 +10,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePerformance } from "@/hooks/useDataManager";
+import { PerformanceReview } from "@/types";
 
 const PerformanceReviews = () => {
-  const [selectedReview, setSelectedReview] = useState(null);
+  const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
+  const { data: performanceData, loading, error } = usePerformance();
 
-  const reviewData = [
-    {
-      id: 1,
-      employeeId: "EMP001",
-      employeeName: "Sarah Johnson",
-      department: "Engineering",
-      position: "Senior Developer",
-      reviewPeriod: "Q4 2024",
-      reviewType: "Quarterly",
-      status: "Completed",
-      overallRating: 4.5,
-      completedDate: "2024-12-15",
-      reviewer: "John Smith",
-      goals: [
-        { title: "Complete Project Alpha", progress: 100, status: "Completed" },
-        { title: "Mentor Junior Developers", progress: 85, status: "In Progress" },
-        { title: "Learn New Framework", progress: 90, status: "In Progress" }
-      ],
-      ratings: {
-        technical: 5,
-        communication: 4,
-        leadership: 4,
-        teamwork: 5,
-        innovation: 4
-      }
-    },
-    {
-      id: 2,
-      employeeId: "EMP002",
-      employeeName: "Michael Chen",
-      department: "Marketing",
-      position: "Marketing Manager", 
-      reviewPeriod: "Q4 2024",
-      reviewType: "Quarterly",
-      status: "In Progress",
-      overallRating: null,
-      completedDate: null,
-      reviewer: "Jane Doe",
-      goals: [
-        { title: "Increase Brand Awareness", progress: 75, status: "In Progress" },
-        { title: "Launch Campaign", progress: 60, status: "In Progress" },
-        { title: "Team Training", progress: 100, status: "Completed" }
-      ],
-      ratings: null
-    },
-    {
-      id: 3,
-      employeeId: "EMP003",
-      employeeName: "Emily Rodriguez",
-      department: "HR",
-      position: "HR Specialist",
-      reviewPeriod: "Q4 2024", 
-      reviewType: "Quarterly",
-      status: "Pending",
-      overallRating: null,
-      completedDate: null,
-      reviewer: "David Wilson",
-      goals: [
-        { title: "Improve Recruitment Process", progress: 50, status: "In Progress" },
-        { title: "Employee Satisfaction Survey", progress: 80, status: "In Progress" }
-      ],
-      ratings: null
-    }
-  ];
+  if (loading) {
+    return <div className="text-center py-8 text-muted-foreground">Loading performance data...</div>;
+  }
 
-  const ReviewDetailsModal = ({ review }) => {
+  if (error) {
+    return <div className="text-center py-8 text-destructive">Error loading performance data: {error}</div>;
+  }
+
+  if (!performanceData?.reviews) {
+    return <div className="text-center py-8 text-muted-foreground">No performance data available</div>;
+  }
+
+  const reviewData = performanceData.reviews;
+
+  const ReviewDetailsModal = ({ review }: { review: PerformanceReview | null }) => {
     if (!review) return null;
 
     return (
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Performance Review - {review.employeeName}</DialogTitle>
+          <DialogTitle>Performance Review - Employee {review.employeeId}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
           {/* Review Header */}
@@ -93,28 +45,28 @@ const PerformanceReviews = () => {
             <div>
               <h3 className="font-semibold mb-2">Review Information</h3>
               <div className="space-y-1 text-sm">
-                <p><span className="font-medium">Employee:</span> {review.employeeName}</p>
-                <p><span className="font-medium">Position:</span> {review.position}</p>
-                <p><span className="font-medium">Department:</span> {review.department}</p>
-                <p><span className="font-medium">Review Period:</span> {review.reviewPeriod}</p>
+                <p><span className="font-medium">Employee:</span> Employee {review.employeeId}</p>
+                <p><span className="font-medium">Position:</span> {review.employeeId}</p>
+                <p><span className="font-medium">Department:</span> Engineering</p>
+                <p><span className="font-medium">Review Period:</span> {review.period}</p>
               </div>
             </div>
             <div>
               <h3 className="font-semibold mb-2">Review Status</h3>
               <div className="space-y-1 text-sm">
                 <p><span className="font-medium">Status:</span> 
-                  <Badge className="ml-2" variant={review.status === "Completed" ? "default" : "secondary"}>
+                  <Badge className="ml-2" variant={review.status === "completed" ? "default" : "secondary"}>
                     {review.status}
                   </Badge>
                 </p>
-                <p><span className="font-medium">Reviewer:</span> {review.reviewer}</p>
+                <p><span className="font-medium">Reviewer:</span> {review.reviewerId}</p>
                 {review.overallRating && (
                   <p><span className="font-medium">Overall Rating:</span> 
                     <span className="ml-2 font-bold text-yellow-600">{review.overallRating}/5 ⭐</span>
                   </p>
                 )}
-                {review.completedDate && (
-                  <p><span className="font-medium">Completed:</span> {review.completedDate}</p>
+                {review.status === "completed" && (
+                  <p><span className="font-medium">Completed:</span> {new Date(review.dueDate).toLocaleDateString()}</p>
                 )}
               </div>
             </div>
@@ -124,7 +76,9 @@ const PerformanceReviews = () => {
           <div>
             <h3 className="font-semibold mb-3">Goals & Objectives</h3>
             <div className="space-y-3">
-              {review.goals.map((goal, index) => (
+              {performanceData?.goals
+                .filter(goal => goal.employeeId === review.employeeId)
+                .map((goal, index) => (
                 <div key={index} className="p-3 border rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <span className="font-medium">{goal.title}</span>
@@ -140,20 +94,25 @@ const PerformanceReviews = () => {
           </div>
 
           {/* Performance Ratings */}
-          {review.ratings && (
+          {review.overallRating && (
             <div>
               <h3 className="font-semibold mb-3">Performance Ratings</h3>
               <div className="grid grid-cols-2 gap-4">
-                {Object.entries(review.ratings).map(([category, rating]) => (
+                {[
+                  { category: "Technical Skills", rating: review.overallRating },
+                  { category: "Communication", rating: review.overallRating },
+                  { category: "Leadership", rating: review.overallRating },
+                  { category: "Teamwork", rating: review.overallRating }
+                ].map(({ category, rating }) => (
                   <div key={category} className="p-3 border rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium capitalize">{category}</span>
+                      <span className="font-medium">{category}</span>
                       <div className="flex items-center gap-1">
-                        <span className="font-bold">{rating as number}</span>
+                        <span className="font-bold">{rating}</span>
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       </div>
                     </div>
-                    <Progress value={(rating as number) * 20} className="mt-2" />
+                    <Progress value={rating * 20} className="mt-2" />
                   </div>
                 ))}
               </div>
@@ -170,7 +129,7 @@ const PerformanceReviews = () => {
                   <span className="font-medium">Manager Feedback</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {review.status === "Completed" 
+                  {review.status === "completed" 
                     ? "Excellent performance this quarter. Shows strong technical skills and leadership potential. Continue mentoring junior team members."
                     : "Review in progress..."
                   }
@@ -183,7 +142,7 @@ const PerformanceReviews = () => {
                   <span className="font-medium">Employee Self-Assessment</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {review.status === "Completed"
+                  {review.status === "completed"
                     ? "Proud of the progress made on key projects. Looking forward to taking on more leadership responsibilities."
                     : "Self-assessment pending..."
                   }
@@ -233,25 +192,34 @@ const PerformanceReviews = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{reviewData.length}</div>
               <p className="text-sm text-muted-foreground">Total Reviews</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">8</div>
+              <div className="text-2xl font-bold text-green-600">
+                {reviewData.filter(r => r.status === "completed").length}
+              </div>
               <p className="text-sm text-muted-foreground">Completed</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-orange-600">3</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {reviewData.filter(r => r.status === "in_progress").length}
+              </div>
               <p className="text-sm text-muted-foreground">In Progress</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold">4.2</div>
+              <div className="text-2xl font-bold">
+                {reviewData.filter(r => r.overallRating).length > 0 
+                  ? (reviewData.filter(r => r.overallRating).reduce((sum, r) => sum + r.overallRating!, 0) / reviewData.filter(r => r.overallRating).length).toFixed(1)
+                  : "N/A"
+                }
+              </div>
               <p className="text-sm text-muted-foreground">Avg Rating</p>
             </CardContent>
           </Card>
@@ -277,21 +245,21 @@ const PerformanceReviews = () => {
                 <TableRow key={review.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{review.employeeName}</p>
+                      <p className="font-medium">Employee {review.employeeId}</p>
                       <p className="text-sm text-muted-foreground">{review.employeeId}</p>
                     </div>
                   </TableCell>
-                  <TableCell>{review.department}</TableCell>
-                  <TableCell>{review.reviewPeriod}</TableCell>
-                  <TableCell>{review.reviewType}</TableCell>
+                  <TableCell>Engineering</TableCell>
+                  <TableCell>{review.period}</TableCell>
+                  <TableCell>Quarterly</TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       <Progress 
-                        value={review.status === "Completed" ? 100 : review.status === "In Progress" ? 60 : 0} 
+                        value={review.status === "completed" ? 100 : review.status === "in_progress" ? 60 : 0} 
                         className="h-2"
                       />
                       <p className="text-xs text-muted-foreground">
-                        {review.status === "Completed" ? "100%" : review.status === "In Progress" ? "60%" : "0%"}
+                        {review.status === "completed" ? "100%" : review.status === "in_progress" ? "60%" : "0%"}
                       </p>
                     </div>
                   </TableCell>
@@ -307,8 +275,8 @@ const PerformanceReviews = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant={
-                      review.status === "Completed" ? "default" : 
-                      review.status === "In Progress" ? "secondary" : "outline"
+                      review.status === "completed" ? "default" : 
+                      review.status === "in_progress" ? "secondary" : "outline"
                     }>
                       {review.status}
                     </Badge>

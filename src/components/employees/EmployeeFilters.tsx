@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
+import { useDepartments } from "@/hooks/useDataManager";
 
 interface EmployeeFiltersProps {
   searchTerm: string;
@@ -25,6 +26,8 @@ const EmployeeFilters = ({
   viewMode,
   onViewModeChange
 }: EmployeeFiltersProps) => {
+  const { data: departmentData } = useDepartments();
+
   return (
     <div className="space-y-4">
       {/* Header with Add Button */}
@@ -61,13 +64,11 @@ const EmployeeFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Departments</SelectItem>
-            <SelectItem value="Engineering">Engineering</SelectItem>
-            <SelectItem value="Product">Product</SelectItem>
-            <SelectItem value="Design">Design</SelectItem>
-            <SelectItem value="Human Resources">Human Resources</SelectItem>
-            <SelectItem value="Sales">Sales</SelectItem>
-            <SelectItem value="Analytics">Analytics</SelectItem>
-            <SelectItem value="Marketing">Marketing</SelectItem>
+            {departmentData?.departments.map((dept) => (
+              <SelectItem key={dept.id} value={dept.name}>
+                {dept.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
