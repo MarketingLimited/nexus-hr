@@ -16,15 +16,17 @@ import Documents from "./pages/Documents";
 import Settings from "./pages/Settings";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import NotFound from "./pages/NotFound";
+import { ConfigurationProvider } from "./hooks/useConfiguration";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+      <ConfigurationProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/employees" element={<Employees />} />
@@ -43,6 +45,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      </ConfigurationProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
