@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dataService } from '../services/dataService';
+import { memoryOptimizer, debounce } from '@/utils/memoryOptimization';
+import { searchIndexService } from '@/services/searchIndexService';
 import {
   EmployeeData,
   DepartmentData,
@@ -40,6 +42,18 @@ export function useDataManager<T>(
   });
 
   const loadData = useCallback(async () => {
+    // Check memory cache first
+    const cached = memoryOptimizer.get<T>(dataType);
+    if (cached) {
+      setState({
+        data: cached,
+        loading: false,
+        error: null,
+        lastUpdated: new Date(),
+      });
+      return;
+    }
+
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -48,6 +62,13 @@ export function useDataManager<T>(
       switch (dataType) {
         case 'employees':
           data = await dataService.loadEmployees() as T;
+          // Create search index for employees
+          if (data && typeof data === 'object' && 'employees' in data) {
+            searchIndexService.createIndex('employees', (data as any).employees, [
+              'personalInfo.firstName', 'personalInfo.lastName', 'personalInfo.email', 
+              'employmentInfo.position', 'employmentInfo.department'
+            ]);
+          }
           break;
         case 'departments':
           data = await dataService.loadDepartments() as T;
@@ -89,6 +110,9 @@ export function useDataManager<T>(
         error: null,
         lastUpdated: new Date(),
       });
+      
+      // Cache the result
+      memoryOptimizer.set(dataType, data);
     } catch (error) {
       setState(prev => ({
         ...prev,
@@ -100,8 +124,15 @@ export function useDataManager<T>(
 
   const refreshData = useCallback(() => {
     dataService.clearCacheKey(dataType);
+    memoryOptimizer.delete(dataType);
     return loadData();
   }, [dataType, loadData]);
+
+  // Debounced refresh to prevent excessive API calls
+  const debouncedRefresh = useCallback(
+    debounce(refreshData, 300),
+    [refreshData]
+  );
 
   const updateData = useCallback((newData: T) => {
     setState(prev => ({
@@ -109,7 +140,18 @@ export function useDataManager<T>(
       data: newData,
       lastUpdated: new Date(),
     }));
-  }, []);
+    
+    // Update cache
+    memoryOptimizer.set(dataType, newData);
+    
+    // Update search index if it's employee data
+    if (dataType === 'employees' && newData && typeof newData === 'object' && 'employees' in newData) {
+      searchIndexService.updateIndex('employees', (newData as any).employees, [
+        'personalInfo.firstName', 'personalInfo.lastName', 'personalInfo.email', 
+        'employmentInfo.position', 'employmentInfo.department'
+      ]);
+    }
+  }, [dataType]);
 
   // Check if data is stale
   const isStale = useCallback(() => {
@@ -127,7 +169,7 @@ export function useDataManager<T>(
   return {
     ...state,
     loadData,
-    refreshData,
+    refreshData: debouncedRefresh,
     updateData,
     isStale: isStale(),
   };
