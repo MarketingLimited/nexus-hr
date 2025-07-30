@@ -17,7 +17,7 @@ const employeeIds = mockEmployees.map(emp => emp.id)
 const departmentIds = mockDepartments.map(dept => dept.id)
 const workflows = generateOnboardingWorkflows(departmentIds)
 const tasks = generateOnboardingTasks(50)
-const sessions = generateOnboardingSessions(employeeIds, 30)
+const sessions = generateOnboardingSessions(employeeIds, workflows.map(w => w.id))
 
 export const onboardingHandlers = [
   // Get onboarding workflows
