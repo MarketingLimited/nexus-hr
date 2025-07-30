@@ -4,6 +4,7 @@ import StatsCard from "@/components/dashboard/StatsCard";
 import ModuleCard from "@/components/dashboard/ModuleCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import { useDashboardAnalytics } from "@/hooks/useDashboardAnalytics";
 import { 
   Users, 
   Calendar, 
@@ -17,6 +18,24 @@ import {
 } from "lucide-react";
 
 const Index = () => {
+  const { dashboardStats, moduleStats, loading, error } = useDashboardAnalytics();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-dashboard flex items-center justify-center">
+        <div className="text-lg text-muted-foreground">Loading dashboard data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-dashboard flex items-center justify-center">
+        <div className="text-lg text-destructive">Error loading dashboard: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-dashboard">
       <div className="flex h-screen">
@@ -39,135 +58,143 @@ const Index = () => {
 
             {/* Stats cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatsCard
-                title="Total Employees"
-                value="247"
-                change="+12%"
-                changeType="positive"
-                icon={Users}
-                color="employees"
-              />
-              <StatsCard
-                title="Pending Leave Requests"
-                value="18"
-                change="+3"
-                changeType="neutral"
-                icon={Calendar}
-                color="leaves"
-              />
-              <StatsCard
-                title="This Month's Payroll"
-                value="$284K"
-                change="+2.1%"
-                changeType="positive"
-                icon={DollarSign}
-                color="payroll"
-              />
-              <StatsCard
-                title="Performance Reviews"
-                value="89%"
-                change="+5.2%"
-                changeType="positive"
-                icon={TrendingUp}
-                color="performance"
-              />
+              {dashboardStats && (
+                <>
+                  <StatsCard
+                    title="Total Employees"
+                    value={dashboardStats.totalEmployees.value.toString()}
+                    change={dashboardStats.totalEmployees.change}
+                    changeType={dashboardStats.totalEmployees.changeType}
+                    icon={Users}
+                    color="employees"
+                  />
+                  <StatsCard
+                    title="Pending Leave Requests"
+                    value={dashboardStats.pendingLeaveRequests.value.toString()}
+                    change={dashboardStats.pendingLeaveRequests.change}
+                    changeType={dashboardStats.pendingLeaveRequests.changeType}
+                    icon={Calendar}
+                    color="leaves"
+                  />
+                  <StatsCard
+                    title="This Month's Payroll"
+                    value={dashboardStats.monthlyPayroll.value}
+                    change={dashboardStats.monthlyPayroll.change}
+                    changeType={dashboardStats.monthlyPayroll.changeType}
+                    icon={DollarSign}
+                    color="payroll"
+                  />
+                  <StatsCard
+                    title="Performance Reviews"
+                    value={dashboardStats.performanceReviews.value}
+                    change={dashboardStats.performanceReviews.change}
+                    changeType={dashboardStats.performanceReviews.changeType}
+                    icon={TrendingUp}
+                    color="performance"
+                  />
+                </>
+              )}
             </div>
 
             {/* Module cards */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-              <ModuleCard
-                title="Employee Management"
-                description="Manage employee profiles and data"
-                icon={Users}
-                color="employees"
-                stats={[
-                  { label: "Active Employees", value: "247", trend: "up" },
-                  { label: "New This Month", value: "12", trend: "up" }
-                ]}
-                actions={[
-                  { label: "View All", href: "#employees" },
-                  { label: "Add Employee", href: "#employees/new" }
-                ]}
-                notifications={3}
-              />
+              {moduleStats && (
+                <>
+                  <ModuleCard
+                    title="Employee Management"
+                    description="Manage employee profiles and data"
+                    icon={Users}
+                    color="employees"
+                    stats={[
+                      { label: "Active Employees", value: moduleStats.employees.active.toString(), trend: "up" },
+                      { label: "New This Month", value: moduleStats.employees.newThisMonth.toString(), trend: "up" }
+                    ]}
+                    actions={[
+                      { label: "View All", href: "#employees" },
+                      { label: "Add Employee", href: "#employees/new" }
+                    ]}
+                    notifications={moduleStats.employees.notifications}
+                  />
 
-              <ModuleCard
-                title="Leave Management"
-                description="Handle leave requests and balances"
-                icon={Calendar}
-                color="leaves"
-                stats={[
-                  { label: "Pending Requests", value: "18", trend: "stable" },
-                  { label: "Approved Today", value: "5", trend: "up" }
-                ]}
-                actions={[
-                  { label: "Review Requests", href: "#leaves" },
-                  { label: "Leave Calendar", href: "#leaves/calendar" }
-                ]}
-                notifications={18}
-              />
+                  <ModuleCard
+                    title="Leave Management"
+                    description="Handle leave requests and balances"
+                    icon={Calendar}
+                    color="leaves"
+                    stats={[
+                      { label: "Pending Requests", value: moduleStats.leave.pendingRequests.toString(), trend: "stable" },
+                      { label: "Approved Today", value: moduleStats.leave.approvedToday.toString(), trend: "up" }
+                    ]}
+                    actions={[
+                      { label: "Review Requests", href: "#leaves" },
+                      { label: "Leave Calendar", href: "#leaves/calendar" }
+                    ]}
+                    notifications={moduleStats.leave.notifications}
+                  />
 
-              <ModuleCard
-                title="Payroll System"
-                description="Process payroll and manage salaries"
-                icon={DollarSign}
-                color="payroll"
-                stats={[
-                  { label: "Next Payroll", value: "5 days", trend: "stable" },
-                  { label: "Total Amount", value: "$284K", trend: "up" }
-                ]}
-                actions={[
-                  { label: "Run Payroll", href: "#payroll" },
-                  { label: "View Reports", href: "#payroll/reports" }
-                ]}
-              />
+                  <ModuleCard
+                    title="Payroll System"
+                    description="Process payroll and manage salaries"
+                    icon={DollarSign}
+                    color="payroll"
+                    stats={[
+                      { label: "Next Payroll", value: `${moduleStats.payroll.nextPayrollDays} days`, trend: "stable" },
+                      { label: "Total Amount", value: moduleStats.payroll.totalAmount, trend: "up" }
+                    ]}
+                    actions={[
+                      { label: "Run Payroll", href: "#payroll" },
+                      { label: "View Reports", href: "#payroll/reports" }
+                    ]}
+                  />
 
-              <ModuleCard
-                title="Performance Reviews"
-                description="Track and manage employee performance"
-                icon={Target}
-                color="performance"
-                stats={[
-                  { label: "Completed", value: "89%", trend: "up" },
-                  { label: "Due This Week", value: "12", trend: "stable" }
-                ]}
-                actions={[
-                  { label: "Review Dashboard", href: "#performance" },
-                  { label: "Set Goals", href: "#performance/goals" }
-                ]}
-                notifications={5}
-              />
+                  <ModuleCard
+                    title="Performance Reviews"
+                    description="Track and manage employee performance"
+                    icon={Target}
+                    color="performance"
+                    stats={[
+                      { label: "Completed", value: `${moduleStats.performance.completionRate}%`, trend: "up" },
+                      { label: "Due This Week", value: moduleStats.performance.dueThisWeek.toString(), trend: "stable" }
+                    ]}
+                    actions={[
+                      { label: "Review Dashboard", href: "#performance" },
+                      { label: "Set Goals", href: "#performance/goals" }
+                    ]}
+                    notifications={moduleStats.performance.notifications}
+                  />
 
-              <ModuleCard
-                title="Onboarding"
-                description="Streamline new employee onboarding"
-                icon={UserPlus}
-                color="onboarding"
-                stats={[
-                  { label: "Active Processes", value: "8", trend: "up" },
-                  { label: "Completion Rate", value: "92%", trend: "up" }
-                ]}
-                actions={[
-                  { label: "View Progress", href: "#onboarding" },
-                  { label: "Start Process", href: "#onboarding/new" }
-                ]}
-                notifications={2}
-              />
+                  <ModuleCard
+                    title="Onboarding"
+                    description="Streamline new employee onboarding"
+                    icon={UserPlus}
+                    color="onboarding"
+                    stats={[
+                      { label: "Active Processes", value: moduleStats.onboarding.activeProcesses.toString(), trend: "up" },
+                      { label: "Completion Rate", value: `${moduleStats.onboarding.completionRate}%`, trend: "up" }
+                    ]}
+                    actions={[
+                      { label: "View Progress", href: "#onboarding" },
+                      { label: "Start Process", href: "#onboarding/new" }
+                    ]}
+                    notifications={moduleStats.onboarding.notifications}
+                  />
 
-              <ModuleCard
-                title="Attendance Tracking"
-                description="Monitor employee attendance"
-                icon={Clock}
-                color="attendance"
-                stats={[
-                  { label: "Present Today", value: "231", trend: "stable" },
-                  { label: "Late Arrivals", value: "3", trend: "down" }
-                ]}
-                actions={[
-                  { label: "View Reports", href: "#attendance" },
-                  { label: "Clock In/Out", href: "#attendance/clock" }
-                ]}
-              />
+                  <ModuleCard
+                    title="Attendance Tracking"
+                    description="Monitor employee attendance"
+                    icon={Clock}
+                    color="attendance"
+                    stats={[
+                      { label: "Present Today", value: moduleStats.attendance.presentToday.toString(), trend: "stable" },
+                      { label: "Late Arrivals", value: moduleStats.attendance.lateArrivals.toString(), trend: "down" }
+                    ]}
+                    actions={[
+                      { label: "View Reports", href: "#attendance" },
+                      { label: "Clock In/Out", href: "#attendance/clock" }
+                    ]}
+                  />
+                </>
+              )}
             </div>
 
             {/* Bottom section with quick actions and recent activity */}
