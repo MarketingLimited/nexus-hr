@@ -31,16 +31,21 @@ export const authHandlers = [
     // For demo purposes, we'll accept any password for existing users
     
     // Create session
-    const session: UserSession = {
+    const session: Session = {
       id: crypto.randomUUID(),
       userId: user.id,
       token: `token_${crypto.randomUUID()}`,
       refreshToken: `refresh_${crypto.randomUUID()}`,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+      deviceInfo: {
+        userAgent: 'Mock Browser',
+        ip: '127.0.0.1',
+        location: 'Mock Location',
+        device: 'Desktop'
+      },
+      isActive: true,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       createdAt: new Date().toISOString(),
-      lastActivity: new Date().toISOString(),
-      ipAddress: '127.0.0.1',
-      userAgent: 'Mock Browser'
+      lastAccessedAt: new Date().toISOString()
     }
 
     userSessions.push(session)
@@ -102,7 +107,7 @@ export const authHandlers = [
       token: newToken,
       refreshToken: newRefreshToken,
       expiresAt: newExpiresAt,
-      lastActivity: new Date().toISOString()
+      lastAccessedAt: new Date().toISOString()
     }
 
     return HttpResponse.json({
@@ -141,7 +146,7 @@ export const authHandlers = [
     const sessionIndex = userSessions.findIndex(s => s.id === session.id)
     userSessions[sessionIndex] = {
       ...session,
-      lastActivity: new Date().toISOString()
+      lastAccessedAt: new Date().toISOString()
     }
 
     return HttpResponse.json({ data: user })
@@ -157,17 +162,17 @@ export const authHandlers = [
     let filteredUsers = users
 
     if (role) {
-      filteredUsers = filteredUsers.filter(u => u.role === role)
+      filteredUsers = filteredUsers.filter(u => u.role.name === role)
     }
 
     if (status) {
-      filteredUsers = filteredUsers.filter(u => u.status === status)
+      filteredUsers = filteredUsers.filter(u => u.isActive === (status === 'active'))
     }
 
     if (search) {
       filteredUsers = filteredUsers.filter(u => 
         u.email.toLowerCase().includes(search.toLowerCase()) ||
-        u.employeeId?.toLowerCase().includes(search.toLowerCase())
+        u.username?.toLowerCase().includes(search.toLowerCase())
       )
     }
 
@@ -242,7 +247,7 @@ export const authHandlers = [
     }
 
     // In a real app, you'd verify the current password
-    // For demo purposes, we'll just update the password hash
+    // For demo purposes, we'll just update the user
     const userIndex = users.findIndex(u => u.id === session.userId)
     if (userIndex === -1) {
       return HttpResponse.json({ error: 'User not found' }, { status: 404 })
@@ -250,7 +255,7 @@ export const authHandlers = [
 
     users[userIndex] = {
       ...users[userIndex],
-      passwordHash: `hashed_${newPassword}`, // Mock hash
+      passwordChangedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
 
