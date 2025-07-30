@@ -1,8 +1,8 @@
 import { http, delay } from 'msw'
 import { 
-  generateGoals,
-  generatePerformanceReviews,
-  generateFeedback,
+  generateGoals, 
+  generatePerformanceReviews, 
+  generateFeedback, 
   generatePerformanceMetrics,
   Goal,
   PerformanceReview,
@@ -15,7 +15,7 @@ import { mockEmployees } from '../data/employees'
 const employeeIds = mockEmployees.map(emp => emp.id)
 const goals = generateGoals(employeeIds, 100)
 const performanceReviews = generatePerformanceReviews(employeeIds, 50)
-const feedback = generateFeedback(employeeIds, 150)
+const feedback = generateFeedback(employeeIds, 200)
 const performanceMetrics = generatePerformanceMetrics(employeeIds)
 
 export const performanceHandlers = [
@@ -27,6 +27,7 @@ export const performanceHandlers = [
     const employeeId = url.searchParams.get('employeeId')
     const status = url.searchParams.get('status')
     const category = url.searchParams.get('category')
+    const priority = url.searchParams.get('priority')
     
     let filtered = [...goals]
     
@@ -40,6 +41,10 @@ export const performanceHandlers = [
     
     if (category) {
       filtered = filtered.filter(goal => goal.category === category)
+    }
+    
+    if (priority) {
+      filtered = filtered.filter(goal => goal.priority === priority)
     }
     
     return Response.json({
@@ -80,10 +85,8 @@ export const performanceHandlers = [
       targetDate: data.targetDate!,
       status: 'not_started',
       progress: 0,
-      measurableMetrics: data.measurableMetrics || {},
-      keyResults: data.keyResults || [],
-      milestones: data.milestones || [],
-      assignedBy: data.assignedBy!,
+      metrics: data.metrics || [],
+      createdBy: data.createdBy!,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -147,6 +150,7 @@ export const performanceHandlers = [
     const reviewerId = url.searchParams.get('reviewerId')
     const status = url.searchParams.get('status')
     const period = url.searchParams.get('period')
+    const type = url.searchParams.get('type')
     
     let filtered = [...performanceReviews]
     
@@ -163,7 +167,11 @@ export const performanceHandlers = [
     }
     
     if (period) {
-      filtered = filtered.filter(review => review.reviewPeriod === period)
+      filtered = filtered.filter(review => review.period === period)
+    }
+    
+    if (type) {
+      filtered = filtered.filter(review => review.type === type)
     }
     
     return Response.json({
@@ -198,21 +206,19 @@ export const performanceHandlers = [
       id: `review-${performanceReviews.length + 1}`,
       employeeId: data.employeeId!,
       reviewerId: data.reviewerId!,
-      reviewPeriod: data.reviewPeriod || 'annual',
-      startDate: data.startDate!,
-      endDate: data.endDate!,
-      status: 'draft',
-      overallRating: data.overallRating || 3,
-      ratings: data.ratings || {},
-      strengths: data.strengths || [],
-      areasForImprovement: data.areasForImprovement || [],
-      achievements: data.achievements || [],
+      period: data.period!,
+      type: data.type || 'annual',
+      status: 'pending',
+      overallRating: data.overallRating || 0,
+      competencies: data.competencies || [],
       goals: data.goals || [],
-      developmentPlan: data.developmentPlan || [],
-      comments: data.comments || '',
-      employeeComments: data.employeeComments,
-      submittedAt: data.submittedAt,
-      acknowledgedAt: data.acknowledgedAt,
+      feedback: data.feedback || {
+        strengths: [],
+        improvements: [],
+        developmentPlan: ''
+      },
+      selfAssessment: data.selfAssessment || null,
+      reviewDate: data.reviewDate!,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -242,10 +248,6 @@ export const performanceHandlers = [
       updatedAt: new Date().toISOString(),
     }
     
-    if (data.status === 'submitted' && !updatedReview.submittedAt) {
-      updatedReview.submittedAt = new Date().toISOString()
-    }
-    
     performanceReviews[reviewIndex] = updatedReview
     
     return Response.json({
@@ -254,31 +256,98 @@ export const performanceHandlers = [
     })
   }),
 
+  // Submit performance review
+  http.put('/api/performance/reviews/:id/submit', async ({ params }) => {
+    await delay(Math.random() * 400 + 100)
+    
+    const reviewIndex = performanceReviews.findIndex(r => r.id === params.id)
+    
+    if (reviewIndex === -1) {
+      return new Response('Performance review not found', { status: 404 })
+    }
+    
+    const updatedReview = {
+      ...performanceReviews[reviewIndex],
+      status: 'completed' as const,
+      updatedAt: new Date().toISOString(),
+    }
+    
+    performanceReviews[reviewIndex] = updatedReview
+    
+    return Response.json({
+      data: updatedReview,
+      message: 'Performance review submitted successfully'
+    })
+  }),
+
+  // Delete performance review
+  http.delete('/api/performance/reviews/:id', async ({ params }) => {
+    await delay(Math.random() * 300 + 100)
+    
+    const reviewIndex = performanceReviews.findIndex(r => r.id === params.id)
+    
+    if (reviewIndex === -1) {
+      return new Response('Performance review not found', { status: 404 })
+    }
+    
+    performanceReviews.splice(reviewIndex, 1)
+    
+    return Response.json({
+      message: 'Performance review deleted successfully'
+    })
+  }),
+
   // Get feedback
   http.get('/api/performance/feedback', async ({ request }) => {
     await delay(Math.random() * 300 + 100)
     
     const url = new URL(request.url)
-    const recipientId = url.searchParams.get('recipientId')
-    const providerId = url.searchParams.get('providerId')
+    const fromEmployeeId = url.searchParams.get('fromEmployeeId')
+    const toEmployeeId = url.searchParams.get('toEmployeeId')
     const type = url.searchParams.get('type')
+    const category = url.searchParams.get('category')
+    const status = url.searchParams.get('status')
     
     let filtered = [...feedback]
     
-    if (recipientId) {
-      filtered = filtered.filter(fb => fb.recipientId === recipientId)
+    if (fromEmployeeId) {
+      filtered = filtered.filter(f => f.fromEmployeeId === fromEmployeeId)
     }
     
-    if (providerId) {
-      filtered = filtered.filter(fb => fb.providerId === providerId)
+    if (toEmployeeId) {
+      filtered = filtered.filter(f => f.toEmployeeId === toEmployeeId)
     }
     
     if (type) {
-      filtered = filtered.filter(fb => fb.type === type)
+      filtered = filtered.filter(f => f.type === type)
+    }
+    
+    if (category) {
+      filtered = filtered.filter(f => f.category === category)
+    }
+    
+    if (status) {
+      filtered = filtered.filter(f => f.status === status)
     }
     
     return Response.json({
       data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+      message: 'Feedback retrieved successfully'
+    })
+  }),
+
+  // Get feedback by ID
+  http.get('/api/performance/feedback/:id', async ({ params }) => {
+    await delay(Math.random() * 200 + 50)
+    
+    const feedbackItem = feedback.find(f => f.id === params.id)
+    
+    if (!feedbackItem) {
+      return new Response('Feedback not found', { status: 404 })
+    }
+    
+    return Response.json({
+      data: feedbackItem,
       message: 'Feedback retrieved successfully'
     })
   }),
@@ -291,16 +360,14 @@ export const performanceHandlers = [
     
     const newFeedback: Feedback = {
       id: `feedback-${feedback.length + 1}`,
-      recipientId: data.recipientId!,
-      providerId: data.providerId!,
-      type: data.type || 'general',
+      fromEmployeeId: data.fromEmployeeId!,
+      toEmployeeId: data.toEmployeeId!,
+      type: data.type || 'peer',
       category: data.category || 'performance',
-      subject: data.subject || '',
-      message: data.message!,
-      rating: data.rating,
-      isAnonymous: data.isAnonymous || false,
-      isRead: false,
-      tags: data.tags || [],
+      rating: data.rating || 3,
+      comments: data.comments || '',
+      anonymous: data.anonymous !== undefined ? data.anonymous : false,
+      status: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -318,7 +385,7 @@ export const performanceHandlers = [
     await delay(Math.random() * 400 + 100)
     
     const data = await request.json() as Partial<Feedback>
-    const feedbackIndex = feedback.findIndex(fb => fb.id === params.id)
+    const feedbackIndex = feedback.findIndex(f => f.id === params.id)
     
     if (feedbackIndex === -1) {
       return new Response('Feedback not found', { status: 404 })
@@ -338,13 +405,54 @@ export const performanceHandlers = [
     })
   }),
 
+  // Submit feedback
+  http.put('/api/performance/feedback/:id/submit', async ({ params }) => {
+    await delay(Math.random() * 400 + 100)
+    
+    const feedbackIndex = feedback.findIndex(f => f.id === params.id)
+    
+    if (feedbackIndex === -1) {
+      return new Response('Feedback not found', { status: 404 })
+    }
+    
+    const updatedFeedback = {
+      ...feedback[feedbackIndex],
+      status: 'submitted' as const,
+      updatedAt: new Date().toISOString(),
+    }
+    
+    feedback[feedbackIndex] = updatedFeedback
+    
+    return Response.json({
+      data: updatedFeedback,
+      message: 'Feedback submitted successfully'
+    })
+  }),
+
+  // Delete feedback
+  http.delete('/api/performance/feedback/:id', async ({ params }) => {
+    await delay(Math.random() * 300 + 100)
+    
+    const feedbackIndex = feedback.findIndex(f => f.id === params.id)
+    
+    if (feedbackIndex === -1) {
+      return new Response('Feedback not found', { status: 404 })
+    }
+    
+    feedback.splice(feedbackIndex, 1)
+    
+    return Response.json({
+      message: 'Feedback deleted successfully'
+    })
+  }),
+
   // Get performance metrics
   http.get('/api/performance/metrics', async ({ request }) => {
     await delay(Math.random() * 300 + 100)
     
     const url = new URL(request.url)
     const employeeId = url.searchParams.get('employeeId')
-    const metricType = url.searchParams.get('metricType')
+    const period = url.searchParams.get('period')
     
     let filtered = [...performanceMetrics]
     
@@ -352,90 +460,92 @@ export const performanceHandlers = [
       filtered = filtered.filter(metric => metric.employeeId === employeeId)
     }
     
-    if (metricType) {
-      filtered = filtered.filter(metric => metric.metricType === metricType)
+    if (period) {
+      filtered = filtered.filter(metric => metric.period === period)
     }
     
     return Response.json({
-      data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+      data: filtered.sort((a, b) => new Date(b.period).getTime() - new Date(a.period).getTime()),
       message: 'Performance metrics retrieved successfully'
     })
   }),
 
-  // Create performance metric
-  http.post('/api/performance/metrics', async ({ request }) => {
-    await delay(Math.random() * 400 + 100)
+  // Get performance metrics by ID
+  http.get('/api/performance/metrics/:id', async ({ params }) => {
+    await delay(Math.random() * 200 + 50)
     
-    const data = await request.json() as Partial<PerformanceMetric>
+    const metric = performanceMetrics.find(m => m.id === params.id)
     
-    const newMetric: PerformanceMetric = {
-      id: `metric-${performanceMetrics.length + 1}`,
-      employeeId: data.employeeId!,
-      metricType: data.metricType!,
-      period: data.period || 'monthly',
-      value: data.value!,
-      target: data.target,
-      unit: data.unit || '',
-      description: data.description || '',
-      recordedBy: data.recordedBy!,
-      recordedAt: data.recordedAt || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    if (!metric) {
+      return new Response('Performance metric not found', { status: 404 })
     }
     
-    performanceMetrics.push(newMetric)
-    
     return Response.json({
-      data: newMetric,
-      message: 'Performance metric created successfully'
+      data: metric,
+      message: 'Performance metric retrieved successfully'
     })
   }),
 
   // Get performance analytics
   http.get('/api/performance/analytics', async ({ request }) => {
-    await delay(Math.random() * 400 + 100)
+    await delay(Math.random() * 400 + 200)
     
     const url = new URL(request.url)
     const employeeId = url.searchParams.get('employeeId')
-    const startDate = url.searchParams.get('startDate')
-    const endDate = url.searchParams.get('endDate')
+    const departmentId = url.searchParams.get('departmentId')
+    const period = url.searchParams.get('period')
     
-    // Calculate analytics based on filtered data
     let filteredGoals = [...goals]
     let filteredReviews = [...performanceReviews]
+    let filteredFeedback = [...feedback]
     let filteredMetrics = [...performanceMetrics]
     
     if (employeeId) {
       filteredGoals = filteredGoals.filter(g => g.employeeId === employeeId)
       filteredReviews = filteredReviews.filter(r => r.employeeId === employeeId)
+      filteredFeedback = filteredFeedback.filter(f => f.toEmployeeId === employeeId)
       filteredMetrics = filteredMetrics.filter(m => m.employeeId === employeeId)
     }
     
+    // Calculate analytics
     const analytics = {
-      goalCompletion: {
+      goals: {
         total: filteredGoals.length,
         completed: filteredGoals.filter(g => g.status === 'completed').length,
         inProgress: filteredGoals.filter(g => g.status === 'in_progress').length,
         overdue: filteredGoals.filter(g => g.status === 'overdue').length,
-        completionRate: filteredGoals.length > 0 
-          ? (filteredGoals.filter(g => g.status === 'completed').length / filteredGoals.length) * 100 
+        averageProgress: filteredGoals.length > 0 
+          ? filteredGoals.reduce((sum, g) => sum + g.progress, 0) / filteredGoals.length 
           : 0,
       },
-      reviewMetrics: {
+      reviews: {
         total: filteredReviews.length,
         completed: filteredReviews.filter(r => r.status === 'completed').length,
-        pending: filteredReviews.filter(r => r.status === 'draft' || r.status === 'in_progress').length,
+        pending: filteredReviews.filter(r => r.status === 'pending').length,
+        inProgress: filteredReviews.filter(r => r.status === 'in_progress').length,
         averageRating: filteredReviews.length > 0 
           ? filteredReviews.reduce((sum, r) => sum + r.overallRating, 0) / filteredReviews.length 
           : 0,
       },
-      performanceTrends: {
-        monthlyProgress: calculateMonthlyProgress(filteredGoals),
-        ratingTrends: calculateRatingTrends(filteredReviews),
-        metricTrends: calculateMetricTrends(filteredMetrics),
+      feedback: {
+        total: filteredFeedback.length,
+        submitted: filteredFeedback.filter(f => f.status === 'submitted').length,
+        acknowledged: filteredFeedback.filter(f => f.status === 'acknowledged').length,
+        averageRating: filteredFeedback.length > 0 
+          ? filteredFeedback.reduce((sum, f) => sum + f.rating, 0) / filteredFeedback.length 
+          : 0,
       },
-      topPerformers: calculateTopPerformers(filteredReviews),
-      improvementAreas: calculateImprovementAreas(filteredReviews),
+      trends: {
+        goalCompletionRate: filteredGoals.length > 0 
+          ? (filteredGoals.filter(g => g.status === 'completed').length / filteredGoals.length) * 100 
+          : 0,
+        reviewCompletionRate: filteredReviews.length > 0 
+          ? (filteredReviews.filter(r => r.status === 'completed').length / filteredReviews.length) * 100 
+          : 0,
+        feedbackResponseRate: filteredFeedback.length > 0 
+          ? (filteredFeedback.filter(f => f.status !== 'draft').length / filteredFeedback.length) * 100 
+          : 0,
+      }
     }
     
     return Response.json({
@@ -444,88 +554,3 @@ export const performanceHandlers = [
     })
   }),
 ]
-
-// Helper functions for analytics calculations
-function calculateMonthlyProgress(goals: Goal[]) {
-  const monthlyData = goals.reduce((acc, goal) => {
-    const month = new Date(goal.createdAt).toISOString().slice(0, 7)
-    if (!acc[month]) {
-      acc[month] = { total: 0, completed: 0 }
-    }
-    acc[month].total++
-    if (goal.status === 'completed') {
-      acc[month].completed++
-    }
-    return acc
-  }, {} as Record<string, { total: number; completed: number }>)
-  
-  return Object.entries(monthlyData).map(([month, data]) => ({
-    month,
-    progress: data.total > 0 ? (data.completed / data.total) * 100 : 0,
-    total: data.total,
-    completed: data.completed,
-  }))
-}
-
-function calculateRatingTrends(reviews: PerformanceReview[]) {
-  return reviews
-    .filter(r => r.status === 'completed')
-    .map(r => ({
-      period: r.reviewPeriod,
-      rating: r.overallRating,
-      date: r.endDate,
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-}
-
-function calculateMetricTrends(metrics: PerformanceMetric[]) {
-  const metricTypes = [...new Set(metrics.map(m => m.metricType))]
-  
-  return metricTypes.map(type => ({
-    metricType: type,
-    trend: metrics
-      .filter(m => m.metricType === type)
-      .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime())
-      .map(m => ({
-        value: m.value,
-        target: m.target,
-        date: m.recordedAt,
-      })),
-  }))
-}
-
-function calculateTopPerformers(reviews: PerformanceReview[]) {
-  const employeeRatings = reviews
-    .filter(r => r.status === 'completed')
-    .reduce((acc, review) => {
-      if (!acc[review.employeeId]) {
-        acc[review.employeeId] = { totalRating: 0, reviewCount: 0 }
-      }
-      acc[review.employeeId].totalRating += review.overallRating
-      acc[review.employeeId].reviewCount++
-      return acc
-    }, {} as Record<string, { totalRating: number; reviewCount: number }>)
-  
-  return Object.entries(employeeRatings)
-    .map(([employeeId, data]) => ({
-      employeeId,
-      averageRating: data.totalRating / data.reviewCount,
-      reviewCount: data.reviewCount,
-    }))
-    .sort((a, b) => b.averageRating - a.averageRating)
-    .slice(0, 10)
-}
-
-function calculateImprovementAreas(reviews: PerformanceReview[]) {
-  const allImprovements = reviews
-    .flatMap(r => r.areasForImprovement)
-    .reduce((acc, area) => {
-      acc[area] = (acc[area] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-  
-  return Object.entries(allImprovements)
-    .map(([area, count]) => ({ area, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
-}

@@ -1,13 +1,13 @@
 import { http, delay } from 'msw'
 import { 
-  generateOnboardingTasks,
-  generateOnboardingWorkflows,
+  generateOnboardingWorkflows, 
+  generateOnboardingTasks, 
   generateOnboardingSessions,
-  generateOnboardingChecklists,
-  OnboardingTask,
   OnboardingWorkflow,
+  OnboardingTask,
   OnboardingSession,
-  OnboardingChecklist
+  OnboardingTaskProgress,
+  OnboardingFeedback
 } from '../data/onboarding'
 import { mockEmployees } from '../data/employees'
 import { mockDepartments } from '../data/departments'
@@ -15,11 +15,9 @@ import { mockDepartments } from '../data/departments'
 // Generate mock data
 const employeeIds = mockEmployees.map(emp => emp.id)
 const departmentIds = mockDepartments.map(dept => dept.id)
-
-const tasks = generateOnboardingTasks(20)
 const workflows = generateOnboardingWorkflows(departmentIds)
-const sessions = generateOnboardingSessions(employeeIds, workflows.map(w => w.id), 30)
-const checklists = generateOnboardingChecklists(departmentIds)
+const tasks = generateOnboardingTasks(50)
+const sessions = generateOnboardingSessions(employeeIds, 30)
 
 export const onboardingHandlers = [
   // Get onboarding workflows
@@ -28,7 +26,7 @@ export const onboardingHandlers = [
     
     const url = new URL(request.url)
     const departmentId = url.searchParams.get('departmentId')
-    const status = url.searchParams.get('status')
+    const isActive = url.searchParams.get('isActive')
     
     let filtered = [...workflows]
     
@@ -36,8 +34,9 @@ export const onboardingHandlers = [
       filtered = filtered.filter(workflow => workflow.departmentId === departmentId)
     }
     
-    if (status) {
-      filtered = filtered.filter(workflow => workflow.status === status)
+    if (isActive !== null) {
+      const activeStatus = isActive === 'true'
+      filtered = filtered.filter(workflow => workflow.isActive === activeStatus)
     }
     
     return Response.json({
@@ -62,7 +61,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Create workflow
+  // Create onboarding workflow
   http.post('/api/onboarding/workflows', async ({ request }) => {
     await delay(Math.random() * 400 + 100)
     
@@ -73,10 +72,9 @@ export const onboardingHandlers = [
       name: data.name!,
       description: data.description || '',
       departmentId: data.departmentId!,
-      durationDays: data.durationDays || 30,
+      duration: data.duration || 30,
       tasks: data.tasks || [],
-      status: 'active',
-      version: 1,
+      isActive: data.isActive !== undefined ? data.isActive : true,
       createdBy: data.createdBy!,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -90,7 +88,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Update workflow
+  // Update onboarding workflow
   http.put('/api/onboarding/workflows/:id', async ({ params, request }) => {
     await delay(Math.random() * 400 + 100)
     
@@ -104,7 +102,6 @@ export const onboardingHandlers = [
     const updatedWorkflow = {
       ...workflows[workflowIndex],
       ...data,
-      version: workflows[workflowIndex].version + 1,
       updatedAt: new Date().toISOString(),
     }
     
@@ -116,7 +113,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Delete workflow
+  // Delete onboarding workflow
   http.delete('/api/onboarding/workflows/:id', async ({ params }) => {
     await delay(Math.random() * 300 + 100)
     
@@ -138,8 +135,9 @@ export const onboardingHandlers = [
     await delay(Math.random() * 300 + 100)
     
     const url = new URL(request.url)
+    const workflowId = url.searchParams.get('workflowId')
     const category = url.searchParams.get('category')
-    const status = url.searchParams.get('status')
+    const type = url.searchParams.get('type')
     
     let filtered = [...tasks]
     
@@ -147,12 +145,12 @@ export const onboardingHandlers = [
       filtered = filtered.filter(task => task.category === category)
     }
     
-    if (status) {
-      filtered = filtered.filter(task => task.status === status)
+    if (type) {
+      filtered = filtered.filter(task => task.type === type)
     }
     
     return Response.json({
-      data: filtered.sort((a, b) => a.order - b.order),
+      data: filtered.sort((a, b) => a.dueDate - b.dueDate),
       message: 'Onboarding tasks retrieved successfully'
     })
   }),
@@ -173,7 +171,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Create task
+  // Create onboarding task
   http.post('/api/onboarding/tasks', async ({ request }) => {
     await delay(Math.random() * 400 + 100)
     
@@ -183,19 +181,20 @@ export const onboardingHandlers = [
       id: `task-${tasks.length + 1}`,
       title: data.title!,
       description: data.description || '',
-      category: data.category || 'general',
-      type: data.type || 'manual',
-      estimatedDuration: data.estimatedDuration || 60,
-      order: data.order || tasks.length + 1,
-      isRequired: data.isRequired ?? true,
+      type: data.type || 'document',
+      category: data.category || 'hr',
+      dueDate: data.dueDate || 1,
+      priority: data.priority || 'medium',
+      assignedTo: data.assignedTo || 'employee',
       dependencies: data.dependencies || [],
-      assignedTo: data.assignedTo,
-      instructions: data.instructions || '',
-      resources: data.resources || [],
-      completionCriteria: data.completionCriteria || [],
-      status: 'active',
+      resources: data.resources || {
+        documents: [],
+        links: [],
+        contacts: []
+      },
+      estimatedHours: data.estimatedHours || 1,
+      isRequired: data.isRequired !== undefined ? data.isRequired : true,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }
     
     tasks.push(newTask)
@@ -206,7 +205,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Update task
+  // Update onboarding task
   http.put('/api/onboarding/tasks/:id', async ({ params, request }) => {
     await delay(Math.random() * 400 + 100)
     
@@ -220,7 +219,6 @@ export const onboardingHandlers = [
     const updatedTask = {
       ...tasks[taskIndex],
       ...data,
-      updatedAt: new Date().toISOString(),
     }
     
     tasks[taskIndex] = updatedTask
@@ -231,14 +229,32 @@ export const onboardingHandlers = [
     })
   }),
 
+  // Delete onboarding task
+  http.delete('/api/onboarding/tasks/:id', async ({ params }) => {
+    await delay(Math.random() * 300 + 100)
+    
+    const taskIndex = tasks.findIndex(t => t.id === params.id)
+    
+    if (taskIndex === -1) {
+      return new Response('Onboarding task not found', { status: 404 })
+    }
+    
+    tasks.splice(taskIndex, 1)
+    
+    return Response.json({
+      message: 'Onboarding task deleted successfully'
+    })
+  }),
+
   // Get onboarding sessions
   http.get('/api/onboarding/sessions', async ({ request }) => {
     await delay(Math.random() * 300 + 100)
     
     const url = new URL(request.url)
     const employeeId = url.searchParams.get('employeeId')
-    const status = url.searchParams.get('status')
     const workflowId = url.searchParams.get('workflowId')
+    const status = url.searchParams.get('status')
+    const assignedMentor = url.searchParams.get('assignedMentor')
     
     let filtered = [...sessions]
     
@@ -246,16 +262,20 @@ export const onboardingHandlers = [
       filtered = filtered.filter(session => session.employeeId === employeeId)
     }
     
-    if (status) {
-      filtered = filtered.filter(session => session.status === status)
-    }
-    
     if (workflowId) {
       filtered = filtered.filter(session => session.workflowId === workflowId)
     }
     
+    if (status) {
+      filtered = filtered.filter(session => session.status === status)
+    }
+    
+    if (assignedMentor) {
+      filtered = filtered.filter(session => session.assignedMentor === assignedMentor)
+    }
+    
     return Response.json({
-      data: filtered.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()),
+      data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
       message: 'Onboarding sessions retrieved successfully'
     })
   }),
@@ -276,7 +296,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Create session
+  // Create onboarding session
   http.post('/api/onboarding/sessions', async ({ request }) => {
     await delay(Math.random() * 400 + 100)
     
@@ -286,16 +306,15 @@ export const onboardingHandlers = [
       id: `session-${sessions.length + 1}`,
       employeeId: data.employeeId!,
       workflowId: data.workflowId!,
-      buddyId: data.buddyId,
-      managerId: data.managerId,
       startDate: data.startDate || new Date().toISOString(),
       expectedEndDate: data.expectedEndDate!,
-      actualEndDate: data.actualEndDate,
-      status: 'in_progress',
+      actualEndDate: null,
+      status: 'not_started',
       progress: 0,
-      taskProgress: [],
-      feedback: [],
-      notes: data.notes || '',
+      currentPhase: data.currentPhase || 'preparation',
+      assignedMentor: data.assignedMentor || null,
+      tasks: data.tasks || [],
+      feedback: data.feedback || [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -308,7 +327,7 @@ export const onboardingHandlers = [
     })
   }),
 
-  // Update session
+  // Update onboarding session
   http.put('/api/onboarding/sessions/:id', async ({ params, request }) => {
     await delay(Math.random() * 400 + 100)
     
@@ -325,10 +344,6 @@ export const onboardingHandlers = [
       updatedAt: new Date().toISOString(),
     }
     
-    if (data.status === 'completed' && !updatedSession.actualEndDate) {
-      updatedSession.actualEndDate = new Date().toISOString()
-    }
-    
     sessions[sessionIndex] = updatedSession
     
     return Response.json({
@@ -338,15 +353,10 @@ export const onboardingHandlers = [
   }),
 
   // Update task progress in session
-  http.put('/api/onboarding/sessions/:id/tasks/:taskId', async ({ params, request }) => {
-    await delay(Math.random() * 300 + 100)
+  http.put('/api/onboarding/sessions/:id/task-progress', async ({ params, request }) => {
+    await delay(Math.random() * 400 + 100)
     
-    const { status, notes, completedAt } = await request.json() as {
-      status: 'not_started' | 'in_progress' | 'completed' | 'skipped'
-      notes?: string
-      completedAt?: string
-    }
-    
+    const data = await request.json() as Partial<OnboardingTaskProgress>
     const sessionIndex = sessions.findIndex(s => s.id === params.id)
     
     if (sessionIndex === -1) {
@@ -354,52 +364,94 @@ export const onboardingHandlers = [
     }
     
     const session = sessions[sessionIndex]
-    const taskProgressIndex = session.taskProgress.findIndex(tp => tp.taskId === params.taskId)
+    const taskId = data.taskId
+    const taskIndex = session.tasks.findIndex(t => t.taskId === taskId)
     
-    if (taskProgressIndex === -1) {
-      // Create new task progress
-      session.taskProgress.push({
-        taskId: params.taskId!,
-        status,
+    if (taskIndex === -1) {
+      // Add new task progress
+      session.tasks.push({
+        taskId: taskId!,
+        status: data.status || 'in_progress',
         startedAt: new Date().toISOString(),
-        completedAt: status === 'completed' ? (completedAt || new Date().toISOString()) : undefined,
-        notes: notes || '',
+        completedAt: data.status === 'completed' ? new Date().toISOString() : null,
+        assignedTo: data.assignedTo || session.employeeId,
+        notes: data.notes || null,
+        attachments: data.attachments || [],
+        feedback: data.feedback || null,
+        hoursSpent: data.hoursSpent || 0,
       })
     } else {
       // Update existing task progress
-      session.taskProgress[taskProgressIndex] = {
-        ...session.taskProgress[taskProgressIndex],
-        status,
-        completedAt: status === 'completed' ? (completedAt || new Date().toISOString()) : undefined,
-        notes: notes || session.taskProgress[taskProgressIndex].notes,
+      const taskProgress = session.tasks[taskIndex]
+      session.tasks[taskIndex] = {
+        ...taskProgress,
+        ...data,
+        completedAt: data.status === 'completed' ? new Date().toISOString() : taskProgress.completedAt,
       }
     }
     
     // Update overall progress
-    const completedTasks = session.taskProgress.filter(tp => tp.status === 'completed').length
-    const totalTasks = session.taskProgress.length
-    session.progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+    const completedTasks = session.tasks.filter(t => t.status === 'completed').length
+    const totalTasks = session.tasks.length
+    session.progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
     
-    session.updatedAt = new Date().toISOString()
-    
-    sessions[sessionIndex] = session
+    sessions[sessionIndex] = {
+      ...session,
+      updatedAt: new Date().toISOString(),
+    }
     
     return Response.json({
-      data: session,
+      data: sessions[sessionIndex],
       message: 'Task progress updated successfully'
     })
   }),
 
   // Add feedback to session
   http.post('/api/onboarding/sessions/:id/feedback', async ({ params, request }) => {
-    await delay(Math.random() * 300 + 100)
+    await delay(Math.random() * 400 + 100)
     
-    const feedbackData = await request.json() as {
-      providerId: string
-      type: 'buddy' | 'manager' | 'hr' | 'self'
-      rating: number
-      comments: string
+    const data = await request.json() as Partial<OnboardingFeedback>
+    const sessionIndex = sessions.findIndex(s => s.id === params.id)
+    
+    if (sessionIndex === -1) {
+      return new Response('Onboarding session not found', { status: 404 })
     }
+    
+    const session = sessions[sessionIndex]
+    
+    const newFeedback: OnboardingFeedback = {
+      id: `feedback-${Date.now()}`,
+      sessionId: params.id as string,
+      type: data.type || 'weekly',
+      rating: data.rating || 5,
+      comments: data.comments || '',
+      submittedBy: data.submittedBy!,
+      submittedAt: new Date().toISOString(),
+      areas: data.areas || {
+        clarity: 5,
+        support: 5,
+        resources: 5,
+        timeline: 5,
+        overall: 5
+      }
+    }
+    
+    session.feedback.push(newFeedback)
+    
+    sessions[sessionIndex] = {
+      ...session,
+      updatedAt: new Date().toISOString(),
+    }
+    
+    return Response.json({
+      data: newFeedback,
+      message: 'Feedback added successfully'
+    })
+  }),
+
+  // Complete onboarding session
+  http.put('/api/onboarding/sessions/:id/complete', async ({ params }) => {
+    await delay(Math.random() * 400 + 100)
     
     const sessionIndex = sessions.findIndex(s => s.id === params.id)
     
@@ -407,96 +459,80 @@ export const onboardingHandlers = [
       return new Response('Onboarding session not found', { status: 404 })
     }
     
-    const feedback = {
-      id: `feedback-${Date.now()}`,
-      ...feedbackData,
-      providedAt: new Date().toISOString(),
+    const updatedSession = {
+      ...sessions[sessionIndex],
+      status: 'completed' as const,
+      actualEndDate: new Date().toISOString(),
+      progress: 100,
+      updatedAt: new Date().toISOString(),
     }
     
-    sessions[sessionIndex].feedback.push(feedback)
-    sessions[sessionIndex].updatedAt = new Date().toISOString()
+    sessions[sessionIndex] = updatedSession
     
     return Response.json({
-      data: feedback,
-      message: 'Feedback added successfully'
-    })
-  }),
-
-  // Get onboarding checklists
-  http.get('/api/onboarding/checklists', async ({ request }) => {
-    await delay(Math.random() * 300 + 100)
-    
-    const url = new URL(request.url)
-    const departmentId = url.searchParams.get('departmentId')
-    
-    let filtered = [...checklists]
-    
-    if (departmentId) {
-      filtered = filtered.filter(checklist => checklist.departmentId === departmentId)
-    }
-    
-    return Response.json({
-      data: filtered,
-      message: 'Onboarding checklists retrieved successfully'
-    })
-  }),
-
-  // Get checklist by ID
-  http.get('/api/onboarding/checklists/:id', async ({ params }) => {
-    await delay(Math.random() * 200 + 50)
-    
-    const checklist = checklists.find(c => c.id === params.id)
-    
-    if (!checklist) {
-      return new Response('Onboarding checklist not found', { status: 404 })
-    }
-    
-    return Response.json({
-      data: checklist,
-      message: 'Onboarding checklist retrieved successfully'
+      data: updatedSession,
+      message: 'Onboarding session completed successfully'
     })
   }),
 
   // Get onboarding analytics
   http.get('/api/onboarding/analytics', async ({ request }) => {
-    await delay(Math.random() * 400 + 100)
+    await delay(Math.random() * 400 + 200)
     
     const url = new URL(request.url)
     const departmentId = url.searchParams.get('departmentId')
-    const startDate = url.searchParams.get('startDate')
-    const endDate = url.searchParams.get('endDate')
+    const period = url.searchParams.get('period')
     
     let filteredSessions = [...sessions]
     
     if (departmentId) {
-      filteredSessions = filteredSessions.filter(session => {
-        const workflow = workflows.find(w => w.id === session.workflowId)
-        return workflow?.departmentId === departmentId
-      })
+      // Filter by department through workflow
+      const departmentWorkflows = workflows.filter(w => w.departmentId === departmentId).map(w => w.id)
+      filteredSessions = filteredSessions.filter(s => departmentWorkflows.includes(s.workflowId))
     }
     
-    if (startDate) {
-      filteredSessions = filteredSessions.filter(session => session.startDate >= startDate)
-    }
-    
-    if (endDate) {
-      filteredSessions = filteredSessions.filter(session => session.startDate <= endDate)
-    }
-    
+    // Calculate analytics
     const analytics = {
-      totalSessions: filteredSessions.length,
-      completedSessions: filteredSessions.filter(s => s.status === 'completed').length,
-      inProgressSessions: filteredSessions.filter(s => s.status === 'in_progress').length,
-      averageCompletionTime: calculateAverageCompletionTime(filteredSessions),
-      completionRate: filteredSessions.length > 0 
-        ? (filteredSessions.filter(s => s.status === 'completed').length / filteredSessions.length) * 100 
-        : 0,
-      averageProgress: filteredSessions.length > 0 
-        ? filteredSessions.reduce((sum, s) => sum + s.progress, 0) / filteredSessions.length 
-        : 0,
-      feedbackStats: calculateFeedbackStats(filteredSessions),
-      commonDelays: identifyCommonDelays(filteredSessions),
-      departmentPerformance: calculateDepartmentPerformance(filteredSessions, workflows),
+      sessions: {
+        total: filteredSessions.length,
+        completed: filteredSessions.filter(s => s.status === 'completed').length,
+        inProgress: filteredSessions.filter(s => s.status === 'in_progress').length,
+        notStarted: filteredSessions.filter(s => s.status === 'not_started').length,
+        onHold: filteredSessions.filter(s => s.status === 'on_hold').length,
+        cancelled: filteredSessions.filter(s => s.status === 'cancelled').length,
+        averageProgress: filteredSessions.length > 0 
+          ? filteredSessions.reduce((sum, s) => sum + s.progress, 0) / filteredSessions.length 
+          : 0,
+      },
+      workflows: {
+        total: workflows.length,
+        active: workflows.filter(w => w.isActive).length,
+        inactive: workflows.filter(w => !w.isActive).length,
+        averageDuration: workflows.length > 0 
+          ? workflows.reduce((sum, w) => sum + w.duration, 0) / workflows.length 
+          : 0,
+      },
+      tasks: {
+        total: tasks.length,
+        required: tasks.filter(t => t.isRequired).length,
+        optional: tasks.filter(t => !t.isRequired).length,
+        averageHours: tasks.length > 0 
+          ? tasks.reduce((sum, t) => sum + t.estimatedHours, 0) / tasks.length 
+          : 0,
+      },
+      completion: {
+        rate: filteredSessions.length > 0 
+          ? (filteredSessions.filter(s => s.status === 'completed').length / filteredSessions.length) * 100 
+          : 0,
+        averageTime: filteredSessions.filter(s => s.actualEndDate).length > 0 
+          ? filteredSessions
+              .filter(s => s.actualEndDate)
+              .reduce((sum, s) => {
+                const days = Math.ceil((new Date(s.actualEndDate!).getTime() - new Date(s.startDate).getTime()) / (1000 * 60 * 60 * 24))
+                return sum + days
+              }, 0) / filteredSessions.filter(s => s.actualEndDate).length
+          : 0,
+      }
     }
     
     return Response.json({
@@ -505,69 +541,3 @@ export const onboardingHandlers = [
     })
   }),
 ]
-
-// Helper functions for analytics
-function calculateAverageCompletionTime(sessions: OnboardingSession[]): number {
-  const completedSessions = sessions.filter(s => s.status === 'completed' && s.actualEndDate)
-  
-  if (completedSessions.length === 0) return 0
-  
-  const totalDays = completedSessions.reduce((sum, session) => {
-    const start = new Date(session.startDate)
-    const end = new Date(session.actualEndDate!)
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-    return sum + days
-  }, 0)
-  
-  return totalDays / completedSessions.length
-}
-
-function calculateFeedbackStats(sessions: OnboardingSession[]) {
-  const allFeedback = sessions.flatMap(s => s.feedback)
-  
-  if (allFeedback.length === 0) {
-    return { averageRating: 0, totalFeedback: 0, byType: {} }
-  }
-  
-  const averageRating = allFeedback.reduce((sum, f) => sum + f.rating, 0) / allFeedback.length
-  const byType = allFeedback.reduce((acc, f) => {
-    acc[f.type] = (acc[f.type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-  
-  return {
-    averageRating,
-    totalFeedback: allFeedback.length,
-    byType,
-  }
-}
-
-function identifyCommonDelays(sessions: OnboardingSession[]): Array<{ task: string; averageDelay: number }> {
-  // This would analyze task completion times vs expected times
-  // For now, return mock data
-  return [
-    { task: 'IT Setup', averageDelay: 2.5 },
-    { task: 'Badge Creation', averageDelay: 1.8 },
-    { task: 'Manager Meeting', averageDelay: 3.2 },
-  ]
-}
-
-function calculateDepartmentPerformance(sessions: OnboardingSession[], workflows: OnboardingWorkflow[]) {
-  const departmentStats = workflows.reduce((acc, workflow) => {
-    const workflowSessions = sessions.filter(s => s.workflowId === workflow.id)
-    const completed = workflowSessions.filter(s => s.status === 'completed').length
-    
-    acc[workflow.departmentId] = {
-      total: workflowSessions.length,
-      completed,
-      completionRate: workflowSessions.length > 0 ? (completed / workflowSessions.length) * 100 : 0,
-      averageProgress: workflowSessions.length > 0 
-        ? workflowSessions.reduce((sum, s) => sum + s.progress, 0) / workflowSessions.length 
-        : 0,
-    }
-    
-    return acc
-  }, {} as Record<string, any>)
-  
-  return departmentStats
-}

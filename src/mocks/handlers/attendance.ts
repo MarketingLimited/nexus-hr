@@ -170,16 +170,14 @@ export const attendanceHandlers = [
     const newSchedule: WorkSchedule = {
       id: `schedule-${workSchedules.length + 1}`,
       employeeId: data.employeeId!,
-      scheduleType: 'fixed',
-      workingDays: data.workingDays || [],
+      dayOfWeek: data.dayOfWeek || 1,
       startTime: data.startTime || '09:00',
       endTime: data.endTime || '17:00',
       breakDuration: data.breakDuration || 60,
-      timezone: data.timezone || 'UTC',
+      isWorkingDay: data.isWorkingDay !== undefined ? data.isWorkingDay : true,
       effectiveFrom: data.effectiveFrom || new Date().toISOString(),
       effectiveTo: data.effectiveTo,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }
     
     workSchedules.push(newSchedule)
@@ -234,7 +232,7 @@ export const attendanceHandlers = [
     }
     
     return Response.json({
-      data: filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+      data: filtered.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()),
       message: 'Time off requests retrieved successfully'
     })
   }),
@@ -249,13 +247,13 @@ export const attendanceHandlers = [
       id: `timeoff-${timeOffRequests.length + 1}`,
       employeeId: data.employeeId!,
       type: data.type || 'sick',
-      startDate: data.startDate!,
-      endDate: data.endDate!,
+      date: data.date || new Date().toISOString().split('T')[0],
       reason: data.reason || '',
       status: 'pending',
-      appliedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      requestedAt: new Date().toISOString(),
+      approvedBy: null,
+      approvedAt: null,
+      notes: data.notes || null,
     }
     
     timeOffRequests.push(newRequest)

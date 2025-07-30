@@ -1,7 +1,7 @@
 import { http, delay } from 'msw'
 import { 
-  generateNotifications,
-  generateNotificationPreferences,
+  generateNotifications, 
+  generateNotificationPreferences, 
   generateSystemAlerts,
   Notification,
   NotificationPreference,
@@ -10,9 +10,9 @@ import {
 import { mockEmployees } from '../data/employees'
 
 // Generate mock data
-const userIds = mockEmployees.map(emp => emp.id)
-const notifications = generateNotifications(userIds, 200)
-const notificationPreferences = generateNotificationPreferences(userIds)
+const employeeIds = mockEmployees.map(emp => emp.id)
+const notifications = generateNotifications(employeeIds, 200)
+const notificationPreferences = generateNotificationPreferences(employeeIds)
 const systemAlerts = generateSystemAlerts(20)
 
 export const notificationHandlers = [
@@ -22,43 +22,45 @@ export const notificationHandlers = [
     
     const url = new URL(request.url)
     const userId = url.searchParams.get('userId')
-    const isRead = url.searchParams.get('isRead')
     const category = url.searchParams.get('category')
+    const isRead = url.searchParams.get('isRead')
     const priority = url.searchParams.get('priority')
-    const limit = parseInt(url.searchParams.get('limit') || '50')
-    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '20')
     
     let filtered = [...notifications]
     
     if (userId) {
-      filtered = filtered.filter(notif => notif.userId === userId)
-    }
-    
-    if (isRead !== null) {
-      filtered = filtered.filter(notif => notif.isRead === (isRead === 'true'))
+      filtered = filtered.filter(notification => notification.userId === userId)
     }
     
     if (category) {
-      filtered = filtered.filter(notif => notif.category === category)
+      filtered = filtered.filter(notification => notification.category === category)
+    }
+    
+    if (isRead !== null) {
+      const readStatus = isRead === 'true'
+      filtered = filtered.filter(notification => notification.isRead === readStatus)
     }
     
     if (priority) {
-      filtered = filtered.filter(notif => notif.priority === priority)
+      filtered = filtered.filter(notification => notification.priority === priority)
     }
     
-    // Sort by newest first
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    
-    // Apply pagination
-    const paginatedResults = filtered.slice(offset, offset + limit)
+    // Pagination
+    const total = filtered.length
+    const offset = (page - 1) * limit
+    const paginatedResults = filtered
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(offset, offset + limit)
     
     return Response.json({
       data: paginatedResults,
       meta: {
-        total: filtered.length,
+        page,
         limit,
-        offset,
-        hasMore: offset + limit < filtered.length,
+        total,
+        totalPages: Math.ceil(total / limit)
       },
       message: 'Notifications retrieved successfully'
     })
@@ -80,6 +82,38 @@ export const notificationHandlers = [
     })
   }),
 
+  // Create notification
+  http.post('/api/notifications', async ({ request }) => {
+    await delay(Math.random() * 400 + 100)
+    
+    const data = await request.json() as Partial<Notification>
+    
+    const newNotification: Notification = {
+      id: `notif-${notifications.length + 1}`,
+      userId: data.userId!,
+      type: data.type || 'info',
+      category: data.category || 'general',
+      title: data.title!,
+      message: data.message!,
+      priority: data.priority || 'medium',
+      isRead: false,
+      actionRequired: data.actionRequired || false,
+      actionUrl: data.actionUrl || null,
+      actionText: data.actionText || null,
+      metadata: data.metadata || {},
+      expiresAt: data.expiresAt || null,
+      createdAt: new Date().toISOString(),
+      readAt: null,
+    }
+    
+    notifications.push(newNotification)
+    
+    return Response.json({
+      data: newNotification,
+      message: 'Notification created successfully'
+    })
+  }),
+
   // Mark notification as read
   http.put('/api/notifications/:id/read', async ({ params }) => {
     await delay(Math.random() * 200 + 50)
@@ -94,7 +128,6 @@ export const notificationHandlers = [
       ...notifications[notificationIndex],
       isRead: true,
       readAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }
     
     return Response.json({
@@ -117,7 +150,6 @@ export const notificationHandlers = [
           ...notifications[notificationIndex],
           isRead: true,
           readAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         }
         updatedNotifications.push(notifications[notificationIndex])
       }
@@ -125,11 +157,11 @@ export const notificationHandlers = [
     
     return Response.json({
       data: updatedNotifications,
-      message: `${updatedNotifications.length} notifications marked as read`
+      message: 'Notifications marked as read'
     })
   }),
 
-  // Mark all notifications as read for a user
+  // Mark all notifications as read for user
   http.put('/api/notifications/read-all', async ({ request }) => {
     await delay(Math.random() * 300 + 100)
     
@@ -142,7 +174,6 @@ export const notificationHandlers = [
           ...notification,
           isRead: true,
           readAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         }
         updatedNotifications.push(notifications[index])
       }
@@ -150,13 +181,13 @@ export const notificationHandlers = [
     
     return Response.json({
       data: updatedNotifications,
-      message: `${updatedNotifications.length} notifications marked as read`
+      message: 'All notifications marked as read'
     })
   }),
 
   // Delete notification
   http.delete('/api/notifications/:id', async ({ params }) => {
-    await delay(Math.random() * 200 + 50)
+    await delay(Math.random() * 300 + 100)
     
     const notificationIndex = notifications.findIndex(n => n.id === params.id)
     
@@ -171,9 +202,9 @@ export const notificationHandlers = [
     })
   }),
 
-  // Create notification
-  http.post('/api/notifications', async ({ request }) => {
-    await delay(Math.random() * 300 + 100)
+  // Send action notification
+  http.post('/api/notifications/action', async ({ request }) => {
+    await delay(Math.random() * 400 + 100)
     
     const data = await request.json() as Partial<Notification>
     
@@ -186,17 +217,20 @@ export const notificationHandlers = [
       message: data.message!,
       priority: data.priority || 'medium',
       isRead: false,
-      action: data.action,
+      actionRequired: true,
+      actionUrl: data.actionUrl || null,
+      actionText: data.actionText || null,
       metadata: data.metadata || {},
+      expiresAt: data.expiresAt || null,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      readAt: null,
     }
     
     notifications.push(newNotification)
     
     return Response.json({
       data: newNotification,
-      message: 'Notification created successfully'
+      message: 'Action notification created successfully'
     })
   }),
 
@@ -211,35 +245,22 @@ export const notificationHandlers = [
       return new Response('User ID is required', { status: 400 })
     }
     
-    const preferences = notificationPreferences.find(p => p.userId === userId)
+    let preferences = notificationPreferences.filter(p => p.userId === userId)
     
-    if (!preferences) {
-      // Return default preferences
-      const defaultPreferences: NotificationPreference = {
-        id: `pref-${notificationPreferences.length + 1}`,
+    if (preferences.length === 0) {
+      // Return default preferences for all categories
+      const categories = ['leave', 'payroll', 'performance', 'attendance', 'system', 'onboarding', 'general']
+      preferences = categories.map(category => ({
+        id: `pref-${category}-${userId}`,
         userId,
+        category,
         emailEnabled: true,
         pushEnabled: true,
         smsEnabled: false,
-        categories: {
-          leave: { email: true, push: true, sms: false, frequency: 'immediate' },
-          payroll: { email: true, push: true, sms: false, frequency: 'immediate' },
-          performance: { email: true, push: false, sms: false, frequency: 'daily' },
-          hr: { email: true, push: true, sms: false, frequency: 'immediate' },
-          system: { email: false, push: true, sms: false, frequency: 'immediate' },
-          general: { email: false, push: true, sms: false, frequency: 'immediate' },
-        },
-        quietHoursStart: '22:00',
-        quietHoursEnd: '08:00',
-        weekendNotifications: false,
+        frequency: 'immediate' as const,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }
-      
-      return Response.json({
-        data: defaultPreferences,
-        message: 'Default notification preferences retrieved'
-      })
+      }))
     }
     
     return Response.json({
@@ -250,28 +271,22 @@ export const notificationHandlers = [
 
   // Update notification preferences
   http.put('/api/notifications/preferences', async ({ request }) => {
-    await delay(Math.random() * 300 + 100)
+    await delay(Math.random() * 400 + 100)
     
     const data = await request.json() as Partial<NotificationPreference>
     
-    if (!data.userId) {
-      return new Response('User ID is required', { status: 400 })
-    }
-    
-    const preferencesIndex = notificationPreferences.findIndex(p => p.userId === data.userId)
+    const preferencesIndex = notificationPreferences.findIndex(p => p.userId === data.userId && p.category === data.category)
     
     if (preferencesIndex === -1) {
       // Create new preferences
       const newPreferences: NotificationPreference = {
         id: `pref-${notificationPreferences.length + 1}`,
-        userId: data.userId,
-        emailEnabled: data.emailEnabled ?? true,
-        pushEnabled: data.pushEnabled ?? true,
-        smsEnabled: data.smsEnabled ?? false,
-        categories: data.categories || {},
-        quietHoursStart: data.quietHoursStart || '22:00',
-        quietHoursEnd: data.quietHoursEnd || '08:00',
-        weekendNotifications: data.weekendNotifications ?? false,
+        userId: data.userId!,
+        category: data.category || 'general',
+        emailEnabled: data.emailEnabled !== undefined ? data.emailEnabled : true,
+        pushEnabled: data.pushEnabled !== undefined ? data.pushEnabled : true,
+        smsEnabled: data.smsEnabled !== undefined ? data.smsEnabled : false,
+        frequency: data.frequency || 'immediate',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -284,23 +299,67 @@ export const notificationHandlers = [
       })
     } else {
       // Update existing preferences
-      const updatedPreferences = {
+      const updatedPreference = {
         ...notificationPreferences[preferencesIndex],
-        ...data,
+        category: data.category,
+        emailEnabled: data.emailEnabled,
+        pushEnabled: data.pushEnabled,
+        smsEnabled: data.smsEnabled,
+        frequency: data.frequency,
         updatedAt: new Date().toISOString(),
       }
       
-      notificationPreferences[preferencesIndex] = updatedPreferences
+      notificationPreferences[preferencesIndex] = updatedPreference
       
       return Response.json({
-        data: updatedPreferences,
+        data: updatedPreference,
         message: 'Notification preferences updated successfully'
       })
     }
   }),
 
+  // Get notification statistics
+  http.get('/api/notifications/stats', async ({ request }) => {
+    await delay(Math.random() * 300 + 100)
+    
+    const url = new URL(request.url)
+    const userId = url.searchParams.get('userId')
+    
+    let filtered = [...notifications]
+    
+    if (userId) {
+      filtered = filtered.filter(notification => notification.userId === userId)
+    }
+    
+    const stats = {
+      total: filtered.length,
+      unread: filtered.filter(n => !n.isRead).length,
+      read: filtered.filter(n => n.isRead).length,
+      actionRequired: filtered.filter(n => n.actionRequired && !n.isRead).length,
+      byCategory: {
+        leave: filtered.filter(n => n.category === 'leave').length,
+        payroll: filtered.filter(n => n.category === 'payroll').length,
+        performance: filtered.filter(n => n.category === 'performance').length,
+        attendance: filtered.filter(n => n.category === 'attendance').length,
+        system: filtered.filter(n => n.category === 'system').length,
+        general: filtered.filter(n => n.category === 'general').length,
+      },
+      byPriority: {
+        low: filtered.filter(n => n.priority === 'low').length,
+        medium: filtered.filter(n => n.priority === 'medium').length,
+        high: filtered.filter(n => n.priority === 'high').length,
+        urgent: filtered.filter(n => n.priority === 'urgent').length,
+      }
+    }
+    
+    return Response.json({
+      data: stats,
+      message: 'Notification statistics retrieved successfully'
+    })
+  }),
+
   // Get system alerts
-  http.get('/api/notifications/system-alerts', async ({ request }) => {
+  http.get('/api/notifications/alerts', async ({ request }) => {
     await delay(Math.random() * 200 + 50)
     
     const url = new URL(request.url)
@@ -310,7 +369,8 @@ export const notificationHandlers = [
     let filtered = [...systemAlerts]
     
     if (isActive !== null) {
-      filtered = filtered.filter(alert => alert.isActive === (isActive === 'true'))
+      const activeStatus = isActive === 'true'
+      filtered = filtered.filter(alert => alert.isActive === activeStatus)
     }
     
     if (severity) {
@@ -324,22 +384,23 @@ export const notificationHandlers = [
   }),
 
   // Create system alert
-  http.post('/api/notifications/system-alerts', async ({ request }) => {
-    await delay(Math.random() * 300 + 100)
+  http.post('/api/notifications/alerts', async ({ request }) => {
+    await delay(Math.random() * 400 + 100)
     
     const data = await request.json() as Partial<SystemAlert>
     
     const newAlert: SystemAlert = {
       id: `alert-${systemAlerts.length + 1}`,
-      type: data.type || 'maintenance',
-      severity: data.severity || 'medium',
+      type: data.type || 'announcement',
+      severity: data.severity || 'info',
       title: data.title!,
       message: data.message!,
       affectedServices: data.affectedServices || [],
-      isActive: true,
-      targetAudience: data.targetAudience || 'all',
       startTime: data.startTime || new Date().toISOString(),
-      endTime: data.endTime,
+      endTime: data.endTime || null,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      targetAudience: data.targetAudience || 'all',
+      createdBy: data.createdBy!,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -353,8 +414,8 @@ export const notificationHandlers = [
   }),
 
   // Update system alert
-  http.put('/api/notifications/system-alerts/:id', async ({ params, request }) => {
-    await delay(Math.random() * 300 + 100)
+  http.put('/api/notifications/alerts/:id', async ({ params, request }) => {
+    await delay(Math.random() * 400 + 100)
     
     const data = await request.json() as Partial<SystemAlert>
     const alertIndex = systemAlerts.findIndex(a => a.id === params.id)
@@ -378,8 +439,8 @@ export const notificationHandlers = [
   }),
 
   // Delete system alert
-  http.delete('/api/notifications/system-alerts/:id', async ({ params }) => {
-    await delay(Math.random() * 200 + 50)
+  http.delete('/api/notifications/alerts/:id', async ({ params }) => {
+    await delay(Math.random() * 300 + 100)
     
     const alertIndex = systemAlerts.findIndex(a => a.id === params.id)
     
@@ -391,42 +452,6 @@ export const notificationHandlers = [
     
     return Response.json({
       message: 'System alert deleted successfully'
-    })
-  }),
-
-  // Get notification statistics
-  http.get('/api/notifications/stats', async ({ request }) => {
-    await delay(Math.random() * 300 + 100)
-    
-    const url = new URL(request.url)
-    const userId = url.searchParams.get('userId')
-    
-    let filtered = [...notifications]
-    
-    if (userId) {
-      filtered = filtered.filter(notif => notif.userId === userId)
-    }
-    
-    const stats = {
-      total: filtered.length,
-      unread: filtered.filter(n => !n.isRead).length,
-      read: filtered.filter(n => n.isRead).length,
-      byCategory: filtered.reduce((acc, notif) => {
-        acc[notif.category] = (acc[notif.category] || 0) + 1
-        return acc
-      }, {} as Record<string, number>),
-      byPriority: filtered.reduce((acc, notif) => {
-        acc[notif.priority] = (acc[notif.priority] || 0) + 1
-        return acc
-      }, {} as Record<string, number>),
-      recentActivity: filtered
-        .filter(n => new Date(n.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-        .length,
-    }
-    
-    return Response.json({
-      data: stats,
-      message: 'Notification statistics retrieved successfully'
     })
   }),
 ]
