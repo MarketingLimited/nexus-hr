@@ -1,27 +1,27 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { QueryProvider } from './providers/QueryProvider';
-import App from './App.tsx';
-import './index.css';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import './index.css'
+import App from './App.tsx'
+import { QueryProvider } from './providers/QueryProvider'
+import { AuthProvider } from './contexts/AuthContext'
 
-async function enableMocking() {
-  if (process.env.NODE_ENV !== 'development') {
-    return
-  }
-
+// Initialize MSW
+if (import.meta.env.DEV) {
   const { worker } = await import('./mocks/browser')
-  return worker.start()
+  worker.start({
+    onUnhandledRequest: 'bypass',
+  })
 }
 
-enableMocking().then(() => {
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
       <QueryProvider>
-        <BrowserRouter>
+        <AuthProvider>
           <App />
-        </BrowserRouter>
+        </AuthProvider>
       </QueryProvider>
-    </StrictMode>
-  );
-});
+    </BrowserRouter>
+  </StrictMode>,
+)

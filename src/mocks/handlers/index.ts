@@ -1,29 +1,31 @@
-import { http } from 'msw'
+import { http, delay } from 'msw'
 import { employeeHandlers } from './employees'
 import { departmentHandlers } from './departments'
 import { leaveHandlers } from './leave'
 import { payrollHandlers } from './payroll'
-// import { performanceHandlers } from './performance'
-// import { attendanceHandlers } from './attendance'
-// import { onboardingHandlers } from './onboarding'
-// import { notificationHandlers } from './notifications'
 import { authHandlers } from './auth'
 
-// Combine all handlers
 export const handlers = [
-  // Health check endpoint
-  http.get('/api/health', () => {
-    return Response.json({ status: 'ok', timestamp: new Date().toISOString() })
-  }),
-  
-  // Working handlers only for now
   ...employeeHandlers,
   ...departmentHandlers,
   ...leaveHandlers,
   ...payrollHandlers,
-  // ...performanceHandlers,
-  // ...attendanceHandlers,
-  // ...onboardingHandlers,
-  // ...notificationHandlers,
   ...authHandlers,
+  
+  // Health check endpoint with realistic delay
+  http.get('/api/health', async () => {
+    await delay(Math.random() * 400 + 100)
+    
+    // Simulate errors occasionally
+    if (Math.random() < 0.02) {
+      return new Response('Network Error', { status: 500 })
+    }
+    
+    return Response.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(Math.random() * 86400),
+      version: '1.0.0'
+    })
+  })
 ]

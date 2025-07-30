@@ -1,5 +1,5 @@
 import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
+import { Header } from "@/components/layout/Header";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ModuleCard from "@/components/dashboard/ModuleCard";
 import QuickActions from "@/components/dashboard/QuickActions";
