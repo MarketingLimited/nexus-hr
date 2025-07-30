@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { useDepartments } from "@/hooks/useDataManager";
+import { useDataExport } from "@/hooks/useDataExport";
+import { useToast } from "@/hooks/use-toast";
 
 interface EmployeeFiltersProps {
   searchTerm: string;
@@ -27,6 +29,30 @@ const EmployeeFilters = ({
   onViewModeChange
 }: EmployeeFiltersProps) => {
   const { data: departmentData } = useDepartments();
+  const { exportEmployees, loading: exportLoading } = useDataExport();
+  const { toast } = useToast();
+
+  const handleExport = async (format: 'csv' | 'json' | 'xlsx') => {
+    try {
+      const filters = {
+        query: searchTerm || undefined,
+        departments: selectedDepartment !== 'all' ? [selectedDepartment] : undefined,
+        status: selectedStatus !== 'all' ? [selectedStatus] : undefined,
+      };
+      
+      await exportEmployees(format, filters);
+      toast({
+        title: "Export Successful",
+        description: `Employee data exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export employee data",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -105,10 +131,19 @@ const EmployeeFilters = ({
         </div>
 
         {/* Export Button */}
-        <Button variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export
-        </Button>
+        <Select onValueChange={(value) => handleExport(value as 'csv' | 'json' | 'xlsx')}>
+          <SelectTrigger asChild>
+            <Button variant="outline" className="gap-2" disabled={exportLoading}>
+              <Download className="h-4 w-4" />
+              {exportLoading ? 'Exporting...' : 'Export'}
+            </Button>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="csv">Export as CSV</SelectItem>
+            <SelectItem value="json">Export as JSON</SelectItem>
+            <SelectItem value="xlsx">Export as Excel</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

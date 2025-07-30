@@ -1,28 +1,178 @@
-import { BarChart3, Download, Filter, Calendar, TrendingUp, Users, DollarSign } from "lucide-react";
+import { BarChart3, Download, Filter, Calendar, TrendingUp, Users, DollarSign, AlertCircle, CheckCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDataExport } from "@/hooks/useDataExport";
+import { useDataValidation } from "@/hooks/useDataValidation";
+import { useAuditLog } from "@/hooks/useAuditLog";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 const Reports = () => {
+  const { exportEmployees, exportDepartments, exportLeaveRequests, exportPayroll, loading: exportLoading, progress } = useDataExport();
+  const { performDataIntegrityCheck, loading: validationLoading } = useDataValidation();
+  const { entries: auditEntries, loadAuditLog, exportAuditLog } = useAuditLog();
+  const { toast } = useToast();
+  const [integrityResult, setIntegrityResult] = useState<any>(null);
+
+  const handleExport = async (type: string, format: 'csv' | 'json' | 'xlsx') => {
+    try {
+      switch (type) {
+        case 'employees':
+          await exportEmployees(format);
+          break;
+        case 'departments':
+          await exportDepartments(format);
+          break;
+        case 'leave':
+          await exportLeaveRequests(format);
+          break;
+        case 'payroll':
+          await exportPayroll(format);
+          break;
+        case 'audit':
+          await exportAuditLog(format as 'csv' | 'json');
+          break;
+      }
+      toast({
+        title: "Export Successful",
+        description: `${type} data exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: `Failed to export ${type} data`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleIntegrityCheck = async () => {
+    try {
+      const result = await performDataIntegrityCheck();
+      setIntegrityResult(result);
+      toast({
+        title: result.valid ? "Data Integrity Check Passed" : "Data Integrity Issues Found",
+        description: result.valid ? "All data is consistent" : `Found ${result.issues.length} issues`,
+        variant: result.valid ? "default" : "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "Integrity Check Failed",
+        description: "Failed to perform data integrity check",
+        variant: "destructive",
+      });
+    }
+  };
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Reports & Analytics</h1>
-          <p className="text-muted-foreground">Comprehensive HR insights and analytics</p>
+          <h1 className="text-3xl font-bold">Reports & Analytics</h1>
+          <p className="text-muted-foreground">
+            Generate comprehensive reports and analyze your HR data
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            Filter
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleIntegrityCheck}
+            disabled={validationLoading}
+          >
+            {validationLoading ? (
+              <>
+                <Settings className="h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-4 w-4" />
+                Data Integrity
+              </>
+            )}
           </Button>
-          <Button className="gap-2">
-            <Download className="h-4 w-4" />
-            Export All
-          </Button>
+          <Select onValueChange={(value) => handleExport('employees', value as 'csv' | 'json' | 'xlsx')}>
+            <SelectTrigger asChild>
+              <Button className="gap-2" disabled={exportLoading}>
+                <Download className="h-4 w-4" />
+                {exportLoading ? `Exporting... ${progress}%` : 'Quick Export'}
+              </Button>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="csv">Export All as CSV</SelectItem>
+              <SelectItem value="json">Export All as JSON</SelectItem>
+              <SelectItem value="xlsx">Export All as Excel</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
+      {/* Export Progress */}
+      {exportLoading && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Download className="h-4 w-4" />
+              <span className="text-sm font-medium">Exporting data...</span>
+            </div>
+            <Progress value={progress} className="w-full" />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Data Integrity Results */}
+      {integrityResult && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {integrityResult.valid ? (
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-600" />
+              )}
+              Data Integrity Check Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant={integrityResult.valid ? "default" : "destructive"}>
+                  {integrityResult.valid ? "PASSED" : "FAILED"}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {integrityResult.valid ? "All data is consistent" : `${integrityResult.issues.length} issues found`}
+                </span>
+              </div>
+              
+              {integrityResult.issues.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Issues Found:</h4>
+                  <ul className="text-sm text-red-600 space-y-1">
+                    {integrityResult.issues.map((issue: string, index: number) => (
+                      <li key={index}>• {issue}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {integrityResult.recommendations.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Recommendations:</h4>
+                  <ul className="text-sm text-blue-600 space-y-1">
+                    {integrityResult.recommendations.map((rec: string, index: number) => (
+                      <li key={index}>• {rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Report Categories */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
