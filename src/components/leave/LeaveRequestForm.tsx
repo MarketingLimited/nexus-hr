@@ -14,7 +14,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { useLeave } from "@/hooks/useDataManager";
 
 const leaveRequestSchema = z.object({
   leaveType: z.string().min(1, "Leave type is required"),
@@ -29,10 +28,18 @@ const leaveRequestSchema = z.object({
 
 type LeaveRequestFormData = z.infer<typeof leaveRequestSchema>;
 
+const leaveTypes = [
+  { value: "annual", label: "Annual Leave", balance: 20 },
+  { value: "sick", label: "Sick Leave", balance: 10 },
+  { value: "personal", label: "Personal Leave", balance: 5 },
+  { value: "maternity", label: "Maternity Leave", balance: 90 },
+  { value: "paternity", label: "Paternity Leave", balance: 14 },
+  { value: "study", label: "Study Leave", balance: 5 },
+];
+
 export const LeaveRequestForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { data: leaveData } = useLeave();
 
   const form = useForm<LeaveRequestFormData>({
     resolver: zodResolver(leaveRequestSchema),
@@ -66,7 +73,7 @@ export const LeaveRequestForm = () => {
     setIsSubmitting(false);
   };
 
-  const selectedType = leaveData?.leaveTypes.find(type => type.id === selectedLeaveType);
+  const selectedType = leaveTypes.find(type => type.value === selectedLeaveType);
   const requestedDays = calculateDays();
 
   return (
@@ -94,12 +101,12 @@ export const LeaveRequestForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {leaveData?.leaveTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
+                        {leaveTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
                             <div className="flex justify-between items-center w-full">
-                              <span>{type.name}</span>
+                              <span>{type.label}</span>
                               <span className="text-sm text-muted-foreground ml-2">
-                                {type.defaultDays} days available
+                                {type.balance} days available
                               </span>
                             </div>
                           </SelectItem>
@@ -116,7 +123,7 @@ export const LeaveRequestForm = () => {
                   <h4 className="font-medium text-sm mb-2">Available Balance</h4>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-2xl font-bold">{selectedType.defaultDays}</span>
+                    <span className="text-2xl font-bold">{selectedType.balance}</span>
                     <span className="text-sm text-muted-foreground">days remaining</span>
                   </div>
                 </div>
@@ -213,7 +220,7 @@ export const LeaveRequestForm = () => {
                   <span className="text-sm font-medium">Total Days Requested:</span>
                   <span className="text-lg font-bold text-primary">{requestedDays} days</span>
                 </div>
-                {selectedType && requestedDays > selectedType.defaultDays && (
+                {selectedType && requestedDays > selectedType.balance && (
                   <p className="text-sm text-destructive mt-2">
                     ⚠️ Requested days exceed available balance
                   </p>
@@ -259,7 +266,7 @@ export const LeaveRequestForm = () => {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={isSubmitting || (selectedType && requestedDays > selectedType.defaultDays)}
+              disabled={isSubmitting || (selectedType && requestedDays > selectedType.balance)}
             >
               {isSubmitting ? "Submitting..." : "Submit Leave Request"}
             </Button>

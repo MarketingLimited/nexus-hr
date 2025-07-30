@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { addDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
-import { useLeave } from "@/hooks/useDataManager";
-import { LeaveRequest } from "@/types";
 
 type LeaveEvent = {
   id: string;
@@ -18,6 +16,41 @@ type LeaveEvent = {
   endDate: Date;
   status: "approved" | "pending" | "rejected";
 };
+
+const mockLeaveEvents: LeaveEvent[] = [
+  {
+    id: "1",
+    employeeName: "Sarah Johnson",
+    leaveType: "Annual Leave",
+    startDate: new Date(2024, 11, 20),
+    endDate: new Date(2024, 11, 25),
+    status: "approved"
+  },
+  {
+    id: "2",
+    employeeName: "Mike Chen",
+    leaveType: "Sick Leave",
+    startDate: new Date(2024, 11, 18),
+    endDate: new Date(2024, 11, 18),
+    status: "approved"
+  },
+  {
+    id: "3",
+    employeeName: "Emma Davis",
+    leaveType: "Personal Leave",
+    startDate: new Date(2025, 0, 2),
+    endDate: new Date(2025, 0, 3),
+    status: "pending"
+  },
+  {
+    id: "4",
+    employeeName: "John Smith",
+    leaveType: "Annual Leave",
+    startDate: new Date(2024, 11, 23),
+    endDate: new Date(2024, 11, 30),
+    status: "rejected"
+  },
+];
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -32,27 +65,8 @@ export const LeaveCalendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
-  const { data: leaveData, loading } = useLeave();
 
-  if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading leave data...</div>;
-  }
-
-  if (!leaveData?.leaveRequests) {
-    return <div className="text-center py-8 text-muted-foreground">No leave data available</div>;
-  }
-
-  // Convert leave requests to leave events
-  const leaveEvents: LeaveEvent[] = leaveData.leaveRequests.map((request: LeaveRequest) => ({
-    id: request.id,
-    employeeName: `Employee ${request.employeeId}`, // In real app, resolve from employees data
-    leaveType: request.leaveType,
-    startDate: new Date(request.startDate),
-    endDate: new Date(request.endDate),
-    status: request.status as "approved" | "pending" | "rejected"
-  }));
-
-  const filteredEvents = leaveEvents.filter(event => {
+  const filteredEvents = mockLeaveEvents.filter(event => {
     if (filterStatus !== "all" && event.status !== filterStatus) return false;
     if (filterType !== "all" && event.leaveType !== filterType) return false;
     return true;
@@ -123,11 +137,9 @@ export const LeaveCalendar = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    {leaveData?.leaveTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.name}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Annual Leave">Annual Leave</SelectItem>
+                    <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                    <SelectItem value="Personal Leave">Personal Leave</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
