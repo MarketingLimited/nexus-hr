@@ -1,23 +1,16 @@
-import { Users, Plus, Search, Filter, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import EmployeeFilters from "@/components/employees/EmployeeFilters";
+import EmployeeList from "@/components/employees/EmployeeList";
 
 const Employees = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Employee Management</h1>
-          <p className="text-muted-foreground">Manage employee profiles and information</p>
-        </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Employee
-        </Button>
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -61,39 +54,29 @@ const Employees = () => {
         </Card>
       </div>
 
-      {/* Filters and Search */}
+      {/* Employee Management */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Employee Directory
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <Input 
-                placeholder="Search employees..." 
-                className="w-full"
-              />
-            </div>
-            <Button variant="outline" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button variant="outline" className="gap-2">
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-          </div>
-          
-          {/* Employee List Placeholder */}
-          <div className="border rounded-lg p-8 text-center text-muted-foreground">
-            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Employee list will be implemented in Phase 2</p>
-          </div>
+        <CardContent className="p-6">
+          <EmployeeFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedDepartment={selectedDepartment}
+            onDepartmentChange={setSelectedDepartment}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </CardContent>
       </Card>
+
+      {/* Employee List */}
+      <EmployeeList
+        searchTerm={searchTerm}
+        selectedDepartment={selectedDepartment}
+        selectedStatus={selectedStatus}
+        viewMode={viewMode}
+      />
     </div>
   );
 };
