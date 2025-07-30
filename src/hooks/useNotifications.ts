@@ -16,9 +16,6 @@ export const notificationKeys = {
   stats: (userId?: string) => [...notificationKeys.all, 'stats', userId] as const,
   alerts: () => [...notificationKeys.all, 'alerts'] as const,
   alert: (id: string) => [...notificationKeys.alerts(), id] as const,
-  unreadCount: (userId: string) => [...notificationKeys.all, 'unread-count', userId] as const,
-  recent: (userId: string, limit: number) => 
-    [...notificationKeys.all, 'recent', userId, limit] as const,
 }
 
 // Notification Management Hooks
@@ -46,7 +43,6 @@ export const useCreateNotification = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
       queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
     },
   })
 }
@@ -60,7 +56,6 @@ export const useMarkAsRead = () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.notification(id) })
       queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
       queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
     },
   })
 }
@@ -73,7 +68,6 @@ export const useMarkMultipleAsRead = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
       queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
     },
   })
 }
@@ -86,7 +80,6 @@ export const useMarkAllAsRead = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
       queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
     },
   })
 }
@@ -112,7 +105,6 @@ export const useSendActionNotification = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
       queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
     },
   })
 }
@@ -151,39 +143,12 @@ export const useNotificationStats = (userId?: string) => {
   })
 }
 
-export const useUnreadCount = (userId: string) => {
-  return useQuery({
-    queryKey: notificationKeys.unreadCount(userId),
-    queryFn: () => notificationService.getUnreadCount?.(userId),
-    enabled: !!userId,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // Refetch every minute
-  })
-}
-
-export const useRecentNotifications = (userId: string, limit: number = 5) => {
-  return useQuery({
-    queryKey: notificationKeys.recent(userId, limit),
-    queryFn: () => notificationService.getRecentNotifications?.(userId, limit),
-    enabled: !!userId,
-    staleTime: 1 * 60 * 1000, // 1 minute
-  })
-}
-
 // System Alerts Hooks
 export const useSystemAlerts = (filters?: AlertFilters) => {
   return useQuery({
     queryKey: notificationKeys.alerts(),
     queryFn: () => notificationService.getSystemAlerts(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
-  })
-}
-
-export const useSystemAlert = (id: string) => {
-  return useQuery({
-    queryKey: notificationKeys.alert(id),
-    queryFn: () => notificationService.getSystemAlert?.(id),
-    enabled: !!id,
   })
 }
 
@@ -218,51 +183,6 @@ export const useDeleteSystemAlert = () => {
     mutationFn: notificationService.deleteSystemAlert,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.alerts() })
-    },
-  })
-}
-
-// Real-time Notification Hooks
-export const useNotificationUpdates = (userId: string, enabled: boolean = true) => {
-  const queryClient = useQueryClient()
-  
-  // This hook can be used to set up real-time notification updates
-  // For now, it uses polling, but could be enhanced with WebSockets
-  return useQuery({
-    queryKey: notificationKeys.unreadCount(userId),
-    queryFn: () => notificationService.getUnreadCount?.(userId),
-    enabled: enabled && !!userId,
-    refetchInterval: 30 * 1000, // Poll every 30 seconds
-    onSuccess: (data) => {
-      // If there are new notifications, invalidate the main notifications query
-      if (data && typeof data === 'object' && 'unread' in data && data.unread > 0) {
-        queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
-      }
-    },
-  })
-}
-
-// Bulk Operations Hooks
-export const useBulkNotification = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: notificationService.sendBulkNotification,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
-    },
-  })
-}
-
-export const useScheduleNotification = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: notificationService.scheduleNotification,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.notifications() })
     },
   })
 }
