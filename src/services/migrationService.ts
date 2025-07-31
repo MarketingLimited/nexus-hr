@@ -37,6 +37,7 @@ export interface MigrationConfig {
   batchSize: number
   skipErrors: boolean
   validateOnly: boolean
+  validateData: boolean
   createBackup: boolean
   overwriteExisting: boolean
   conflictResolution: 'skip' | 'overwrite' | 'merge'

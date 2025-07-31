@@ -61,9 +61,9 @@ export const SyncDashboard = () => {
     }
   }
 
-  const statsData = stats?.data || {}
-  const operationsData = Array.isArray(operations?.data) ? operations.data : []
-  const conflictsData = Array.isArray(conflicts?.data) ? conflicts.data : []
+  const statsData = stats || { inProgress: false, pending: 0, conflicts: 0, lastSync: null }
+  const operationsData = Array.isArray(operations) ? operations : []
+  const conflictsData = Array.isArray(conflicts) ? conflicts : []
 
   return (
     <div className="space-y-6">
