@@ -13,7 +13,7 @@ const mockUseWorkflows = vi.mocked(useWorkflows)
 const mockUseWorkflowTemplates = vi.mocked(useWorkflowTemplates)
 const mockUseWorkflowAnalytics = vi.mocked(useWorkflowAnalytics)
 
-const createMockQueryResult = (data: any) => ({
+const createMockQueryResult = (data: any, overrides: any = {}) => ({
   data,
   isLoading: false,
   error: null,
@@ -23,6 +23,7 @@ const createMockQueryResult = (data: any) => ({
   status: 'success' as const,
   dataUpdatedAt: Date.now(),
   errorUpdatedAt: 0,
+  errorUpdateCount: 0,
   failureCount: 0,
   failureReason: null,
   fetchStatus: 'idle' as const,
@@ -36,8 +37,11 @@ const createMockQueryResult = (data: any) => ({
   isRefetchError: false,
   isRefetching: false,
   isStale: false,
+  isEnabled: true,
+  promise: Promise.resolve(data),
   refetch: vi.fn(),
-  remove: vi.fn()
+  remove: vi.fn(),
+  ...overrides
 })
 
 const mockWorkflows = createMockQueryResult({
@@ -183,11 +187,11 @@ describe('Workflows Page', () => {
   })
 
   it('handles loading state', () => {
-    mockUseWorkflowAnalytics.mockReturnValue({
-      ...mockWorkflowAnalytics,
+    mockUseWorkflowAnalytics.mockReturnValue(createMockQueryResult(null, {
       isLoading: true,
-      data: null
-    })
+      isSuccess: false,
+      status: 'pending'
+    }))
 
     renderWithProviders(<Workflows />)
     

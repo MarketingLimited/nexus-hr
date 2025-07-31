@@ -77,7 +77,7 @@ export const useCreateSync = () => {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (data: any) => syncService.queueOperation(data),
+    mutationFn: (data: any) => Promise.resolve(syncService.queueOperation(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sync-stats'] })
       queryClient.invalidateQueries({ queryKey: ['sync-operations'] })
@@ -91,7 +91,7 @@ export const useUpdateSync = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string, data: any }) => {
       // Since syncService doesn't have updateSync, we'll use queueOperation
-      return syncService.queueOperation({ ...data, id })
+      return Promise.resolve(syncService.queueOperation({ ...data, id }))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sync-stats'] })
