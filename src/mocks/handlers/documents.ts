@@ -249,7 +249,7 @@ export const documentHandlers = [
       return Response.json({ error: 'Name is required' }, { status: 400 })
     }
 
-    if (data.content && data.content.length > 5 * 1024 * 1024) {
+    if (data.size && data.size > 5 * 1024 * 1024) {
       return Response.json({ error: 'File too large' }, { status: 413 })
     }
 
@@ -265,7 +265,7 @@ export const documentHandlers = [
       folderId: data.folderId,
       type: data.type || 'other',
       mimeType: data.mimeType || 'application/octet-stream',
-      size: data.size || (data.content ? data.content.length : 0),
+      size: data.size || 0,
       url: data.url || '#',
       thumbnailUrl: data.thumbnailUrl,
       version: 1,
@@ -282,7 +282,6 @@ export const documentHandlers = [
       versions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      uploadDate: new Date().toISOString(),
     }
 
     documents.push(newDocument)

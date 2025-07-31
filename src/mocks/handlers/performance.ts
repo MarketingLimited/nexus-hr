@@ -83,7 +83,7 @@ export const performanceHandlers = [
       category: data.category || 'performance',
       priority: data.priority || 'medium',
       targetDate: data.targetDate!,
-      status: 'not-started',
+      status: 'not_started',
       progress: 0,
       metrics: data.metrics || [],
       createdBy: data.createdBy!,
@@ -208,7 +208,7 @@ export const performanceHandlers = [
       reviewerId: data.reviewerId!,
       period: data.period!,
       type: data.type || 'annual',
-      status: 'draft',
+      status: 'pending',
       overallRating: data.overallRating || 0,
       competencies: data.competencies || [],
       goals: data.goals || [],
@@ -271,7 +271,7 @@ export const performanceHandlers = [
     const updatedReview = {
       ...performanceReviews[reviewIndex],
       ...submission,
-      status: 'submitted' as const,
+      status: 'completed' as const,
       updatedAt: new Date().toISOString(),
     }
     
