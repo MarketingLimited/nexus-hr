@@ -145,11 +145,11 @@ export const payrollService = {
 
 // Auth Services
 export const authService = {
-  login: (credentials: { email: string; password: string }) => 
+  login: (credentials: { email:string; password: string }) =>
     api.post<ApiResponse<{
       user: User
       session: { token: string; refreshToken: string; expiresAt: string }
-    }>>('/auth/login', credentials),
+    }>>('/api/auth/login', credentials),
   
   logout: () => api.post<ApiResponse<{ message: string }>>('/auth/logout'),
   
