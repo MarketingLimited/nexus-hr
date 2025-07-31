@@ -1,6 +1,137 @@
 import { render, RenderOptions, RenderResult } from '@testing-library/react'
 import { ReactElement } from 'react'
 
+// Snapshot interface
+export interface SnapshotOptions {
+  name: string
+  viewport: { width: number; height: number }
+  threshold?: number
+  animations?: boolean
+}
+
+// Visual snapshot result
+export interface VisualSnapshot {
+  name: string
+  html: string
+  timestamp: string
+  viewport: { width: number; height: number }
+}
+
+/**
+ * Take a visual snapshot of a container
+ */
+export const takeSnapshot = async (
+  container: HTMLElement,
+  options: SnapshotOptions
+): Promise<VisualSnapshot> => {
+  const { name, viewport, animations = false } = options
+
+  // Set viewport size
+  Object.defineProperty(window, 'innerWidth', {
+    writable: true,
+    configurable: true,
+    value: viewport.width
+  })
+  
+  Object.defineProperty(window, 'innerHeight', {
+    writable: true,
+    configurable: true,
+    value: viewport.height
+  })
+
+  // Wait for animations if requested
+  if (animations) {
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }
+
+  return {
+    name,
+    html: container.innerHTML,
+    timestamp: new Date().toISOString(),
+    viewport
+  }
+}
+
+/**
+ * Compare two visual snapshots
+ */
+export const compareSnapshots = async (
+  snapshot1: VisualSnapshot,
+  snapshot2: VisualSnapshot
+): Promise<{
+  similarity: number
+  differences: string[]
+  passed: boolean
+}> => {
+  // Simple comparison based on HTML content
+  const similarity = snapshot1.html === snapshot2.html ? 1.0 : 0.0
+  const differences = snapshot1.html !== snapshot2.html ? ['HTML content differs'] : []
+  
+  return {
+    similarity,
+    differences,
+    passed: similarity > 0.9
+  }
+}
+
+/**
+ * Create a screenshot test suite
+ */
+export const createScreenshotTestSuite = async (options: {
+  components: Array<{ name: string; component: ReactElement }>
+  pages?: Array<{ name: string; component: ReactElement }>
+  viewports: Array<{ name: string; width: number; height: number }>
+  themes: string[]
+}): Promise<{
+  results: Array<{ name: string; snapshot: VisualSnapshot; passed: boolean }>
+  passed: boolean
+  failedTests: string[]
+}> => {
+  const { components, pages = [], viewports, themes } = options
+  const results = []
+  const failedTests = []
+
+  const allTestItems = [...components, ...pages]
+
+  for (const theme of themes) {
+    for (const viewport of viewports) {
+      for (const item of allTestItems) {
+        try {
+          const { container } = render(item.component)
+          const snapshot = await takeSnapshot(container, {
+            name: `${item.name}-${theme}-${viewport.name}`,
+            viewport
+          })
+          
+          results.push({
+            name: snapshot.name,
+            snapshot,
+            passed: true
+          })
+        } catch (error) {
+          failedTests.push(`${item.name}-${theme}-${viewport.name}`)
+          results.push({
+            name: `${item.name}-${theme}-${viewport.name}`,
+            snapshot: {
+              name: `${item.name}-${theme}-${viewport.name}`,
+              html: '',
+              timestamp: new Date().toISOString(),
+              viewport
+            },
+            passed: false
+          })
+        }
+      }
+    }
+  }
+
+  return {
+    results,
+    passed: failedTests.length === 0,
+    failedTests
+  }
+}
+
 // Visual testing utilities
 export interface VisualTestOptions {
   /** Viewport sizes to test */
@@ -26,9 +157,10 @@ export interface ResponsiveTestOptions {
  * Test component at different viewport sizes
  */
 export const testResponsiveDesign = async (
-  ui: ReactElement,
-  options: ResponsiveTestOptions = {}
+  container: HTMLElement,
+  options: ResponsiveTestOptions & { viewports?: Array<{ name: string; width: number; height: number }> } = {}
 ): Promise<{
+  breakpointTests: Record<string, boolean>
   results: Array<{
     breakpoint: string
     width: number
@@ -39,7 +171,7 @@ export const testResponsiveDesign = async (
   }>
 }> => {
   const {
-    breakpoints = [
+    viewports = [
       { name: 'mobile', width: 375, height: 667 },
       { name: 'tablet', width: 768, height: 1024 },
       { name: 'desktop', width: 1920, height: 1080 },
@@ -50,25 +182,24 @@ export const testResponsiveDesign = async (
   } = options
   
   const results = []
+  const breakpointTests: Record<string, boolean> = {}
   
-  for (const breakpoint of breakpoints) {
+  for (const viewport of viewports) {
     // Set viewport size
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
-      value: breakpoint.width
+      value: viewport.width
     })
     
     Object.defineProperty(window, 'innerHeight', {
       writable: true,
       configurable: true,
-      value: breakpoint.height || 800
+      value: viewport.height || 800
     })
     
     // Trigger resize event
     window.dispatchEvent(new Event('resize'))
-    
-    const { container } = render(ui)
     
     // Wait for any responsive changes
     await new Promise(resolve => setTimeout(resolve, 100))
@@ -94,44 +225,46 @@ export const testResponsiveDesign = async (
         }
         
         // Check for layout issues
-        if (rect.width > breakpoint.width) {
-          layoutIssues.push(`Element ${htmlEl.tagName} exceeds viewport width at ${breakpoint.name}`)
+        if (rect.width > viewport.width) {
+          layoutIssues.push(`Element ${htmlEl.tagName} exceeds viewport width at ${viewport.name}`)
         }
         
         // Check for text overflow
         if (htmlEl.scrollWidth > htmlEl.clientWidth) {
-          layoutIssues.push(`Text overflow detected in ${htmlEl.tagName} at ${breakpoint.name}`)
+          layoutIssues.push(`Text overflow detected in ${htmlEl.tagName} at ${viewport.name}`)
         }
         
         // Check for overlapping elements (simplified)
         if (rect.left < 0 || rect.top < 0) {
-          layoutIssues.push(`Element ${htmlEl.tagName} positioned outside viewport at ${breakpoint.name}`)
+          layoutIssues.push(`Element ${htmlEl.tagName} positioned outside viewport at ${viewport.name}`)
         }
       })
     })
     
+    breakpointTests[viewport.name] = layoutIssues.length === 0
+    
     results.push({
-      breakpoint: breakpoint.name,
-      width: breakpoint.width,
-      height: breakpoint.height || 800,
+      breakpoint: viewport.name,
+      width: viewport.width,
+      height: viewport.height || 800,
       visibleElements,
       hiddenElements,
       layoutIssues
     })
     
     // Test orientation if requested
-    if (testOrientation && breakpoint.name === 'mobile') {
+    if (testOrientation && viewport.name === 'mobile') {
       // Simulate landscape orientation
       Object.defineProperty(window, 'innerWidth', {
         writable: true,
         configurable: true,
-        value: breakpoint.height || 667
+        value: viewport.height || 667
       })
       
       Object.defineProperty(window, 'innerHeight', {
         writable: true,
         configurable: true,
-        value: breakpoint.width
+        value: viewport.width
       })
       
       window.dispatchEvent(new Event('resize'))
@@ -145,16 +278,16 @@ export const testResponsiveDesign = async (
         const htmlEl = element as HTMLElement
         const rect = htmlEl.getBoundingClientRect()
         
-        if (rect.width > (breakpoint.height || 667)) {
+        if (rect.width > (viewport.height || 667)) {
           landscapeIssues.push(`Element exceeds landscape viewport width`)
         }
       })
       
       if (landscapeIssues.length > 0) {
         results.push({
-          breakpoint: `${breakpoint.name}-landscape`,
-          width: breakpoint.height || 667,
-          height: breakpoint.width,
+          breakpoint: `${viewport.name}-landscape`,
+          width: viewport.height || 667,
+          height: viewport.width,
           visibleElements: [],
           hiddenElements: [],
           layoutIssues: landscapeIssues
@@ -163,16 +296,17 @@ export const testResponsiveDesign = async (
     }
   }
   
-  return { results }
+  return { breakpointTests, results }
 }
 
 /**
  * Test theme consistency
  */
 export const testThemeConsistency = async (
-  ui: ReactElement,
-  options: { themes?: string[]; elementsToCheck?: string[] } = {}
+  container: HTMLElement,
+  options: { themes?: string[]; components?: string[] } = {}
 ): Promise<{
+  consistencyScore: number
   themeResults: Array<{
     theme: string
     colorProperties: Record<string, string>
@@ -183,15 +317,13 @@ export const testThemeConsistency = async (
     issues: string[]
   }
 }> => {
-  const { themes = ['light', 'dark'], elementsToCheck = ['*'] } = options
+  const { themes = ['light', 'dark'], components = ['*'] } = options
   const themeResults = []
   
   for (const theme of themes) {
     // Apply theme (this assumes your app uses data-theme attribute)
     document.documentElement.setAttribute('data-theme', theme)
     document.documentElement.className = theme
-    
-    const { container } = render(ui)
     
     // Wait for theme to apply
     await new Promise(resolve => setTimeout(resolve, 100))
@@ -200,7 +332,7 @@ export const testThemeConsistency = async (
     const issues: string[] = []
     
     // Check color properties for consistency
-    elementsToCheck.forEach(selector => {
+    components.forEach(selector => {
       const elements = Array.from(container.querySelectorAll(selector))
       
       elements.forEach((element, index) => {
@@ -276,7 +408,12 @@ export const testThemeConsistency = async (
     }
   }
   
+  // Calculate consistency score
+  const totalIssues = themeResults.reduce((sum, result) => sum + result.issues.length, 0)
+  const consistencyScore = Math.max(0, 1 - (totalIssues / 10)) // Normalize to 0-1 scale
+
   return {
+    consistencyScore,
     themeResults,
     consistency
   }
@@ -507,8 +644,11 @@ export const runVisualTestSuite = async (
     score: number
   }
 }> => {
-  const responsive = await testResponsiveDesign(ui, options)
-  const themes = await testThemeConsistency(ui, options)
+  // Get container from render
+  const { container } = render(ui)
+  
+  const responsive = await testResponsiveDesign(container, options)
+  const themes = await testThemeConsistency(container, options)
   const snapshots = await createVisualSnapshots(ui, options)
   const crossBrowser = await testCrossBrowserCompatibility(ui)
   
