@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@axe-core/react": "^4.10.2",
     "@faker-js/faker": "^9.9.0",
     "@hookform/resolvers": "^3.9.0",
     "@mswjs/data": "^0.16.2",
@@ -47,12 +48,14 @@
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "axe-core": "^4.10.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.3.0",
     "input-otp": "^1.2.4",
+    "jest-axe": "^10.0.0",
     "jsdom": "^26.1.0",
     "lucide-react": "^0.462.0",
     "msw": "^2.10.4",
