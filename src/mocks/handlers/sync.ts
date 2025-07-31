@@ -18,7 +18,9 @@ let syncOperations: SyncOperation[] = [
     priority: 'medium',
     timestamp: '2024-08-01T10:00:00Z',
     retryCount: 0,
-    maxRetries: 3
+    maxRetries: 3,
+    operation: 'update employee profile',
+    createdAt: '2024-08-01T10:00:00Z'
   },
   {
     id: 'sync_002',
@@ -36,7 +38,9 @@ let syncOperations: SyncOperation[] = [
     priority: 'high',
     timestamp: '2024-08-01T14:30:00Z',
     retryCount: 0,
-    maxRetries: 3
+    maxRetries: 3,
+    operation: 'create leave request',
+    createdAt: '2024-08-01T14:30:00Z'
   },
   {
     id: 'sync_003',
@@ -60,6 +64,8 @@ let syncOperations: SyncOperation[] = [
     timestamp: '2024-08-01T15:00:00Z',
     retryCount: 1,
     maxRetries: 3,
+    operation: 'update employee department',
+    createdAt: '2024-08-01T15:00:00Z',
     conflictData: {
       local: {
         id: 'emp_003',
@@ -99,7 +105,8 @@ let syncConflicts: SyncConflict[] = [
     lastSyncTimestamp: '2024-08-01T12:00:00Z',
     conflictType: 'data',
     autoResolvable: false,
-    createdAt: '2024-08-01T15:45:00Z'
+    createdAt: '2024-08-01T15:45:00Z',
+    detectedAt: '2024-08-01T15:45:00Z'
   }
 ]
 
@@ -190,7 +197,8 @@ export const syncHandlers = [
         lastSyncTimestamp: conflictOp.conflictData.lastSync,
         conflictType: 'data',
         autoResolvable: Math.random() > 0.5,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        detectedAt: new Date().toISOString()
       }
       syncConflicts.push(newConflict)
     }
@@ -203,6 +211,7 @@ export const syncHandlers = [
       conflicts: syncConflicts.length,
       lastSyncTime: new Date().toISOString(),
       syncInProgress: false,
+      inProgress: syncOperations.filter(op => op.status === 'syncing').length,
       averageSyncTime: 2500,
       successRate: 0.85
     }
@@ -221,6 +230,7 @@ export const syncHandlers = [
       lastSyncTime: '2024-08-01T16:00:00Z',
       nextSyncTime: '2024-08-01T16:05:00Z',
       syncInProgress: false,
+      inProgress: syncOperations.filter(op => op.status === 'syncing').length,
       averageSyncTime: 2500,
       successRate: 0.85
     }

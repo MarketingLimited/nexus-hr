@@ -60,14 +60,20 @@ export const MigrationWizard = () => {
     try {
       await createJob.mutateAsync({
         name: migrationConfig.name,
-        status: 'created',
-        type: 'data_import',
+        status: 'pending',
+        type: 'import',
         source: migrationConfig.sourceType || 'csv',
         target: migrationConfig.targetSystem || 'employees',
         mapping: migrationConfig.mapping,
-        totalRecords: 0,
-        processedRecords: 0,
-        progress: 0,
+        progress: {
+          total: 0,
+          processed: 0,
+          errors: 0,
+          warnings: 0
+        },
+        createdBy: 'current-user',
+        validation: [],
+        logs: [],
         config: {
           mapping: migrationConfig.mapping,
           batchSize: 1000,
@@ -424,13 +430,13 @@ export const MigrationWizard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {jobs?.map((job) => {
+                    {jobs?.data?.map((job) => {
                       const StatusIcon = getStatusIcon(job.status)
                       return (
                         <TableRow key={job.id}>
                           <TableCell className="font-medium">{job.name}</TableCell>
-                          <TableCell>{job.sourceType}</TableCell>
-                          <TableCell>{job.targetSystem}</TableCell>
+                          <TableCell>{job.source}</TableCell>
+                          <TableCell>{job.target}</TableCell>
                           <TableCell>
                             <Badge variant={getStatusColor(job.status)}>
                               <StatusIcon className="h-3 w-3 mr-1" />
@@ -440,8 +446,8 @@ export const MigrationWizard = () => {
                           <TableCell>
                             {job.status === 'running' ? (
                               <div className="flex items-center space-x-2">
-                                <Progress value={job.progress || 0} className="w-20 h-2" />
-                                <span className="text-xs">{job.progress || 0}%</span>
+                                <Progress value={typeof job.progress === 'object' ? Math.round((job.progress.processed / job.progress.total) * 100) : job.progress || 0} className="w-20 h-2" />
+                                <span className="text-xs">{typeof job.progress === 'object' ? Math.round((job.progress.processed / job.progress.total) * 100) : job.progress || 0}%</span>
                               </div>
                             ) : (
                               <span className="text-sm text-muted-foreground">-</span>
@@ -469,7 +475,7 @@ export const MigrationWizard = () => {
                         </TableRow>
                       )
                     })}
-                    {(!jobs || jobs.length === 0) && (
+                    {(!jobs?.data || jobs.data.length === 0) && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                           No migration jobs found

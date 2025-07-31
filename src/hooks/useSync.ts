@@ -32,7 +32,7 @@ export function useQueueSyncOperation() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async (operation: Omit<SyncOperation, 'id' | 'createdAt' | 'status'>) => {
+    mutationFn: async (operation: Omit<SyncOperation, 'id' | 'status' | 'timestamp' | 'retryCount'>) => {
       syncService.queueOperation(operation)
       return Promise.resolve()
     },

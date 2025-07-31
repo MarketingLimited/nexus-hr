@@ -147,6 +147,7 @@ export const migrationHandlers = [
     // Mock preview data
     const preview: DataPreview = {
       headers: ['Employee_ID', 'Full_Name', 'Email', 'Department', 'Hire_Date'],
+      recordCount: 100,
       rows: [
         ['EMP001', 'John Doe', 'john.doe@company.com', 'Engineering', '2024-01-15'],
         ['EMP002', 'Jane Smith', 'jane.smith@company.com', 'Marketing', '2024-02-01'],

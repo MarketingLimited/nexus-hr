@@ -223,7 +223,8 @@ class SyncService {
       lastSyncTimestamp: conflictData.lastSync,
       conflictType: this.determineConflictType(operation.localData, conflictData.remote),
       autoResolvable: this.isAutoResolvable(operation.localData, conflictData.remote),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      detectedAt: new Date().toISOString()
     }
 
     this.conflicts.set(conflict.id, conflict)
@@ -360,6 +361,7 @@ class SyncService {
       failed: operations.filter(op => op.status === 'failed').length,
       conflicts: this.conflicts.size,
       syncInProgress: this.syncInProgress,
+      inProgress: operations.filter(op => op.status === 'syncing').length,
       averageSyncTime: 0, // Will be updated during sync
       successRate: operations.length > 0 
         ? operations.filter(op => op.status === 'completed').length / operations.length 
