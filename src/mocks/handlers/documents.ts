@@ -210,17 +210,9 @@ export const documentHandlers = [
     const startIndex = (page - 1) * limit
     const endIndex = startIndex + limit
     const paginatedDocs = filtered.slice(startIndex, endIndex)
-    
-    return Response.json({
-      data: paginatedDocs,
-      meta: {
-        total: filtered.length,
-        page,
-        limit,
-        totalPages: Math.ceil(filtered.length / limit),
-      },
-      message: 'Documents retrieved successfully'
-    })
+
+    // Tests expect the raw array of documents without metadata
+    return Response.json(paginatedDocs)
   }),
 
   // Get document by ID
@@ -240,18 +232,32 @@ export const documentHandlers = [
       lastAccessedAt: new Date().toISOString(),
     }
     
-    return Response.json({
-      data: documents[docIndex],
-      message: 'Document retrieved successfully'
-    })
+    return Response.json(documents[docIndex])
   }),
 
   // Create document
   http.post('/api/documents', async ({ request }) => {
     await delay(Math.random() * 400 + 100)
-    
+
+    if (request.headers.get('content-type') !== 'application/json') {
+      return new Response('Invalid content type', { status: 400 })
+    }
+
     const data = await request.json() as Partial<Document>
-    
+
+    if (!data.name) {
+      return Response.json({ error: 'Name is required' }, { status: 400 })
+    }
+
+    if (data.content && data.content.length > 5 * 1024 * 1024) {
+      return Response.json({ error: 'File too large' }, { status: 413 })
+    }
+
+    const allowedTypes = ['document', 'policy', 'image', 'pdf']
+    if (data.type && !allowedTypes.includes(data.type)) {
+      return Response.json({ error: 'File type not allowed' }, { status: 400 })
+    }
+
     const newDocument: Document = {
       id: `doc-${documents.length + 1}`,
       name: data.name!,
@@ -259,14 +265,14 @@ export const documentHandlers = [
       folderId: data.folderId,
       type: data.type || 'other',
       mimeType: data.mimeType || 'application/octet-stream',
-      size: data.size || 0,
+      size: data.size || (data.content ? data.content.length : 0),
       url: data.url || '#',
       thumbnailUrl: data.thumbnailUrl,
       version: 1,
       status: data.status || 'draft',
       tags: data.tags || [],
-      createdBy: data.createdBy!,
-      updatedBy: data.createdBy!,
+      createdBy: data.createdBy || 'system',
+      updatedBy: data.createdBy || 'system',
       accessLevel: data.accessLevel || 'internal',
       downloadCount: 0,
       isEncrypted: data.isEncrypted || false,
@@ -276,8 +282,9 @@ export const documentHandlers = [
       versions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      uploadDate: new Date().toISOString(),
     }
-    
+
     documents.push(newDocument)
     
     // Update folder document count
@@ -289,10 +296,7 @@ export const documentHandlers = [
       }
     }
     
-    return Response.json({
-      data: newDocument,
-      message: 'Document created successfully'
-    })
+    return Response.json(newDocument, { status: 201 })
   }),
 
   // Update document
@@ -316,15 +320,16 @@ export const documentHandlers = [
     
     documents[docIndex] = updatedDocument
     
-    return Response.json({
-      data: updatedDocument,
-      message: 'Document updated successfully'
-    })
+    return Response.json(updatedDocument)
   }),
 
   // Delete document
-  http.delete('/api/documents/:id', async ({ params }) => {
+  http.delete('/api/documents/:id', async ({ request, params }) => {
     await delay(Math.random() * 300 + 100)
+
+    if (!request.headers.get('authorization')) {
+      return new Response('Unauthorized', { status: 401 })
+    }
     
     const docIndex = documents.findIndex(d => d.id === params.id)
     
@@ -344,10 +349,8 @@ export const documentHandlers = [
     }
     
     documents.splice(docIndex, 1)
-    
-    return Response.json({
-      message: 'Document deleted successfully'
-    })
+
+    return new Response(null, { status: 204 })
   }),
 
   // Download document
@@ -369,13 +372,8 @@ export const documentHandlers = [
     }
     
     return Response.json({
-      data: {
-        url: document.url,
-        filename: document.name,
-        size: document.size,
-        mimeType: document.mimeType,
-      },
-      message: 'Document download initiated'
+      downloadUrl: document.url,
+      expiresAt: new Date(Date.now() + 1000 * 60).toISOString(),
     })
   }),
 

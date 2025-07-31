@@ -9,7 +9,8 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     globals: true,
     css: true,
-    reporters: ['verbose', 'json', 'html'],
+    // Use built-in reporters only to avoid requiring optional UI packages
+    reporters: ['verbose', 'json'],
     coverage: {
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
