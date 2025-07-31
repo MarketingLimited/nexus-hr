@@ -53,27 +53,30 @@ export const enhancedHandlers = [
         data?: any
       }
 
-      let results = { success: 0, failed: 0, errors: [] as Array<{ id: string; error: string }> }
+      if (ids.length > 1000) {
+        return HttpResponse.json({ error: 'Bulk operation limit exceeded' }, { status: 400 })
+      }
 
-      // Simulate bulk operation processing
+      let success = 0
+      let failure = 0
+      const results: Array<{ id: string; status: 'success' | 'failed' }> = []
+
       for (const id of ids) {
-        try {
-          // Simulate individual operation
-          if (Math.random() > 0.1) { // 90% success rate
-            results.success++
-          } else {
-            throw new Error(`Failed to ${operation} item ${id}`)
-          }
-        } catch (error) {
-          results.failed++
-          results.errors.push({
-            id,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          })
+        if (Math.random() > 0.1) {
+          success++
+          results.push({ id, status: 'success' })
+        } else {
+          failure++
+          results.push({ id, status: 'failed' })
         }
       }
 
-      return HttpResponse.json(results)
+      return HttpResponse.json({
+        processedCount: ids.length,
+        successCount: success,
+        failureCount: failure,
+        results
+      })
     } catch (error) {
       return HttpResponse.json({ error: 'Bulk operation failed' }, { status: 500 })
     }
@@ -303,5 +306,125 @@ export const enhancedHandlers = [
     }
 
     return HttpResponse.json(metrics)
+  }),
+
+  // Advanced analytics endpoint
+  http.get('/api/analytics/advanced', async ({ request }) => {
+    const url = new URL(request.url)
+    const period = url.searchParams.get('period') || 'monthly'
+    const year = Number(url.searchParams.get('year') || new Date().getFullYear())
+    const department = url.searchParams.get('department') || null
+
+    const overview = {
+      totalEmployees: 500,
+      revenue: 1_000_000,
+      departmentSize: department ? 50 : undefined
+    }
+
+    const trends = { employeeGrowth: Math.random() }
+    const predictions = { nextQuarter: { revenue: 1_200_000 } }
+    const insights = ['Keep investing in training']
+
+    return HttpResponse.json({
+      overview,
+      trends,
+      predictions,
+      insights,
+      period,
+      year: Number.isNaN(year) ? undefined : year,
+      department: department || undefined
+    })
+  }),
+
+  // Real-time metrics
+  http.get('/api/metrics/realtime', async () => {
+    return HttpResponse.json({
+      activeUsers: Math.floor(Math.random() * 100),
+      systemLoad: Math.random(),
+      responseTime: Math.random() * 100,
+      timestamp: new Date().toISOString()
+    })
+  }),
+
+  http.get('/api/metrics/health', async () => {
+    return HttpResponse.json({
+      status: 'healthy',
+      services: ['database', 'cache', 'queue'].map(name => ({
+        name,
+        status: 'ok'
+      })),
+      uptime: Math.floor(Math.random() * 100000)
+    })
+  }),
+
+  // Advanced search endpoints
+  http.post('/api/search/advanced', async ({ request }) => {
+    try {
+      const body = await request.json()
+      return HttpResponse.json({
+        results: [],
+        totalCount: 0,
+        facets: {},
+        suggestions: []
+      })
+    } catch {
+      return HttpResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    }
+  }),
+
+  http.get('/api/search/suggestions', async ({ request }) => {
+    const url = new URL(request.url)
+    const q = url.searchParams.get('q') || ''
+    const suggestions = ['engineer', 'engineering', 'engagement'].filter(s => s.startsWith(q))
+    return HttpResponse.json(suggestions.map(text => ({ text, type: 'keyword', score: Math.random() })))
+  }),
+
+  // Workflow endpoints with caching
+  http.get('/api/workflows', async ({ request }) => {
+    const workflows = [
+      { id: 'onboarding', name: 'Onboarding', steps: [], status: 'active' }
+    ]
+
+    const etag = 'W/"workflow-etag"'
+    if (request.headers.get('if-none-match') === etag) {
+      return new HttpResponse(null, { status: 304 })
+    }
+
+    return new HttpResponse(JSON.stringify(workflows), {
+      headers: {
+        'content-type': 'application/json',
+        'cache-control': 'public, max-age=60',
+        etag
+      }
+    })
+  }),
+
+  http.post('/api/workflows/:id/execute', async ({ params }) => {
+    if (params.id === 'sensitive') {
+      return new HttpResponse(null, { status: 401 })
+    }
+    return HttpResponse.json({
+      executionId: 'exec-1',
+      status: 'running',
+      currentStep: 1,
+      startedAt: new Date().toISOString()
+    })
+  }),
+
+  // Integration endpoints
+  http.get('/api/integrations/status', async () => {
+    return HttpResponse.json({
+      services: [
+        { name: 'payroll', status: 'active', lastChecked: new Date().toISOString() }
+      ]
+    })
+  }),
+
+  http.post('/api/integrations/sync', async () => {
+    return new HttpResponse(JSON.stringify({
+      syncId: 'sync-1',
+      status: 'started',
+      estimatedDuration: 60
+    }), { status: 202, headers: { 'content-type': 'application/json' } })
   })
 ]

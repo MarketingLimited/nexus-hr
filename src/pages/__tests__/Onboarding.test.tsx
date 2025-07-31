@@ -17,7 +17,10 @@ vi.mock('@/hooks/useOnboarding', () => ({
     getProgress: vi.fn(() => ({ completed: 1, total: 4, percentage: 25 })),
     loading: false,
     error: null
-  })
+  }),
+  useOnboardingStats: () => ({ data: {}, isLoading: false, error: null }),
+  useOnboardingProcesses: () => ({ data: [], isLoading: false, error: null }),
+  useOnboardingTemplate: () => ({ data: { tasks: [] }, isLoading: false, error: null })
 }))
 
 vi.mock('@/contexts/AuthContext', () => ({
