@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@/test-utils'
 import { MemoryRouter } from 'react-router-dom'
-import { Users } from 'lucide-react'
+import { Users, Clock } from 'lucide-react'
 import ModuleCard from '../dashboard/ModuleCard'
 
 const defaultProps = {
   title: 'Employee Management',
   description: 'Manage employee data and profiles',
   icon: Users,
-  href: '/employees',
+  color: 'employees' as const,
+  actions: [],
   stats: [
     { label: 'Total Employees', value: '247' },
     { label: 'Active Today', value: '231' }
@@ -49,11 +50,11 @@ describe('ModuleCard', () => {
       expect(screen.getByText('231')).toBeInTheDocument()
     })
 
-    it('creates a link with correct href', () => {
+    it('displays module title and description', () => {
       renderWithRouter(<ModuleCard {...defaultProps} />)
 
-      const link = screen.getByRole('link')
-      expect(link).toHaveAttribute('href', '/employees')
+      expect(screen.getByText('Employee Management')).toBeInTheDocument()
+      expect(screen.getByText('Manage employee data and profiles')).toBeInTheDocument()
     })
   })
 
@@ -141,40 +142,39 @@ describe('ModuleCard', () => {
 
   describe('Icon Handling', () => {
     it('renders different icon types', () => {
-      const { rerender } = renderWithRouter(<ModuleCard {...defaultProps} />)
+      renderWithRouter(<ModuleCard {...defaultProps} />)
 
       // Test with Users icon
       expect(screen.getByTestId('lucide-users')).toBeInTheDocument()
+    })
 
-      // Test with different icon
-      rerender(
-        <MemoryRouter>
-          <ModuleCard {...defaultProps} icon={Clock} />
-        </MemoryRouter>
-      )
+    it('renders with Clock icon', () => {
+      const clockProps = { ...defaultProps, icon: Clock }
+      renderWithRouter(<ModuleCard {...clockProps} />)
+
+      expect(screen.getByTestId('lucide-clock')).toBeInTheDocument()
     })
   })
 
-  describe('Link Navigation', () => {
-    it('handles different href patterns', () => {
-      const { rerender } = renderWithRouter(<ModuleCard {...defaultProps} />)
+  describe('Actions', () => {
+    it('renders action buttons', () => {
+      const propsWithActions = {
+        ...defaultProps,
+        actions: [
+          { label: 'View All', href: '/employees' },
+          { label: 'Add New', href: '/employees/new' }
+        ]
+      }
+      renderWithRouter(<ModuleCard {...propsWithActions} />)
 
-      expect(screen.getByRole('link')).toHaveAttribute('href', '/employees')
-
-      // Test with different href
-      rerender(
-        <MemoryRouter>
-          <ModuleCard {...defaultProps} href="/attendance" />
-        </MemoryRouter>
-      )
-
-      expect(screen.getByRole('link')).toHaveAttribute('href', '/attendance')
+      expect(screen.getByText('View All')).toBeInTheDocument()
+      expect(screen.getByText('Add New')).toBeInTheDocument()
     })
 
-    it('handles root path', () => {
-      renderWithRouter(<ModuleCard {...defaultProps} href="/" />)
+    it('handles empty actions array', () => {
+      renderWithRouter(<ModuleCard {...defaultProps} />)
 
-      expect(screen.getByRole('link')).toHaveAttribute('href', '/')
+      expect(screen.getByText('Employee Management')).toBeInTheDocument()
     })
   })
 })
