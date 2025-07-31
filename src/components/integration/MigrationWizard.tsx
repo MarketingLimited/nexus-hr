@@ -66,7 +66,12 @@ export const MigrationWizard = () => {
         config: {
           mapping: migrationConfig.mapping,
           batchSize: 1000,
-          validateData: true
+          skipErrors: false,
+          validateOnly: false,
+          validateData: true,
+          createBackup: true,
+          overwriteExisting: false,
+          conflictResolution: 'skip' as const
         }
       })
       setCurrentStep(1)
@@ -220,10 +225,10 @@ export const MigrationWizard = () => {
                     <label className="text-sm font-medium">Data Preview</label>
                     <div className="border rounded-lg p-4 bg-muted">
                       <div className="text-sm font-medium mb-2">
-                        Detected {previewData.data?.data?.recordCount} records with {previewData.data?.data?.detectedSchema?.length} fields
+                        Detected {previewData.data?.data?.recordCount || 0} records with {previewData.data?.data?.detectedSchema?.length || 0} fields
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Fields: {previewData.data.detectedSchema.map(field => field.name).join(', ')}
+                        Fields: {previewData.data?.data?.detectedSchema?.map((field: any) => field.name).join(', ') || 'None'}
                       </div>
                     </div>
                   </div>
@@ -266,11 +271,11 @@ export const MigrationWizard = () => {
                   </Select>
                 </div>
 
-                {previewData.data && (
+                {previewData.data?.data?.detectedSchema && (
                   <div className="space-y-4">
                     <div className="text-sm font-medium">Field Mappings</div>
                     <div className="grid gap-4">
-                      {previewData.data.detectedSchema.map((field, index) => (
+                      {previewData.data.data.detectedSchema.map((field: any, index: number) => (
                         <div key={index} className="flex items-center space-x-4 p-4 border rounded-lg">
                           <div className="flex-1">
                             <div className="font-medium">{field.name}</div>
@@ -319,13 +324,13 @@ export const MigrationWizard = () => {
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="text-center p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {previewData.data?.recordCount || 0}
+                      {previewData.data?.data?.recordCount || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Total Records</div>
                   </div>
                   <div className="text-center p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {previewData.data?.detectedSchema.length || 0}
+                      {previewData.data?.data?.detectedSchema?.length || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Mapped Fields</div>
                   </div>

@@ -12,8 +12,8 @@ import { formatDistanceToNow, format } from "date-fns"
 
 export const HealthChecks = () => {
   const { data: healthChecks } = useHealthChecks()
-  const runHealthCheck = useRunHealthCheck()
-  const updateConfig = useUpdateHealthCheckConfig()
+  const { mutate: runHealthCheck } = useRunHealthCheck()
+  const { mutate: updateConfig } = useUpdateHealthCheckConfig()
   
   const [selectedCheck, setSelectedCheck] = useState(null)
   const [isConfiguring, setIsConfiguring] = useState(false)

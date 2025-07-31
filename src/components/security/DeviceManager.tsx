@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 export const DeviceManager = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('current-user')
-  const { devices, trustDevice, revokeDevice, bulkTrustDevices, bulkRevokeDevices } = useDeviceManagement(selectedUserId)
+  const { devices, trustDevice, revokeDevice, trustAllDevices, revokeAllDevices, isLoading } = useDeviceManagement(selectedUserId)
   const { toast } = useToast()
 
   const getDeviceIcon = (deviceInfo: any) => {
@@ -44,7 +44,7 @@ export const DeviceManager = () => {
 
   const handleTrustDevice = async (deviceId: string) => {
     try {
-      await trustDevice.mutateAsync(deviceId)
+      trustDevice(deviceId)
       toast({
         title: "Device Trusted",
         description: "Device has been marked as trusted"
@@ -60,7 +60,7 @@ export const DeviceManager = () => {
 
   const handleRevokeDevice = async (deviceId: string) => {
     try {
-      await revokeDevice.mutateAsync(deviceId)
+      revokeDevice(deviceId)
       toast({
         title: "Device Revoked",
         description: "Device access has been revoked"
@@ -76,7 +76,7 @@ export const DeviceManager = () => {
 
   const handleBulkTrust = async () => {
     try {
-      await bulkTrustDevices.mutateAsync(untrustedDevices.map(d => d.id))
+      await trustAllDevices()
       toast({
         title: "Devices Trusted",
         description: `${untrustedDevices.length} devices have been trusted`
@@ -92,7 +92,7 @@ export const DeviceManager = () => {
 
   const handleBulkRevoke = async () => {
     try {
-      await bulkRevokeDevices.mutateAsync(trustedDevices.map(d => d.id))
+      await revokeAllDevices()
       toast({
         title: "Devices Revoked",
         description: `${trustedDevices.length} devices have been revoked`
@@ -144,14 +144,14 @@ export const DeviceManager = () => {
               <Button
                 variant="outline"
                 onClick={handleBulkTrust}
-                disabled={untrustedDevices.length === 0 || bulkTrustDevices.isPending}
+                disabled={untrustedDevices.length === 0 || isLoading}
               >
                 Trust All Untrusted
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleBulkRevoke}
-                disabled={trustedDevices.length === 0 || bulkRevokeDevices.isPending}
+                disabled={trustedDevices.length === 0 || isLoading}
               >
                 Revoke All Trusted
               </Button>
@@ -228,7 +228,7 @@ export const DeviceManager = () => {
                       size="sm"
                       className="flex-1"
                       onClick={() => handleRevokeDevice(device.id)}
-                      disabled={revokeDevice.isPending}
+                      disabled={isLoading}
                     >
                       <X className="h-4 w-4 mr-1" />
                       Revoke Trust
@@ -239,7 +239,7 @@ export const DeviceManager = () => {
                       size="sm"
                       className="flex-1"
                       onClick={() => handleTrustDevice(device.id)}
-                      disabled={trustDevice.isPending}
+                      disabled={isLoading}
                     >
                       <ShieldCheck className="h-4 w-4 mr-1" />
                       Trust Device

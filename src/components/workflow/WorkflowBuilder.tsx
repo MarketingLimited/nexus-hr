@@ -47,7 +47,11 @@ export const WorkflowBuilder = () => {
 
   const handleCreateWorkflow = async () => {
     try {
-      await createWorkflow.mutateAsync(newWorkflow)
+      await createWorkflow.mutateAsync({
+        ...newWorkflow,
+        status: 'draft',
+        initiatedBy: 'current-user'
+      })
       setNewWorkflow({ name: '', description: '', type: '', assignedTo: '', steps: [] })
     } catch (error) {
       console.error('Failed to create workflow:', error)
@@ -56,7 +60,11 @@ export const WorkflowBuilder = () => {
 
   const handleStartWorkflow = async (workflowId: string) => {
     try {
-      await startWorkflow.mutateAsync(workflowId)
+      await startWorkflow.mutateAsync({
+        workflowId: workflowId,
+        targetId: 'current-user',
+        assigneeId: 'current-user'
+      })
     } catch (error) {
       console.error('Failed to start workflow:', error)
     }
@@ -150,9 +158,9 @@ export const WorkflowBuilder = () => {
 
         <TabsContent value="active" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {workflows
-              ?.filter(w => w.status === 'in_progress' || w.status === 'paused')
-              .map((workflow) => {
+            {(Array.isArray(workflows) ? workflows : workflows?.data || [])
+              .filter((w: any) => w.status === 'in_progress' || w.status === 'paused')
+              .map((workflow: any) => {
                 const StatusIcon = getStatusIcon(workflow.status)
                 const currentStep = workflow.steps.find(s => s.status === 'in_progress')
                 const completedSteps = workflow.steps.filter(s => s.status === 'completed').length
@@ -226,7 +234,7 @@ export const WorkflowBuilder = () => {
                 )
               })}
 
-            {(!workflows || workflows.filter(w => w.status === 'in_progress' || w.status === 'paused').length === 0) && (
+            {(Array.isArray(workflows) ? workflows : workflows?.data || []).filter((w: any) => w.status === 'in_progress' || w.status === 'paused').length === 0 && (
               <Card className="col-span-full">
                 <CardContent className="text-center py-12">
                   <Play className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -240,7 +248,7 @@ export const WorkflowBuilder = () => {
 
         <TabsContent value="templates" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {templates?.map((template) => (
+            {(Array.isArray(templates) ? templates : templates?.data || []).map((template: any) => (
               <Card key={template.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{template.name}</CardTitle>
@@ -265,7 +273,7 @@ export const WorkflowBuilder = () => {
               </Card>
             ))}
 
-            {(!templates || templates.length === 0) && (
+            {(Array.isArray(templates) ? templates : templates?.data || []).length === 0 && (
               <Card className="col-span-full">
                 <CardContent className="text-center py-12">
                   <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -279,9 +287,9 @@ export const WorkflowBuilder = () => {
 
         <TabsContent value="completed" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {workflows
-              ?.filter(w => w.status === 'completed' || w.status === 'cancelled')
-              .map((workflow) => {
+            {(Array.isArray(workflows) ? workflows : workflows?.data || [])
+              .filter((w: any) => w.status === 'completed' || w.status === 'cancelled')
+              .map((workflow: any) => {
                 const StatusIcon = getStatusIcon(workflow.status)
                 const completedSteps = workflow.steps.filter(s => s.status === 'completed').length
                 const totalSteps = workflow.steps.length
@@ -331,7 +339,7 @@ export const WorkflowBuilder = () => {
                 )
               })}
 
-            {(!workflows || workflows.filter(w => w.status === 'completed' || w.status === 'cancelled').length === 0) && (
+            {(Array.isArray(workflows) ? workflows : workflows?.data || []).filter((w: any) => w.status === 'completed' || w.status === 'cancelled').length === 0 && (
               <Card className="col-span-full">
                 <CardContent className="text-center py-12">
                   <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

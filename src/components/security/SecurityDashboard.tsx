@@ -8,7 +8,7 @@ import { AlertTriangle, Shield, Users, Monitor, Activity, Clock, MapPin, Smartph
 import { formatDistanceToNow } from "date-fns"
 
 export const SecurityDashboard = () => {
-  const { data: alerts } = useSecurityAlerts()
+  const { alerts } = useSecurityAlerts()
   const { sessions, metrics, terminateSession } = useSessionManagement()
   const { devices } = useDeviceManagement('current-user')
 

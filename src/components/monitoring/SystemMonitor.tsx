@@ -11,7 +11,7 @@ import { formatDistanceToNow } from "date-fns"
 export const SystemMonitor = () => {
   const { data: health } = useSystemHealth()
   const { data: metrics } = usePerformanceMetrics()
-  const { data: alerts } = useSystemAlerts({ severity: 'high' })
+  const { data: alerts } = useSystemAlerts({ status: ['high', 'critical'] })
 
   const getHealthStatusColor = (status: string) => {
     switch (status) {
@@ -63,9 +63,9 @@ export const SystemMonitor = () => {
           <p className="text-muted-foreground">Real-time system performance and health monitoring</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge variant={getHealthStatusColor(health?.overall.status || 'unknown')}>
+          <Badge variant={getHealthStatusColor(health?.data?.overall?.status || 'unknown')}>
             <Activity className="h-3 w-3 mr-1" />
-            {health?.overall.status || 'Unknown'}
+            {health?.data?.overall?.status || 'Unknown'}
           </Badge>
         </div>
       </div>
@@ -78,12 +78,12 @@ export const SystemMonitor = () => {
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.cpu.usage || 0}%</div>
+            <div className="text-2xl font-bold">{metrics?.data?.cpu?.usage || 0}%</div>
             <div className="mt-2">
-              <Progress value={metrics?.cpu.usage || 0} className="h-2" />
+              <Progress value={metrics?.data?.cpu?.usage || 0} className="h-2" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Load: {metrics?.cpu.loadAverage?.[0]?.toFixed(2) || '0.00'}
+              Load: {metrics?.data?.cpu?.load || 0}
             </p>
           </CardContent>
         </Card>
@@ -94,12 +94,12 @@ export const SystemMonitor = () => {
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.memory.usagePercent || 0}%</div>
+            <div className="text-2xl font-bold">{metrics?.data?.memory?.usage || 0}%</div>
             <div className="mt-2">
-              <Progress value={metrics?.memory.usagePercent || 0} className="h-2" />
+              <Progress value={metrics?.data?.memory?.usage || 0} className="h-2" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {formatBytes(metrics?.memory.used || 0)} / {formatBytes(metrics?.memory.total || 0)}
+              {formatBytes(metrics?.data?.memory?.used || 0)} / {formatBytes(metrics?.data?.memory?.total || 0)}
             </p>
           </CardContent>
         </Card>
@@ -110,12 +110,12 @@ export const SystemMonitor = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.database.connectionPool.active || 0}</div>
+            <div className="text-2xl font-bold">{metrics?.data?.database?.connections || 0}</div>
             <p className="text-xs text-muted-foreground">Active connections</p>
             <div className="mt-2 space-y-1">
               <div className="text-xs">
                 <span className="text-muted-foreground">Response: </span>
-                <span className="font-medium">{metrics?.database.responseTime || 0}ms</span>
+                <span className="font-medium">{metrics?.data?.database?.responseTime || 0}ms</span>
               </div>
             </div>
           </CardContent>
@@ -127,12 +127,12 @@ export const SystemMonitor = () => {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.network.requestsPerSecond || 0}</div>
-            <p className="text-xs text-muted-foreground">Requests/sec</p>
+            <div className="text-2xl font-bold">{metrics?.data?.network?.bandwidth || 0}</div>
+            <p className="text-xs text-muted-foreground">Bandwidth</p>
             <div className="mt-2 space-y-1">
               <div className="text-xs">
                 <span className="text-muted-foreground">Latency: </span>
-                <span className="font-medium">{metrics?.network.averageLatency || 0}ms</span>
+                <span className="font-medium">{metrics?.data?.network?.latency || 0}ms</span>
               </div>
             </div>
           </CardContent>
@@ -155,7 +155,7 @@ export const SystemMonitor = () => {
                 <CardDescription>Current status of system components</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {health?.components.map((component) => {
+                {(health?.data?.components || []).map((component: any) => {
                   const StatusIcon = getHealthStatusIcon(component.status)
                   return (
                     <div key={component.name} className="flex items-center justify-between">
@@ -188,21 +188,21 @@ export const SystemMonitor = () => {
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Uptime</span>
                     <span className="text-sm font-medium">
-                      {formatUptime(health?.overall.uptime || 0)}
+                      {formatUptime(health?.data?.overall?.uptime || 0)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Version</span>
-                    <span className="text-sm font-medium">{health?.overall.version || 'Unknown'}</span>
+                    <span className="text-sm font-medium">{health?.data?.overall?.version || 'Unknown'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Environment</span>
-                    <Badge variant="outline">{health?.overall.environment || 'Unknown'}</Badge>
+                    <Badge variant="outline">{health?.data?.overall?.environment || 'Unknown'}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Last Check</span>
                     <span className="text-sm font-medium">
-                      {health?.timestamp ? formatDistanceToNow(new Date(health.timestamp)) + ' ago' : 'Never'}
+                      {health?.data?.timestamp ? formatDistanceToNow(new Date(health.data.timestamp)) + ' ago' : 'Never'}
                     </span>
                   </div>
                 </div>
@@ -224,25 +224,25 @@ export const SystemMonitor = () => {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">CPU Usage</span>
-                        <span className="text-sm">{metrics?.cpu.usage || 0}%</span>
+                        <span className="text-sm">{metrics?.data?.cpu?.usage || 0}%</span>
                       </div>
-                      <Progress value={metrics?.cpu.usage || 0} className="h-2" />
+                      <Progress value={metrics?.data?.cpu?.usage || 0} className="h-2" />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">Memory Usage</span>
-                        <span className="text-sm">{metrics?.memory.usagePercent || 0}%</span>
+                        <span className="text-sm">{metrics?.data?.memory?.usage || 0}%</span>
                       </div>
-                      <Progress value={metrics?.memory.usagePercent || 0} className="h-2" />
+                      <Progress value={metrics?.data?.memory?.usage || 0} className="h-2" />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">Disk Usage</span>
-                        <span className="text-sm">{metrics?.disk.usagePercent || 0}%</span>
+                        <span className="text-sm">{metrics?.data?.disk?.usage || 0}%</span>
                       </div>
-                      <Progress value={metrics?.disk.usagePercent || 0} className="h-2" />
+                      <Progress value={metrics?.data?.disk?.usage || 0} className="h-2" />
                     </div>
                   </div>
 
@@ -252,11 +252,11 @@ export const SystemMonitor = () => {
                       <div className="grid gap-1 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Incoming:</span>
-                          <span>{formatBytes(metrics?.network.bytesIn || 0)}/s</span>
+                          <span>{formatBytes(metrics?.data?.network?.inbound || 0)}/s</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Outgoing:</span>
-                          <span>{formatBytes(metrics?.network.bytesOut || 0)}/s</span>
+                          <span>{formatBytes(metrics?.data?.network?.outbound || 0)}/s</span>
                         </div>
                       </div>
                     </div>
@@ -265,12 +265,12 @@ export const SystemMonitor = () => {
                       <div className="text-sm font-medium">Database Performance</div>
                       <div className="grid gap-1 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Queries/sec:</span>
-                          <span>{metrics?.database.queriesPerSecond || 0}</span>
+                          <span className="text-muted-foreground">Connections:</span>
+                          <span>{metrics?.data?.database?.connections || 0}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Avg Response:</span>
-                          <span>{metrics?.database.responseTime || 0}ms</span>
+                          <span>{metrics?.data?.database?.responseTime || 0}ms</span>
                         </div>
                       </div>
                     </div>
@@ -289,7 +289,7 @@ export const SystemMonitor = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {alerts?.map((alert) => (
+                {(Array.isArray(alerts) ? alerts : alerts?.data || []).map((alert: any) => (
                   <div key={alert.id} className="flex items-start space-x-4 p-4 border rounded-lg">
                     <AlertTriangle className={`h-5 w-5 mt-0.5 ${
                       alert.severity === 'critical' ? 'text-destructive' :
@@ -318,7 +318,7 @@ export const SystemMonitor = () => {
                   </div>
                 ))}
 
-                {(!alerts || alerts.length === 0) && (
+                {(Array.isArray(alerts) ? alerts : alerts?.data || []).length === 0 && (
                   <div className="text-center py-12">
                     <CheckCircle className="h-12 w-12 text-primary mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">No Active Alerts</h3>
@@ -338,7 +338,7 @@ export const SystemMonitor = () => {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {health?.services?.map((service) => {
+                {(health?.data?.services || []).map((service: any) => {
                   const StatusIcon = getHealthStatusIcon(service.status)
                   return (
                     <div key={service.name} className="p-4 border rounded-lg">
