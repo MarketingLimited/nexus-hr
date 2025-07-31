@@ -377,11 +377,11 @@ export const monitoringHandlers = [
   }),
 
   http.post('/api/monitoring/alert-rules', async ({ request }) => {
-    const ruleData = await request.json()
+    const ruleData = await request.json() as Partial<AlertRule>
     
     const newRule: AlertRule = {
       id: `rule_${Date.now()}`,
-      ...ruleData,
+      ...(ruleData as any),
       createdAt: new Date().toISOString()
     }
 
@@ -398,9 +398,10 @@ export const monitoringHandlers = [
     }
 
     const testValue = Math.floor(Math.random() * 100)
+    const thresholdNum = typeof rule.threshold === 'number' ? rule.threshold : parseFloat(rule.threshold.toString())
     const triggered = rule.condition === 'greater_than' 
-      ? testValue > rule.threshold 
-      : testValue < rule.threshold
+      ? testValue > thresholdNum 
+      : testValue < thresholdNum
 
     return HttpResponse.json({
       data: {

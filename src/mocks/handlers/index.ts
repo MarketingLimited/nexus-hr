@@ -10,6 +10,14 @@ import { notificationHandlers } from './notifications'
 import { onboardingHandlers } from './onboarding'
 import { assetHandlers } from './assets'
 import { documentHandlers } from './documents'
+import { securityHandlers } from './security'
+import { auditHandlers } from './audit'
+import { privacyHandlers } from './privacy'
+import { mfaHandlers } from './mfa'
+import { workflowHandlers } from './workflow'
+import { syncHandlers } from './sync'
+import { migrationHandlers } from './migration'
+import { monitoringHandlers } from './monitoring'
 
 export const handlers = [
   ...employeeHandlers,
@@ -23,6 +31,14 @@ export const handlers = [
   ...onboardingHandlers,
   ...assetHandlers,
   ...documentHandlers,
+  ...securityHandlers,
+  ...auditHandlers,
+  ...privacyHandlers,
+  ...mfaHandlers,
+  ...workflowHandlers,
+  ...syncHandlers,
+  ...migrationHandlers,
+  ...monitoringHandlers,
   
   // Health check endpoint with realistic delay
   http.get('/api/health', async () => {

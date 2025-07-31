@@ -302,7 +302,7 @@ export const syncHandlers = [
   // Sync specific entity type
   http.post('/api/sync/:entityType', async ({ params, request }) => {
     const { entityType } = params
-    const data = await request.json()
+    const data = await request.json() as any
 
     // Simulate potential conflict
     if (Math.random() > 0.8) {
@@ -310,7 +310,7 @@ export const syncHandlers = [
         data: {
           conflict: true,
           conflictData: {
-            remote: { ...data, conflictField: 'remote value' },
+            remote: { ...(data as any), conflictField: 'remote value' },
             lastSync: new Date(Date.now() - 3600000).toISOString()
           }
         },
@@ -320,8 +320,8 @@ export const syncHandlers = [
 
     return HttpResponse.json({
       data: {
-        id: data.id || `${entityType}_${Date.now()}`,
-        ...data,
+        id: (data as any).id || `${entityType}_${Date.now()}`,
+        ...(data as any),
         syncedAt: new Date().toISOString()
       },
       success: true
@@ -331,7 +331,7 @@ export const syncHandlers = [
   // Update entity
   http.put('/api/sync/:entityType/:id', async ({ params, request }) => {
     const { entityType, id } = params
-    const data = await request.json()
+    const data = await request.json() as any
 
     // Simulate potential conflict
     if (Math.random() > 0.8) {
@@ -339,7 +339,7 @@ export const syncHandlers = [
         data: {
           conflict: true,
           conflictData: {
-            remote: { ...data, id, conflictField: 'remote value' },
+            remote: { ...(data as any), id, conflictField: 'remote value' },
             lastSync: new Date(Date.now() - 3600000).toISOString()
           }
         },
@@ -350,7 +350,7 @@ export const syncHandlers = [
     return HttpResponse.json({
       data: {
         id,
-        ...data,
+        ...(data as any),
         updatedAt: new Date().toISOString(),
         syncedAt: new Date().toISOString()
       },
@@ -381,8 +381,8 @@ export const syncHandlers = [
         syncInterval: 5,
         maxRetries: 3,
         batchSize: 50,
-        conflictResolution: 'hybrid',
-        priority: 'consistency'
+        conflictResolution: 'hybrid' as const,
+        priority: 'consistency' as const
       },
       success: true
     })
@@ -390,7 +390,7 @@ export const syncHandlers = [
 
   // Update sync config
   http.put('/api/sync/config', async ({ request }) => {
-    const config = await request.json()
+    const config = await request.json() as any
 
     return HttpResponse.json({
       data: config,

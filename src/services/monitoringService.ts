@@ -364,9 +364,8 @@ export const monitoringService = {
     // Simulate WebSocket connection for real-time metrics
     const interval = setInterval(async () => {
       try {
-        const response = await api.get<ApiResponse<Record<string, number>>>('/monitoring/realtime', {
-          params: { metrics: metrics.join(',') }
-        })
+        const params = new URLSearchParams({ metrics: metrics.join(',') })
+        const response = await api.get<ApiResponse<Record<string, number>>>(`/monitoring/realtime?${params}`)
         callback(response.data)
       } catch (error) {
         console.error('Failed to fetch real-time metrics:', error)

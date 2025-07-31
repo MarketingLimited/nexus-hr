@@ -191,17 +191,17 @@ class SyncService {
 
   private async syncCreate(operation: SyncOperation): Promise<any> {
     const response = await api.post(`/sync/${operation.entityType}`, operation.localData)
-    return response.data
+    return (response as any).data
   }
 
   private async syncUpdate(operation: SyncOperation): Promise<any> {
     const response = await api.put(`/sync/${operation.entityType}/${operation.entityId}`, operation.localData)
-    return response.data
+    return (response as any).data
   }
 
   private async syncDelete(operation: SyncOperation): Promise<any> {
     const response = await api.delete(`/sync/${operation.entityType}/${operation.entityId}`)
-    return response.data
+    return (response as any).data
   }
 
   // Conflict Resolution
