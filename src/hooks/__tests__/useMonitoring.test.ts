@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import React from 'react'
-import { useMonitoring } from '../useMonitoring'
+import { useSystemHealth, usePerformanceMetrics, useSystemAlerts, useCreateAlertRule, useRunDiagnostics } from '../useMonitoring'
 import { monitoringService } from '@/services/monitoringService'
 
 // Mock the monitoring service

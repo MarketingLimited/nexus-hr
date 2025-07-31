@@ -6,7 +6,7 @@ type AssetFilters = any;
 export const useAssetStats = () => {
   return useQuery({
     queryKey: ['assets', 'stats'],
-    queryFn: assetService.getAssetAnalytics
+    queryFn: () => assetService.getAssetAnalytics()
   });
 };
 

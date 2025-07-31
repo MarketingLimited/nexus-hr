@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import React from 'react'
-import { useSecurity } from '../useSecurity'
+import { useSecurityEvents, useActiveSessions, useSecurityMetrics, useTerminateSession, useTrustDevice, useRevokeDevice, useLogSecurityEvent } from '../useSecurity'
 import { securityService } from '@/services/securityService'
 
 // Mock the security service

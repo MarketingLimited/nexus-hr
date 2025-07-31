@@ -37,11 +37,18 @@ describe('useSync hooks', () => {
   describe('useSync', () => {
     it('should fetch sync stats successfully', async () => {
       const mockStats = {
-        lastSync: '2024-01-01T10:00:00Z',
         totalOperations: 150,
-        pendingOperations: 5,
-        successfulOperations: 140,
-        failedOperations: 5
+        pending: 5,
+        completed: 140,
+        failed: 5,
+        conflicts: 0,
+        lastSyncTime: '2024-01-01T10:00:00Z',
+        nextSyncTime: '2024-01-01T10:05:00Z',
+        syncInProgress: false,
+        inProgress: 0,
+        lastSync: '2024-01-01T10:00:00Z',
+        averageSyncTime: 2.5,
+        successRate: 0.96
       }
 
       vi.mocked(syncService.getStats).mockResolvedValue(mockStats)
@@ -76,8 +83,37 @@ describe('useSync hooks', () => {
   describe('useSyncOperations', () => {
     it('should fetch sync operations successfully', async () => {
       const mockOperations = [
-        { id: '1', type: 'employee_update', status: 'completed' },
-        { id: '2', type: 'leave_request', status: 'pending' }
+        { 
+          id: '1', 
+          type: 'update' as const,
+          entityType: 'employee',
+          entityId: 'emp-1',
+          localData: { name: 'John Doe' },
+          status: 'completed' as const,
+          priority: 'medium' as const,
+          timestamp: '2024-01-01T10:00:00Z',
+          retryCount: 0,
+          maxRetries: 3,
+          operation: 'employee_update',
+          progress: 100,
+          createdAt: '2024-01-01T10:00:00Z',
+          completedAt: '2024-01-01T10:01:00Z'
+        },
+        { 
+          id: '2', 
+          type: 'create' as const,
+          entityType: 'leave',
+          entityId: 'leave-1',
+          localData: { type: 'vacation' },
+          status: 'pending' as const,
+          priority: 'high' as const,
+          timestamp: '2024-01-01T10:02:00Z',
+          retryCount: 0,
+          maxRetries: 3,
+          operation: 'leave_request',
+          progress: 0,
+          createdAt: '2024-01-01T10:02:00Z'
+        }
       ]
 
       vi.mocked(syncService.getOperations).mockResolvedValue(mockOperations)
@@ -97,7 +133,20 @@ describe('useSync hooks', () => {
   describe('useSyncConflicts', () => {
     it('should fetch sync conflicts successfully', async () => {
       const mockConflicts = [
-        { id: '1', entityType: 'employee', conflictType: 'update' }
+        { 
+          id: '1', 
+          operationId: 'op-1',
+          entityType: 'employee', 
+          entityId: 'emp-1',
+          localData: { name: 'John Doe' },
+          remoteData: { name: 'John Smith' },
+          lastSyncTimestamp: '2024-01-01T09:00:00Z',
+          conflictType: 'data' as const,
+          autoResolvable: false,
+          resolutionStrategy: 'manual' as const,
+          createdAt: '2024-01-01T10:00:00Z',
+          detectedAt: '2024-01-01T10:00:00Z'
+        }
       ]
 
       vi.mocked(syncService.getConflicts).mockResolvedValue(mockConflicts)
@@ -116,7 +165,7 @@ describe('useSync hooks', () => {
 
   describe('useStartSync', () => {
     it('should start sync successfully', async () => {
-      vi.mocked(syncService.startSync).mockResolvedValue({ success: true })
+      vi.mocked(syncService.startSync).mockResolvedValue()
 
       const { result } = renderHook(() => useStartSync(), {
         wrapper: createWrapper()
@@ -134,7 +183,7 @@ describe('useSync hooks', () => {
 
   describe('useResolveConflict', () => {
     it('should resolve conflict successfully', async () => {
-      vi.mocked(syncService.resolveConflict).mockResolvedValue({ success: true })
+      vi.mocked(syncService.resolveConflict).mockResolvedValue()
 
       const { result } = renderHook(() => useResolveConflict(), {
         wrapper: createWrapper()
