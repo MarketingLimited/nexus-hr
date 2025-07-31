@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AttendanceTracker } from '@/components/attendance/AttendanceTracker';
+import AttendanceTracker from '@/components/attendance/AttendanceTracker';
 import { BiometricClockIn } from '@/components/attendance/BiometricClockIn';
 import { LiveAttendanceBoard } from '@/components/attendance/LiveAttendanceBoard';
 import { OfflineAttendanceSync } from '@/components/attendance/OfflineAttendanceSync';
