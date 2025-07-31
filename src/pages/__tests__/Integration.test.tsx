@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -14,15 +13,8 @@ vi.mock('@/hooks/useSync')
 const mockUseSync = vi.mocked(useSync)
 const mockUseMigrationJobs = vi.mocked(useMigrationJobs)
 
-const mockSyncStats = {
-  data: {
-    data: {
-      totalSyncs: 150,
-      successfulSyncs: 145,
-      failedSyncs: 5,
-      lastSyncTime: '2024-01-15T12:00:00Z'
-    }
-  },
+const createMockQueryResult = (data: any, overrides: any = {}) => ({
+  data,
   isLoading: false,
   error: null,
   isError: false,
@@ -31,6 +23,7 @@ const mockSyncStats = {
   status: 'success' as const,
   dataUpdatedAt: Date.now(),
   errorUpdatedAt: 0,
+  errorUpdateCount: 0,
   failureCount: 0,
   failureReason: null,
   fetchStatus: 'idle' as const,
@@ -44,54 +37,41 @@ const mockSyncStats = {
   isRefetchError: false,
   isRefetching: false,
   isStale: false,
+  isEnabled: true,
+  promise: Promise.resolve(data),
   refetch: vi.fn(),
-  remove: vi.fn()
-}
+  remove: vi.fn(),
+  ...overrides
+})
 
-const mockMigrationJobs = {
+const mockSyncStats = createMockQueryResult({
   data: {
-    data: [
-      {
-        id: 'mig-1',
-        name: 'Employee Data Migration',
-        status: 'completed',
-        progress: 100,
-        createdAt: '2024-01-15T10:00:00Z'
-      },
-      {
-        id: 'mig-2',
-        name: 'Leave Records Migration',
-        status: 'running',
-        progress: 65,
-        createdAt: '2024-01-15T11:00:00Z'
-      }
-    ],
-    total: 2
-  },
-  isLoading: false,
-  error: null,
-  isError: false,
-  isPending: false,
-  isSuccess: true,
-  status: 'success' as const,
-  dataUpdatedAt: Date.now(),
-  errorUpdatedAt: 0,
-  failureCount: 0,
-  failureReason: null,
-  fetchStatus: 'idle' as const,
-  isFetched: true,
-  isFetchedAfterMount: true,
-  isFetching: false,
-  isInitialLoading: false,
-  isLoadingError: false,
-  isPaused: false,
-  isPlaceholderData: false,
-  isRefetchError: false,
-  isRefetching: false,
-  isStale: false,
-  refetch: vi.fn(),
-  remove: vi.fn()
-}
+    totalSyncs: 150,
+    successfulSyncs: 145,
+    failedSyncs: 5,
+    lastSyncTime: '2024-01-15T12:00:00Z'
+  }
+})
+
+const mockMigrationJobs = createMockQueryResult({
+  data: [
+    {
+      id: 'mig-1',
+      name: 'Employee Data Migration',
+      status: 'completed',
+      progress: 100,
+      createdAt: '2024-01-15T10:00:00Z'
+    },
+    {
+      id: 'mig-2',
+      name: 'Leave Records Migration',
+      status: 'running',
+      progress: 65,
+      createdAt: '2024-01-15T11:00:00Z'
+    }
+  ],
+  total: 2
+})
 
 const renderWithProviders = (component: React.ReactElement) => {
   const queryClient = new QueryClient({
@@ -169,10 +149,11 @@ describe('Integration Page', () => {
   })
 
   it('handles loading state', () => {
-    mockUseSync.mockReturnValue({
-      ...mockSyncStats,
-      isLoading: true
-    })
+    mockUseSync.mockReturnValue(createMockQueryResult(null, {
+      isLoading: true,
+      isSuccess: false,
+      status: 'pending'
+    }))
 
     renderWithProviders(<Integration />)
     

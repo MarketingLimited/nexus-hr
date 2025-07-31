@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -13,7 +12,7 @@ const mockUseSecurityEvents = vi.mocked(useSecurityEvents)
 const mockUseSecurityMetrics = vi.mocked(useSecurityMetrics)
 const mockUseActiveSessions = vi.mocked(useActiveSessions)
 
-const createMockQueryResult = (data: any) => ({
+const createMockQueryResult = (data: any, overrides: any = {}) => ({
   data,
   isLoading: false,
   error: null,
@@ -23,6 +22,7 @@ const createMockQueryResult = (data: any) => ({
   status: 'success' as const,
   dataUpdatedAt: Date.now(),
   errorUpdatedAt: 0,
+  errorUpdateCount: 0,
   failureCount: 0,
   failureReason: null,
   fetchStatus: 'idle' as const,
@@ -36,8 +36,11 @@ const createMockQueryResult = (data: any) => ({
   isRefetchError: false,
   isRefetching: false,
   isStale: false,
+  isEnabled: true,
+  promise: Promise.resolve(data),
   refetch: vi.fn(),
-  remove: vi.fn()
+  remove: vi.fn(),
+  ...overrides
 })
 
 const mockSecurityEvents = createMockQueryResult({
@@ -153,11 +156,12 @@ describe('Security Page', () => {
   })
 
   it('handles loading state', () => {
-    mockUseSecurityMetrics.mockReturnValue({
-      ...mockSecurityMetrics,
+    mockUseSecurityMetrics.mockReturnValue(createMockQueryResult(null, {
       isLoading: true,
-      data: null
-    })
+      data: null,
+      isSuccess: false,
+      status: 'pending'
+    }))
 
     renderWithProviders(<Security />)
     
@@ -166,13 +170,13 @@ describe('Security Page', () => {
   })
 
   it('handles error state', () => {
-    mockUseSecurityMetrics.mockReturnValue({
-      ...mockSecurityMetrics,
+    mockUseSecurityMetrics.mockReturnValue(createMockQueryResult(null, {
       error: new Error('Failed to fetch'),
       data: null,
       isError: true,
-      isSuccess: false
-    })
+      isSuccess: false,
+      status: 'error'
+    }))
 
     renderWithProviders(<Security />)
     

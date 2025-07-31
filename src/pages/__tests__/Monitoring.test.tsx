@@ -1,4 +1,3 @@
-
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -13,7 +12,7 @@ const mockUseSystemHealth = vi.mocked(useSystemHealth)
 const mockUsePerformanceMetrics = vi.mocked(usePerformanceMetrics)
 const mockUseSystemAlerts = vi.mocked(useSystemAlerts)
 
-const createMockQueryResult = (data: any) => ({
+const createMockQueryResult = (data: any, overrides: any = {}) => ({
   data,
   isLoading: false,
   error: null,
@@ -23,6 +22,7 @@ const createMockQueryResult = (data: any) => ({
   status: 'success' as const,
   dataUpdatedAt: Date.now(),
   errorUpdatedAt: 0,
+  errorUpdateCount: 0,
   failureCount: 0,
   failureReason: null,
   fetchStatus: 'idle' as const,
@@ -36,8 +36,11 @@ const createMockQueryResult = (data: any) => ({
   isRefetchError: false,
   isRefetching: false,
   isStale: false,
+  isEnabled: true,
+  promise: Promise.resolve(data),
   refetch: vi.fn(),
-  remove: vi.fn()
+  remove: vi.fn(),
+  ...overrides
 })
 
 const mockSystemHealth = createMockQueryResult({
@@ -154,11 +157,12 @@ describe('Monitoring Page', () => {
   })
 
   it('handles loading state', () => {
-    mockUseSystemHealth.mockReturnValue({
-      ...mockSystemHealth,
+    mockUseSystemHealth.mockReturnValue(createMockQueryResult(null, {
       isLoading: true,
-      data: null
-    })
+      data: null,
+      isSuccess: false,
+      status: 'pending'
+    }))
 
     renderWithProviders(<Monitoring />)
     

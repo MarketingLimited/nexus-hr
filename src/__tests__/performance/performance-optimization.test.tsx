@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
-import { EmployeeList } from '../../components/employees/EmployeeList'
+import EmployeeList from '../../components/employees/EmployeeList'
 import { Security } from '../../pages/Security'
 
 // Mock hooks
