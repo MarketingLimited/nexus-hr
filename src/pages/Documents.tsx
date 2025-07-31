@@ -4,13 +4,25 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { FileUpload } from "@/components/common/FileUpload";
 import { useDocumentStats, useDocumentCategories, useDocuments } from "@/hooks/useDocuments";
+import { useState } from "react";
 
 const Documents = () => {
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  
   // API hooks
   const { data: stats, isLoading: statsLoading } = useDocumentStats();
   const { data: categories, isLoading: categoriesLoading } = useDocumentCategories();
   const { data: documents, isLoading: documentsLoading } = useDocuments({ limit: 5 });
+
+  const handleFileUpload = async (files: File[]) => {
+    console.log('Uploading files:', files);
+    // Simulate file upload to MSW
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setUploadDialogOpen(false);
+  };
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -20,10 +32,25 @@ const Documents = () => {
           <p className="text-muted-foreground">Organize and manage HR documents</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload
-          </Button>
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Upload className="h-4 w-4" />
+                Upload
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Upload Documents</DialogTitle>
+              </DialogHeader>
+              <FileUpload
+                accept=".pdf,.doc,.docx,.xlsx,.png,.jpg,.jpeg"
+                multiple={true}
+                maxSize={50 * 1024 * 1024} // 50MB
+                onUpload={handleFileUpload}
+              />
+            </DialogContent>
+          </Dialog>
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
             New Folder

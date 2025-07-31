@@ -13,7 +13,8 @@ import {
   Shield,
   GitBranch,
   RefreshCw,
-  Activity
+  Activity,
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
@@ -21,6 +22,7 @@ import { Link, useLocation } from "react-router-dom";
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home, color: "dashboard" },
   { name: "Employees", href: "/employees", icon: Users, color: "employees" },
+  { name: "Assets", href: "/assets", icon: Package, color: "assets" },
   { name: "Leave Management", href: "/leave", icon: Calendar, color: "leaves" },
   { name: "Payroll", href: "/payroll", icon: DollarSign, color: "payroll" },
   { name: "Performance", href: "/performance", icon: Target, color: "performance" },

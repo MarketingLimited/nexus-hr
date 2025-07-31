@@ -4,13 +4,97 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BulkActions } from "@/components/common/BulkActions";
 import { useAssetStats, useAssetCategories, useAssets } from "@/hooks/useAssets";
+import { useState } from "react";
 
 const Assets = () => {
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
+  
   // API hooks
   const { data: stats, isLoading: statsLoading } = useAssetStats();
   const { data: categories, isLoading: categoriesLoading } = useAssetCategories();
   const { data: assets, isLoading: assetsLoading } = useAssets({ limit: 5 });
+
+  const assetList = [
+    {
+      id: '1',
+      name: "MacBook Pro 16\"",
+      serialNumber: "FVFXK2L5Q6LR",
+      assignedTo: "Sarah Johnson",
+      category: "IT Equipment",
+      status: "assigned",
+      location: "Office Floor 2"
+    },
+    {
+      id: '2',
+      name: "Dell Monitor 27\"",
+      serialNumber: "DLL2023-001",
+      assignedTo: "Mike Chen",
+      category: "IT Equipment", 
+      status: "assigned",
+      location: "Office Floor 1"
+    },
+    {
+      id: '3',
+      name: "Ergonomic Office Chair",
+      serialNumber: "CHAIR-2024-089",
+      assignedTo: "Emma Davis",
+      category: "Office Equipment",
+      status: "assigned",
+      location: "Office Floor 3"
+    },
+    {
+      id: '4',
+      name: "iPhone 15 Pro",
+      serialNumber: "IPHONE-2024-234",
+      assignedTo: "Unassigned",
+      category: "Mobile Device",
+      status: "available",
+      location: "Storage Room A"
+    },
+    {
+      id: '5',
+      name: "HP Printer LaserJet",
+      serialNumber: "HP-LJ-2024-012",
+      assignedTo: "Office Common Area",
+      category: "Office Equipment",
+      status: "maintenance",
+      location: "Office Floor 1"
+    }
+  ];
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedAssets(assetList.map(asset => asset.id));
+    } else {
+      setSelectedAssets([]);
+    }
+  };
+
+  const handleSelectAsset = (assetId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedAssets(prev => [...prev, assetId]);
+    } else {
+      setSelectedAssets(prev => prev.filter(id => id !== assetId));
+    }
+  };
+
+  const bulkActions = [
+    {
+      label: 'Assign Assets',
+      action: async (selectedIds: string[]) => {
+        console.log('Assigning assets:', selectedIds);
+      }
+    },
+    {
+      label: 'Update Status',
+      action: async (selectedIds: string[]) => {
+        console.log('Updating asset status:', selectedIds);
+      }
+    }
+  ];
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -195,52 +279,25 @@ const Assets = () => {
               Filter
             </Button>
           </div>
+
+          <BulkActions
+            selectedItems={selectedAssets}
+            onSelectAll={handleSelectAll}
+            onSelectItem={handleSelectAsset}
+            totalItems={assetList.length}
+            actions={bulkActions}
+          />
           
           <div className="space-y-3">
-            {[
-              {
-                name: "MacBook Pro 16\"",
-                serialNumber: "FVFXK2L5Q6LR",
-                assignedTo: "Sarah Johnson",
-                category: "IT Equipment",
-                status: "assigned",
-                location: "Office Floor 2"
-              },
-              {
-                name: "Dell Monitor 27\"",
-                serialNumber: "DLL2023-001",
-                assignedTo: "Mike Chen",
-                category: "IT Equipment", 
-                status: "assigned",
-                location: "Office Floor 1"
-              },
-              {
-                name: "Ergonomic Office Chair",
-                serialNumber: "CHAIR-2024-089",
-                assignedTo: "Emma Davis",
-                category: "Office Equipment",
-                status: "assigned",
-                location: "Office Floor 3"
-              },
-              {
-                name: "iPhone 15 Pro",
-                serialNumber: "IPHONE-2024-234",
-                assignedTo: "Unassigned",
-                category: "Mobile Device",
-                status: "available",
-                location: "Storage Room A"
-              },
-              {
-                name: "HP Printer LaserJet",
-                serialNumber: "HP-LJ-2024-012",
-                assignedTo: "Office Common Area",
-                category: "Office Equipment",
-                status: "maintenance",
-                location: "Office Floor 1"
-              }
-            ].map((asset, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+            {assetList.map((asset) => (
+              <div key={asset.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-4">
+                  <Checkbox
+                    checked={selectedAssets.includes(asset.id)}
+                    onCheckedChange={(checked) => 
+                      handleSelectAsset(asset.id, checked as boolean)
+                    }
+                  />
                   <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
                     {asset.category === "IT Equipment" ? (
                       <Laptop className="h-5 w-5" />

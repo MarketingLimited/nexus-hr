@@ -6,6 +6,9 @@ import Sidebar from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import Index from './pages/Index'
 import Employees from './pages/Employees'
+import EmployeeProfile from './pages/EmployeeProfile'
+import Assets from './pages/Assets'
+import Documents from './pages/Documents'
 import Attendance from './pages/Attendance'
 import LeaveManagement from './pages/LeaveManagement'
 import Payroll from './pages/Payroll'
@@ -33,6 +36,21 @@ function App() {
                 <Route path="/employees" element={
                   <ProtectedRoute requiredPermission="employees.read">
                     <Employees />
+                  </ProtectedRoute>
+                } />
+                <Route path="/employees/:id" element={
+                  <ProtectedRoute requiredPermission="employees.read">
+                    <EmployeeProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/assets" element={
+                  <ProtectedRoute requiredPermission="assets.read">
+                    <Assets />
+                  </ProtectedRoute>
+                } />
+                <Route path="/documents" element={
+                  <ProtectedRoute requiredPermission="documents.read">
+                    <Documents />
                   </ProtectedRoute>
                 } />
                 <Route path="/attendance" element={
