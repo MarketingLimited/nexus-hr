@@ -1,5 +1,5 @@
 // Core API client configuration
-const BASE_URL = '/api'
+const BASE_URL = ''
 
 export interface ApiResponse<T> {
   data: T
