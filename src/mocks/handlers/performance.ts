@@ -83,7 +83,7 @@ export const performanceHandlers = [
       category: data.category || 'performance',
       priority: data.priority || 'medium',
       targetDate: data.targetDate!,
-      status: 'not_started',
+      status: 'not-started',
       progress: 0,
       metrics: data.metrics || [],
       createdBy: data.createdBy!,
@@ -93,10 +93,10 @@ export const performanceHandlers = [
     
     goals.push(newGoal)
     
-    return Response.json({
-      data: newGoal,
-      message: 'Goal created successfully'
-    })
+    return Response.json(
+      { data: newGoal, message: 'Goal created successfully' },
+      { status: 201 }
+    )
   }),
 
   // Update goal
@@ -208,7 +208,7 @@ export const performanceHandlers = [
       reviewerId: data.reviewerId!,
       period: data.period!,
       type: data.type || 'annual',
-      status: 'pending',
+      status: 'draft',
       overallRating: data.overallRating || 0,
       competencies: data.competencies || [],
       goals: data.goals || [],
@@ -225,10 +225,10 @@ export const performanceHandlers = [
     
     performanceReviews.push(newReview)
     
-    return Response.json({
-      data: newReview,
-      message: 'Performance review created successfully'
-    })
+    return Response.json(
+      { data: newReview, message: 'Performance review created successfully' },
+      { status: 201 }
+    )
   }),
 
   // Update performance review
@@ -257,18 +257,21 @@ export const performanceHandlers = [
   }),
 
   // Submit performance review
-  http.put('/api/performance/reviews/:id/submit', async ({ params }) => {
+  http.put('/api/performance/reviews/:id/submit', async ({ params, request }) => {
     await delay(Math.random() * 400 + 100)
-    
+
     const reviewIndex = performanceReviews.findIndex(r => r.id === params.id)
     
     if (reviewIndex === -1) {
       return new Response('Performance review not found', { status: 404 })
     }
     
+    const submission = await request.json() as Partial<PerformanceReview>
+
     const updatedReview = {
       ...performanceReviews[reviewIndex],
-      status: 'completed' as const,
+      ...submission,
+      status: 'submitted' as const,
       updatedAt: new Date().toISOString(),
     }
     
@@ -373,11 +376,11 @@ export const performanceHandlers = [
     }
     
     feedback.push(newFeedback)
-    
-    return Response.json({
-      data: newFeedback,
-      message: 'Feedback created successfully'
-    })
+
+    return Response.json(
+      { data: newFeedback, message: 'Feedback created successfully' },
+      { status: 201 }
+    )
   }),
 
   // Update feedback
@@ -509,43 +512,38 @@ export const performanceHandlers = [
     
     // Calculate analytics
     const analytics = {
-      goals: {
+      goalStats: {
         total: filteredGoals.length,
         completed: filteredGoals.filter(g => g.status === 'completed').length,
         inProgress: filteredGoals.filter(g => g.status === 'in_progress').length,
         overdue: filteredGoals.filter(g => g.status === 'overdue').length,
-        averageProgress: filteredGoals.length > 0 
-          ? filteredGoals.reduce((sum, g) => sum + g.progress, 0) / filteredGoals.length 
+        averageProgress: filteredGoals.length > 0
+          ? filteredGoals.reduce((sum, g) => sum + g.progress, 0) / filteredGoals.length
           : 0,
       },
-      reviews: {
+      reviewStats: {
         total: filteredReviews.length,
         completed: filteredReviews.filter(r => r.status === 'completed').length,
         pending: filteredReviews.filter(r => r.status === 'pending').length,
         inProgress: filteredReviews.filter(r => r.status === 'in_progress').length,
-        averageRating: filteredReviews.length > 0 
-          ? filteredReviews.reduce((sum, r) => sum + r.overallRating, 0) / filteredReviews.length 
+        averageRating: filteredReviews.length > 0
+          ? filteredReviews.reduce((sum, r) => sum + r.overallRating, 0) / filteredReviews.length
           : 0,
       },
-      feedback: {
+      feedbackStats: {
         total: filteredFeedback.length,
         submitted: filteredFeedback.filter(f => f.status === 'submitted').length,
         acknowledged: filteredFeedback.filter(f => f.status === 'acknowledged').length,
-        averageRating: filteredFeedback.length > 0 
-          ? filteredFeedback.reduce((sum, f) => sum + f.rating, 0) / filteredFeedback.length 
+        averageRating: filteredFeedback.length > 0
+          ? filteredFeedback.reduce((sum, f) => sum + f.rating, 0) / filteredFeedback.length
           : 0,
       },
-      trends: {
-        goalCompletionRate: filteredGoals.length > 0 
-          ? (filteredGoals.filter(g => g.status === 'completed').length / filteredGoals.length) * 100 
-          : 0,
-        reviewCompletionRate: filteredReviews.length > 0 
-          ? (filteredReviews.filter(r => r.status === 'completed').length / filteredReviews.length) * 100 
-          : 0,
-        feedbackResponseRate: filteredFeedback.length > 0 
-          ? (filteredFeedback.filter(f => f.status !== 'draft').length / filteredFeedback.length) * 100 
-          : 0,
-      }
+      averageRating: filteredReviews.length > 0
+        ? filteredReviews.reduce((sum, r) => sum + r.overallRating, 0) / filteredReviews.length
+        : 0,
+      completionRate: filteredGoals.length > 0
+        ? (filteredGoals.filter(g => g.status === 'completed').length / filteredGoals.length) * 100
+        : 0
     }
     
     return Response.json({
