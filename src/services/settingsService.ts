@@ -114,23 +114,23 @@ export const settingsService = {
     const response = await api.get('/api/settings/export-audit', { 
       responseType: 'blob' 
     })
-    return response.data as Blob
+    return response as Blob
   },
 
   testApiConnections: async (): Promise<{ [key: string]: boolean }> => {
     const response = await api.post('/api/settings/test-connections')
-    return response.data as { [key: string]: boolean }
+    return response as { [key: string]: boolean }
   },
 
   createBackup: async (): Promise<{ id: string; filename: string }> => {
     const response = await api.post('/api/settings/backup')
-    return response.data as { id: string; filename: string }
+    return response as { id: string; filename: string }
   },
 
   exportData: async (format: string = 'csv'): Promise<Blob> => {
     const response = await api.get(`/api/settings/export?format=${format}`, {
       responseType: 'blob'
     })
-    return response.data as Blob
+    return response as Blob
   }
 }
