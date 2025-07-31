@@ -159,8 +159,8 @@ export const SecurityDashboard = () => {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => terminateSession.mutate(session.id)}
-                      disabled={terminateSession.isPending}
+                      onClick={() => terminateSession(session.id)}
+                      disabled={false}
                     >
                       Terminate
                     </Button>

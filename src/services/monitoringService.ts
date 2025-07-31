@@ -172,6 +172,12 @@ export const monitoringService = {
   runHealthCheck: (checkId?: string) => 
     api.post<ApiResponse<HealthCheck | HealthCheck[]>>('/monitoring/health/run', { checkId }),
 
+  getHealthChecks: () => 
+    api.get<ApiResponse<HealthCheck[]>>('/monitoring/health/checks'),
+
+  updateHealthCheckConfig: (checkId: string, config: any) => 
+    api.put<ApiResponse<HealthCheck>>(`/monitoring/health/checks/${checkId}/config`, { config }),
+
   getHealthHistory: (period: string = '24h') => 
     api.get<ApiResponse<{
       timestamp: string

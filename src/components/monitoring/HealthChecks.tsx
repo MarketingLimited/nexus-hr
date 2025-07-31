@@ -12,17 +12,17 @@ import { formatDistanceToNow, format } from "date-fns"
 
 export const HealthChecks = () => {
   const { data: healthChecks } = useHealthChecks()
-  const { mutate: runHealthCheck } = useRunHealthCheck()
-  const { mutate: updateConfig } = useUpdateHealthCheckConfig()
+  const runHealthCheck = useRunHealthCheck()
+  const updateConfig = useUpdateHealthCheckConfig()
   
   const [selectedCheck, setSelectedCheck] = useState(null)
   const [isConfiguring, setIsConfiguring] = useState(false)
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'passing': return 'default'
+      case 'pass': return 'default'
       case 'warning': return 'secondary'
-      case 'failing': return 'destructive'
+      case 'fail': return 'destructive'
       case 'unknown': return 'outline'
       default: return 'outline'
     }
@@ -30,9 +30,9 @@ export const HealthChecks = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'passing': return CheckCircle
+      case 'pass': return CheckCircle
       case 'warning': return AlertTriangle
-      case 'failing': return AlertTriangle
+      case 'fail': return AlertTriangle
       case 'unknown': return Clock
       default: return Clock
     }
@@ -57,7 +57,7 @@ export const HealthChecks = () => {
 
   const handleRunAllChecks = async () => {
     try {
-      const checkIds = healthChecks?.map(check => check.id) || []
+      const checkIds = healthChecks?.data?.map((check: any) => check.id) || []
       for (const checkId of checkIds) {
         await runHealthCheck.mutateAsync(checkId)
       }
@@ -76,13 +76,13 @@ export const HealthChecks = () => {
     return groups
   }, {} as Record<string, any[]>) || {}
 
-  const overallStatus = healthCheckData.every(check => check.status === 'passing') 
-    ? 'passing' 
-    : healthCheckData.some(check => check.status === 'failing')
-    ? 'failing'
+  const overallStatus = healthCheckData.every(check => check.status === 'pass') 
+    ? 'pass' 
+    : healthCheckData.some(check => check.status === 'fail')
+    ? 'fail'
     : 'warning'
 
-  const passingChecks = healthCheckData.filter(check => check.status === 'passing').length || 0
+  const passingChecks = healthCheckData.filter(check => check.status === 'pass').length || 0
   const totalChecks = healthCheckData.length || 0
 
   return (
@@ -163,7 +163,7 @@ export const HealthChecks = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {healthCheckData.filter(check => check.status === 'failing').length || 0}
+              {healthCheckData.filter(check => check.status === 'fail').length || 0}
             </div>
             <p className="text-xs text-muted-foreground">critical issues</p>
           </CardContent>
@@ -174,10 +174,10 @@ export const HealthChecks = () => {
       <div className="space-y-6">
         {Object.entries(groupedChecks).map(([category, checks]) => {
           const CategoryIcon = getCategoryIcon(category)
-          const categoryStatus = checks.every(check => check.status === 'passing') 
-            ? 'passing' 
-            : checks.some(check => check.status === 'failing')
-            ? 'failing'
+          const categoryStatus = checks.every(check => check.status === 'pass') 
+            ? 'pass' 
+            : checks.some(check => check.status === 'fail')
+            ? 'fail'
             : 'warning'
 
           return (
@@ -198,7 +198,7 @@ export const HealthChecks = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {checks.map((check) => {
+                  {Array.isArray(checks) ? checks.map((check) => {
                     const StatusIcon = getStatusIcon(check.status)
                     return (
                       <div key={check.id} className="border rounded-lg p-4">
@@ -286,7 +286,7 @@ export const HealthChecks = () => {
                         )}
                       </div>
                     )
-                  })}
+                  }) : null}
                 </div>
               </CardContent>
             </Card>

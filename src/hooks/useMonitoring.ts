@@ -283,7 +283,7 @@ export function useRealTimeMetrics(metrics: string[]) {
 export function useHealthChecks() {
   return useQuery({
     queryKey: ['health-checks'],
-    queryFn: () => monitoringService.getHealthChecks?.() || Promise.resolve([]),
+    queryFn: () => monitoringService.getHealthChecks(),
     refetchInterval: 30000,
   })
 }
@@ -293,7 +293,10 @@ export function useRunHealthCheck() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: (checkId: string) => monitoringService.runHealthCheck?.(checkId) || Promise.resolve(),
+    mutationFn: async (checkId: string) => {
+      const result = await monitoringService.runHealthCheck(checkId)
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['health-checks'] })
       toast({ title: 'Health check completed' })
@@ -309,8 +312,10 @@ export function useUpdateHealthCheckConfig() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: ({ checkId, config }: { checkId: string; config: any }) => 
-      monitoringService.updateHealthCheckConfig?.(checkId, config) || Promise.resolve(),
+    mutationFn: async ({ checkId, config }: { checkId: string; config: any }) => {
+      const result = await monitoringService.updateHealthCheckConfig(checkId, config)
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['health-checks'] })
       toast({ title: 'Health check configuration updated' })
