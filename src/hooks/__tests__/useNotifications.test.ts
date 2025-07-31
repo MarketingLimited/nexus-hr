@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { createTestQueryClient } from '../test-utils/test-utils'
+import { createTestQueryClient } from '../test-utils'
 import { 
   useNotifications,
   useNotification,
