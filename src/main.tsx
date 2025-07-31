@@ -9,9 +9,13 @@ import { AuthProvider } from './contexts/AuthContext'
 // Initialize MSW
 if (import.meta.env.DEV) {
   const { worker } = await import('./mocks/browser')
-  worker.start({
+  await worker.start({
     onUnhandledRequest: 'bypass',
+    serviceWorker: {
+      url: '/mockServiceWorker.js'
+    }
   })
+  console.log('MSW service worker started successfully')
 }
 
 createRoot(document.getElementById('root')!).render(

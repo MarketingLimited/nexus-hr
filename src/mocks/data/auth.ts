@@ -153,8 +153,80 @@ export const roles: Role[] = [
   }
 ]
 
+// Demo users for testing
+const demoUsers: User[] = [
+  {
+    id: 'demo-admin',
+    username: 'admin',
+    email: 'admin@company.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    avatar: faker.image.avatar(),
+    role: roles[3], // Admin
+    permissions: permissions.filter(p => roles[3].permissions.includes(p.id)),
+    isActive: true,
+    lastLogin: new Date().toISOString(),
+    passwordChangedAt: faker.date.past({ years: 1 }).toISOString(),
+    mfaEnabled: false,
+    profileCompleteness: 100,
+    createdAt: faker.date.past({ years: 2 }).toISOString(),
+    updatedAt: faker.date.recent().toISOString()
+  },
+  {
+    id: 'demo-hr',
+    username: 'hr',
+    email: 'hr@company.com',
+    firstName: 'HR',
+    lastName: 'Manager',
+    avatar: faker.image.avatar(),
+    role: roles[2], // HR Manager
+    permissions: permissions.filter(p => roles[2].permissions.includes(p.id)),
+    isActive: true,
+    lastLogin: new Date().toISOString(),
+    passwordChangedAt: faker.date.past({ years: 1 }).toISOString(),
+    mfaEnabled: false,
+    profileCompleteness: 100,
+    createdAt: faker.date.past({ years: 2 }).toISOString(),
+    updatedAt: faker.date.recent().toISOString()
+  },
+  {
+    id: 'demo-manager',
+    username: 'manager',
+    email: 'manager@company.com',
+    firstName: 'Team',
+    lastName: 'Manager',
+    avatar: faker.image.avatar(),
+    role: roles[1], // Manager
+    permissions: permissions.filter(p => roles[1].permissions.includes(p.id)),
+    isActive: true,
+    lastLogin: new Date().toISOString(),
+    passwordChangedAt: faker.date.past({ years: 1 }).toISOString(),
+    mfaEnabled: false,
+    profileCompleteness: 100,
+    createdAt: faker.date.past({ years: 2 }).toISOString(),
+    updatedAt: faker.date.recent().toISOString()
+  },
+  {
+    id: 'demo-employee',
+    username: 'employee',
+    email: 'employee@company.com',
+    firstName: 'John',
+    lastName: 'Employee',
+    avatar: faker.image.avatar(),
+    role: roles[0], // Employee
+    permissions: permissions.filter(p => roles[0].permissions.includes(p.id)),
+    isActive: true,
+    lastLogin: new Date().toISOString(),
+    passwordChangedAt: faker.date.past({ years: 1 }).toISOString(),
+    mfaEnabled: false,
+    profileCompleteness: 90,
+    createdAt: faker.date.past({ years: 2 }).toISOString(),
+    updatedAt: faker.date.recent().toISOString()
+  }
+]
+
 export const generateUsers = (count: number = 50): User[] => {
-  return Array.from({ length: count }, () => {
+  const randomUsers = Array.from({ length: count - demoUsers.length }, () => {
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
     const role = faker.helpers.weightedArrayElement([
@@ -184,6 +256,8 @@ export const generateUsers = (count: number = 50): User[] => {
       updatedAt: faker.date.recent().toISOString()
     }
   })
+  
+  return [...demoUsers, ...randomUsers]
 }
 
 export const generateSessions = (userIds: string[], count: number = 100): Session[] => {

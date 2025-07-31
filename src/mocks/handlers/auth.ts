@@ -17,7 +17,7 @@ let userRoles = [...roles]
 const adminUser = users.find(u => u.role.name === 'Admin') || users[0]
 
 export const authHandlers = [
-  // Authentication
+  // Authentication  
   http.post('/api/auth/login', async ({ request }) => {
     const { email, password } = await request.json() as { email: string, password: string }
     
