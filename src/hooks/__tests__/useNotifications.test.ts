@@ -44,13 +44,9 @@ vi.mock('../../services/notificationService', () => ({
   }
 }))
 
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   const queryClient = createTestQueryClient()
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  )
+  return React.createElement(QueryClientProvider, { client: queryClient }, children)
 }
 
 describe('useNotifications Hooks', () => {

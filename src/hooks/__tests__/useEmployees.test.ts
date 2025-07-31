@@ -36,15 +36,12 @@ vi.mock('sonner', () => ({
 
 describe('useEmployees Hooks', () => {
   let queryClient: QueryClient
-  let wrapper: React.FC<{ children: React.ReactNode }>
+  let wrapper: any
 
   beforeEach(() => {
     queryClient = createTestQueryClient()
-    wrapper = ({ children }: { children: React.ReactNode }) => (
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    )
+    wrapper = ({ children }: { children: React.ReactNode }) => 
+      React.createElement(QueryClientProvider, { client: queryClient }, children)
     vi.clearAllMocks()
   })
 
