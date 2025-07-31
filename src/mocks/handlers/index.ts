@@ -1,4 +1,8 @@
 import { http, delay } from 'msw'
+import { mswDataPersistence } from '../../services/mswDataPersistence'
+
+// Initialize MSW data persistence
+mswDataPersistence.initialize()
 import { employeeHandlers } from './employees'
 import { departmentHandlers } from './departments'
 import { leaveHandlers } from './leave'
