@@ -30,17 +30,21 @@ async function startMSW() {
   }
 }
 
-// Start MSW without blocking app rendering
-startMSW()
+// Start MSW and render the app after it's ready
+async function main() {
+  await startMSW()
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <QueryProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </QueryProvider>
-    </BrowserRouter>
-  </StrictMode>,
-)
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <QueryProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </QueryProvider>
+      </BrowserRouter>
+    </StrictMode>,
+  )
+}
+
+main()
