@@ -1,52 +1,56 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-
-const activities = [
-  {
-    id: 1,
-    user: { name: "Sarah Johnson", email: "sarah.j@company.com", avatar: "/placeholder.svg" },
-    action: "submitted leave request",
-    type: "leave",
-    status: "pending",
-    timestamp: new Date(Date.now() - 1000 * 60 * 30) // 30 minutes ago
-  },
-  {
-    id: 2,
-    user: { name: "Mike Chen", email: "mike.c@company.com", avatar: "/placeholder.svg" },
-    action: "completed onboarding task",
-    type: "onboarding", 
-    status: "completed",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
-  },
-  {
-    id: 3,
-    user: { name: "Emily Davis", email: "emily.d@company.com", avatar: "/placeholder.svg" },
-    action: "clocked in",
-    type: "attendance",
-    status: "active",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4) // 4 hours ago
-  },
-  {
-    id: 4,
-    user: { name: "David Wilson", email: "david.w@company.com", avatar: "/placeholder.svg" },
-    action: "updated performance goal",
-    type: "performance",
-    status: "updated",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6) // 6 hours ago
-  },
-  {
-    id: 5,
-    user: { name: "Lisa Brown", email: "lisa.b@company.com", avatar: "/placeholder.svg" },
-    action: "requested salary review",
-    type: "payroll",
-    status: "pending",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8) // 8 hours ago
-  }
-];
+import { useRecentActivity } from "@/hooks/useDashboard";
 
 export default function RecentActivity() {
+  const { data: activities, isLoading, error } = useRecentActivity();
+
+  if (isLoading) {
+    return (
+      <Card className="bg-gradient-card border-border/50 shadow-shadow-md">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-foreground">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center space-x-3 p-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-gradient-card border-border/50 shadow-shadow-md">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-foreground">Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load recent activity: {error.message}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="bg-gradient-card border-border/50 shadow-shadow-md">
       <CardHeader>
@@ -54,21 +58,21 @@ export default function RecentActivity() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {activities.map((activity) => (
+          {activities?.map((activity) => (
             <div key={activity.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={activity.user.avatar} alt={activity.user.name} />
+                <AvatarImage src="/placeholder.svg" alt={activity.user} />
                 <AvatarFallback>
-                  {activity.user.name.split(' ').map(n => n[0]).join('')}
+                  {activity.user.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
                   <p className="text-sm font-medium text-foreground truncate">
-                    {activity.user.name}
+                    {activity.user}
                   </p>
-                  <span className="text-sm text-muted-foreground">{activity.action}</span>
+                  <span className="text-sm text-muted-foreground">{activity.title}</span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
                   <Badge 
@@ -83,12 +87,16 @@ export default function RecentActivity() {
                     {activity.status}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                   </span>
                 </div>
               </div>
             </div>
-          ))}
+          )) || (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground text-sm">No recent activity found.</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

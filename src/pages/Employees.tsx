@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import EmployeeFilters from "@/components/employees/EmployeeFilters";
 import EmployeeList from "@/components/employees/EmployeeList";
+import { useEmployeeStats } from "@/hooks/useEmployees";
+import { useDepartments } from "@/hooks/useDepartments";
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const { data: employeeStats, isLoading: statsLoading } = useEmployeeStats();
+  const { data: departments } = useDepartments();
 
   return (
     <div className="p-6 space-y-6">
@@ -18,8 +24,19 @@ const Employees = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Employees</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">247</div>
-            <p className="text-xs text-green-600">+12 from last month</p>
+            {statsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{employeeStats?.total || 0}</div>
+                <p className="text-xs text-green-600">
+                  +12 from last month
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -28,8 +45,22 @@ const Employees = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Employees</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">231</div>
-            <p className="text-xs text-muted-foreground">93.5% of total</p>
+            {statsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{employeeStats?.active || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {employeeStats?.total ? 
+                    `${((employeeStats.active / employeeStats.total) * 100).toFixed(1)}% of total` : 
+                    "0% of total"
+                  }
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -38,8 +69,19 @@ const Employees = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">New This Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-green-600">+3 from last month</p>
+            {statsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">12</div>
+                <p className="text-xs text-green-600">
+                  +3 from last month
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -48,8 +90,17 @@ const Employees = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Departments</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Across all locations</p>
+            {statsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{departments?.length || 0}</div>
+                <p className="text-xs text-muted-foreground">Across all locations</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

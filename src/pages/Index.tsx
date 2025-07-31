@@ -5,6 +5,8 @@ import ModuleCard from "@/components/dashboard/ModuleCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
+import { useDashboardStats, useQuickStats } from "@/hooks/useDashboard";
+import { useEmployeeStats } from "@/hooks/useEmployees";
 import { 
   Users, 
   Calendar, 
@@ -22,6 +24,9 @@ import {
 } from "lucide-react";
 
 const Index = () => {
+  const { data: quickStats, isLoading: quickStatsLoading } = useQuickStats();
+  const { data: employeeStats, isLoading: employeeStatsLoading } = useEmployeeStats();
+
   return (
     <div className="min-h-screen bg-gradient-dashboard">
       <div className="flex h-screen">
@@ -46,27 +51,30 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatsCard
                 title="Total Employees"
-                value="247"
-                change="+12%"
+                value={employeeStats?.total || 0}
+                change={"+12%"}
                 changeType="positive"
                 icon={Users}
                 color="employees"
+                isLoading={employeeStatsLoading}
               />
               <StatsCard
                 title="Pending Leave Requests"
-                value="18"
+                value={quickStats?.pendingLeaveRequests || 0}
                 change="+3"
                 changeType="neutral"
                 icon={Calendar}
                 color="leaves"
+                isLoading={quickStatsLoading}
               />
               <StatsCard
                 title="This Month's Payroll"
-                value="$284K"
+                value={quickStats?.monthlyPayrollCost ? `$${(quickStats.monthlyPayrollCost / 1000).toFixed(0)}K` : "$0"}
                 change="+2.1%"
                 changeType="positive"
                 icon={DollarSign}
                 color="payroll"
+                isLoading={quickStatsLoading}
               />
               <StatsCard
                 title="Performance Reviews"
@@ -75,6 +83,7 @@ const Index = () => {
                 changeType="positive"
                 icon={TrendingUp}
                 color="performance"
+                isLoading={employeeStatsLoading}
               />
             </div>
 
@@ -86,8 +95,16 @@ const Index = () => {
                 icon={Users}
                 color="employees"
                 stats={[
-                  { label: "Active Employees", value: "247", trend: "up" },
-                  { label: "New This Month", value: "12", trend: "up" }
+                  { 
+                    label: "Active Employees", 
+                    value: employeeStats?.active?.toString() || "0", 
+                    trend: "up" 
+                  },
+                  { 
+                    label: "New This Month", 
+                    value: "12", 
+                    trend: "up" 
+                  }
                 ]}
                 actions={[
                   { label: "View All", href: "/employees" },
@@ -102,14 +119,22 @@ const Index = () => {
                 icon={Calendar}
                 color="leaves"
                 stats={[
-                  { label: "Pending Requests", value: "18", trend: "stable" },
-                  { label: "Approved Today", value: "5", trend: "up" }
+                  { 
+                    label: "Pending Requests", 
+                    value: quickStats?.pendingLeaveRequests?.toString() || "0", 
+                    trend: "stable" 
+                  },
+                  { 
+                    label: "Approved Today", 
+                    value: "5", 
+                    trend: "up" 
+                  }
                 ]}
                 actions={[
                   { label: "Review Requests", href: "/leave" },
                   { label: "Leave Calendar", href: "/leave" }
                 ]}
-                notifications={18}
+                notifications={quickStats?.pendingLeaveRequests || 0}
               />
 
               <ModuleCard
@@ -119,7 +144,11 @@ const Index = () => {
                 color="payroll"
                 stats={[
                   { label: "Next Payroll", value: "5 days", trend: "stable" },
-                  { label: "Total Amount", value: "$284K", trend: "up" }
+                  { 
+                    label: "Total Amount", 
+                    value: quickStats?.monthlyPayrollCost ? `$${(quickStats.monthlyPayrollCost / 1000).toFixed(0)}K` : "$0", 
+                    trend: "up"
+                  }
                 ]}
                 actions={[
                   { label: "Run Payroll", href: "/payroll" },
@@ -133,7 +162,11 @@ const Index = () => {
                 icon={Target}
                 color="performance"
                 stats={[
-                  { label: "Completed", value: "89%", trend: "up" },
+                  { 
+                    label: "Completed", 
+                    value: "89%", 
+                    trend: "up" 
+                  },
                   { label: "Due This Week", value: "12", trend: "stable" }
                 ]}
                 actions={[
@@ -165,7 +198,11 @@ const Index = () => {
                 icon={Clock}
                 color="attendance"
                 stats={[
-                  { label: "Present Today", value: "231", trend: "stable" },
+                  { 
+                    label: "Present Today", 
+                    value: employeeStats?.active ? (employeeStats.active - 16).toString() : "0", 
+                    trend: "stable" 
+                  },
                   { label: "Late Arrivals", value: "3", trend: "down" }
                 ]}
                 actions={[
