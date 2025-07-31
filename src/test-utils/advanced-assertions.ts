@@ -211,27 +211,15 @@ export const expectDataToBeConsistent = (data: any[], displayedElements: HTMLEle
       expect(within(element).getByText(item.name)).toBeInTheDocument()
     }
     if (item.id) {
-      expect(element).toHaveAttribute('data-id', item.id) ||
-      expect(within(element).getByText(item.id)).toBeInTheDocument()
+      try {
+        expect(element).toHaveAttribute('data-id', item.id)
+      } catch {
+        expect(within(element).getByText(item.id)).toBeInTheDocument()
+      }
     }
   }
 }
 
-// Performance assertions
-export const expectPageToLoadWithinTime = (maxTime: number) => {
-  const loadTime = performance.now()
-  expect(loadTime).toBeLessThan(maxTime)
-}
-
-export const expectImageToBeOptimized = (image: HTMLImageElement) => {
-  expect(image).toHaveAttribute('alt')
-  const hasLazyLoading = image.hasAttribute('loading') && 
-    (image.getAttribute('loading') === 'lazy' || image.getAttribute('loading') === 'eager')
-  const hasResponsiveImage = image.hasAttribute('srcset') || image.closest('picture') !== null
-  
-  expect(hasLazyLoading).toBe(true)
-  expect(hasResponsiveImage).toBe(true)
-}
 
 export const expectProperLandmarkRoles = () => {
   // Main content
@@ -252,8 +240,10 @@ export const expectKeyboardNavigation = async (focusableElements: string[]) => {
     if (element) {
       element.focus()
       expect(element).toHaveFocus()
-      expect(element).toHaveAttribute('tabindex', '0') || 
-      expect(['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)).toBe(true)
+      
+      const hasTabIndex = element.hasAttribute('tabindex') && element.getAttribute('tabindex') === '0'
+      const isInteractiveElement = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)
+      expect(hasTabIndex || isInteractiveElement).toBe(true)
     }
   }
 }
@@ -266,24 +256,37 @@ export const expectPageToLoadWithinTime = (maxTime: number) => {
 
 export const expectImageToBeOptimized = (image: HTMLImageElement) => {
   expect(image).toHaveAttribute('alt')
-  expect(image).toHaveAttribute('loading', 'lazy') || 
-  expect(image).toHaveAttribute('loading', 'eager')
+  
+  const hasLazyLoading = image.hasAttribute('loading') && 
+    (image.getAttribute('loading') === 'lazy' || image.getAttribute('loading') === 'eager')
+  expect(hasLazyLoading).toBe(true)
   
   // Check for responsive images
-  expect(image).toHaveAttribute('srcset') || 
-  expect(image.closest('picture')).toBeInTheDocument()
+  const hasResponsiveImage = image.hasAttribute('srcset') || image.closest('picture') !== null
+  expect(hasResponsiveImage).toBe(true)
 }
 
 // Theme assertions
 export const expectDarkThemeToBeApplied = () => {
   const rootElement = document.documentElement
-  expect(rootElement).toHaveClass('dark') || 
-  expect(rootElement).toHaveAttribute('data-theme', 'dark')
+  const hasDarkClass = rootElement.classList.contains('dark')
+  const hasDarkTheme = rootElement.getAttribute('data-theme') === 'dark'
+  expect(hasDarkClass || hasDarkTheme).toBe(true)
 }
 
 export const expectLightThemeToBeApplied = () => {
   const rootElement = document.documentElement
-  expect(rootElement).not.toHaveClass('dark')
-  expect(rootElement).toHaveAttribute('data-theme', 'light') || 
-  expect(rootElement).not.toHaveAttribute('data-theme')
+  const hasLightClass = !rootElement.classList.contains('dark')
+  const hasLightTheme = rootElement.getAttribute('data-theme') === 'light' || !rootElement.hasAttribute('data-theme')
+  expect(hasLightClass && hasLightTheme).toBe(true)
+}
+
+// Add missing heading hierarchy assertion
+export const expectProperHeadingHierarchy = () => {
+  const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  expect(headings.length).toBeGreaterThan(0)
+  
+  // Check that there's at least one h1
+  const h1Elements = document.querySelectorAll('h1')
+  expect(h1Elements.length).toBeGreaterThanOrEqual(1)
 }

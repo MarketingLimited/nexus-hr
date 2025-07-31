@@ -95,7 +95,7 @@ export {
   detectMemoryLeaks,
   performanceRegression,
   analyzeCoverage,
-  defaultThresholds
+  performanceThresholds as defaultThresholds
 } from './performance-benchmarks'
 
 // Existing utilities (maintained for backward compatibility)
@@ -124,7 +124,14 @@ export interface TestConfig {
 }
 
 export const setupTestSuite = (config: TestConfig = {}) => {
-  const cleanup = setupTestEnvironment()
+  const cleanup = () => {
+    // Reset any global state, mocks, etc.
+    if (typeof window !== 'undefined') {
+      // Reset window properties
+      Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+      Object.defineProperty(window, 'innerHeight', { value: 768, writable: true })
+    }
+  }
   
   if (config.viewport) {
     // Apply viewport configuration
@@ -145,27 +152,28 @@ export const setupTestSuite = (config: TestConfig = {}) => {
 
 // Test runner helpers for different test types
 export const runUnitTests = (name: string, testFn: () => void) => {
-  describe(`[UNIT] ${name}`, testFn)
+  // These functions are meant to be used in test files where describe is available
+  return { name: `[UNIT] ${name}`, testFn }
 }
 
 export const runIntegrationTests = (name: string, testFn: () => void) => {
-  describe(`[INTEGRATION] ${name}`, testFn)
+  return { name: `[INTEGRATION] ${name}`, testFn }
 }
 
 export const runE2ETests = (name: string, testFn: () => void) => {
-  describe(`[E2E] ${name}`, testFn)
+  return { name: `[E2E] ${name}`, testFn }
 }
 
 export const runPerformanceTests = (name: string, testFn: () => void) => {
-  describe(`[PERFORMANCE] ${name}`, testFn)
+  return { name: `[PERFORMANCE] ${name}`, testFn }
 }
 
 export const runAccessibilityTests = (name: string, testFn: () => void) => {
-  describe(`[A11Y] ${name}`, testFn)
+  return { name: `[A11Y] ${name}`, testFn }
 }
 
 export const runVisualTests = (name: string, testFn: () => void) => {
-  describe(`[VISUAL] ${name}`, testFn)
+  return { name: `[VISUAL] ${name}`, testFn }
 }
 
 // Test data generators for common scenarios

@@ -29,7 +29,7 @@ interface PerformanceThresholds {
   maxBundleSize?: number
 }
 
-class PerformanceBenchmark {
+export class PerformanceBenchmark {
   private startTime: number = 0
   private endTime: number = 0
   private memoryStart: number = 0
