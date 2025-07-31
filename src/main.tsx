@@ -9,7 +9,8 @@ import { AuthProvider } from './contexts/AuthContext'
 // Initialize MSW - start in development and preview environments
 const shouldStartMSW = import.meta.env.DEV || 
   import.meta.env.MODE === 'preview' || 
-  window.location.hostname.includes('lovable') ||
+  window.location.hostname.includes('lovableproject.com') ||
+  window.location.hostname.includes('lovable.app') ||
   window.location.hostname.includes('localhost')
 
 async function startMSW() {
