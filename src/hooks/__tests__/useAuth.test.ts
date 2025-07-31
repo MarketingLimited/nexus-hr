@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { createTestQueryClient } from '../test-utils'
+import { createTestQueryClient, createMockUser } from '../test-utils'
 import { 
   useCurrentUser, 
   useUsers, 
@@ -291,7 +291,7 @@ describe('useAuth Hooks', () => {
 
   describe('useLogout', () => {
     it('should logout successfully and clear data', async () => {
-      vi.mocked(authService.logout).mockResolvedValue({})
+      vi.mocked(authService.logout).mockResolvedValue({ data: { message: 'Logged out successfully' } })
 
       const { result } = renderHook(() => useLogout(), { wrapper })
 
@@ -350,7 +350,7 @@ describe('useAuth Hooks', () => {
 
       const { result } = renderHook(() => useCreateUser(), { wrapper })
 
-      result.current.mutate({ name: 'Test User' })
+      result.current.mutate({ firstName: 'Test', lastName: 'User' })
 
       await waitFor(() => {
         expect(result.current.isError).toBe(true)

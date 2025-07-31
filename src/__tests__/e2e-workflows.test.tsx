@@ -4,8 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { AuthProvider } from '../../contexts/AuthContext'
-import { createTestQueryClient } from '../test-utils'
+import { AuthProvider } from '../contexts/AuthContext'
+import { createTestQueryClient } from '../test-utils/test-utils'
 
 // Test Wrapper Component
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -402,7 +402,7 @@ describe('Phase 6: End-to-End Workflow Tests', () => {
         }
 
         // Verify data consistency
-        Object.values(moduleConsistency).forEach(moduleData => {
+        Object.values(moduleConsistency).forEach((moduleData: any) => {
           expect(moduleData.employeeId || moduleData.id).toBe(employeeId)
         })
       })

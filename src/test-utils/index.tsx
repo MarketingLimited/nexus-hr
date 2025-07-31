@@ -1,5 +1,8 @@
+export * from './test-utils'
+
+// Re-export React Testing Library functions
 import React, { ReactElement } from 'react'
-import { render, RenderOptions } from '@testing-library/react'
+import { render as rtlRender, RenderOptions, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '../contexts/AuthContext'
@@ -10,6 +13,7 @@ const createTestQueryClient = () =>
     defaultOptions: {
       queries: {
         retry: false,
+        staleTime: 0,
         gcTime: 0,
       },
       mutations: {
@@ -18,29 +22,25 @@ const createTestQueryClient = () =>
     },
   })
 
-interface AllTheProvidersProps {
-  children: React.ReactNode
-}
-
-const AllTheProviders = ({ children }: AllTheProvidersProps) => {
-  const queryClient = createTestQueryClient()
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  )
-}
-
-const customRender = (
+// Custom render function with providers
+function render(
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options })
+) {
+  const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+    const queryClient = createTestQueryClient()
+    return (
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    )
+  }
 
-export * from '@testing-library/react'
-export { customRender as render }
-export { createTestQueryClient }
+  return rtlRender(ui, { wrapper: AllTheProviders, ...options })
+}
+
+export { render, screen, waitFor, fireEvent }
