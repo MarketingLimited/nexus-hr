@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { createTestQueryClient } from '../test-utils'
+import { createTestQueryClient } from '../../test-utils'
 import { 
   useEmployees, 
   useEmployee, 
@@ -53,8 +53,8 @@ describe('useEmployees Hooks', () => {
     it('should fetch employees with pagination and filters', async () => {
       const mockEmployees = {
         data: [
-          { id: 'emp-1', name: 'John Doe', department: 'Engineering' },
-          { id: 'emp-2', name: 'Jane Smith', department: 'HR' }
+          { id: 'emp-1', name: 'John Doe', department: 'Engineering' } as any,
+          { id: 'emp-2', name: 'Jane Smith', department: 'HR' } as any
         ],
         meta: { total: 2, page: 1, limit: 10, totalPages: 1 }
       }

@@ -2,15 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { 
-  createTestQueryClient, 
-  createMockAttendanceRecord, 
-  createMockWorkSchedule, 
-  createMockTimeOffRequest, 
-  createMockAttendancePolicy, 
-  createMockAttendanceStats 
-} from '../test-utils'
-import { 
+import { createTestQueryClient } from '../../test-utils'
+import {
   useAttendanceRecords,
   useAttendanceRecord,
   useCreateAttendanceRecord,
@@ -74,20 +67,20 @@ describe('useAttendance Hooks', () => {
     it('should fetch attendance records with filters', async () => {
       const mockRecords = {
         data: [
-          createMockAttendanceRecord({ 
+          { 
             id: 'att-1', 
             employeeId: 'emp-1', 
             date: '2024-01-15',
             clockIn: '09:00:00',
             status: 'present'
-          }),
-          createMockAttendanceRecord({ 
+          } as any,
+          { 
             id: 'att-2', 
             employeeId: 'emp-2', 
             date: '2024-01-15',
             clockIn: '09:15:00',
             status: 'late'
-          })
+          } as any
         ]
       }
       vi.mocked(attendanceService.getAttendanceRecords).mockResolvedValue(mockRecords)
