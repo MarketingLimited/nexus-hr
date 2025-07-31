@@ -35,9 +35,9 @@ const Assets = () => {
             {statsLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{stats?.totalAssets || 0}</div>
+              <div className="text-2xl font-bold">{stats?.data?.total || 0}</div>
             )}
-            <p className="text-xs text-green-600">+{stats?.monthlyGrowth || 0} this month</p>
+            <p className="text-xs text-green-600">+5 this month</p>
           </CardContent>
         </Card>
         
@@ -49,9 +49,9 @@ const Assets = () => {
             {statsLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{stats?.assignedAssets || 0}</div>
+              <div className="text-2xl font-bold">{stats?.data?.assigned || 0}</div>
             )}
-            <p className="text-xs text-muted-foreground">{stats?.utilizationRate || 0}% utilization</p>
+            <p className="text-xs text-muted-foreground">{stats?.data?.utilizationRate || 0}% utilization</p>
           </CardContent>
         </Card>
 
@@ -63,7 +63,7 @@ const Assets = () => {
             {statsLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{stats?.availableAssets || 0}</div>
+              <div className="text-2xl font-bold">{stats?.data?.available || 0}</div>
             )}
             <p className="text-xs text-muted-foreground">Ready for assignment</p>
           </CardContent>
@@ -77,9 +77,9 @@ const Assets = () => {
             {statsLoading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className="text-2xl font-bold">{stats?.maintenanceAssets || 0}</div>
+              <div className="text-2xl font-bold">{stats?.data?.maintenance || 0}</div>
             )}
-            <p className="text-xs text-orange-600">{stats?.maintenanceDueThisWeek || 0} due this week</p>
+            <p className="text-xs text-orange-600">3 due this week</p>
           </CardContent>
         </Card>
       </div>

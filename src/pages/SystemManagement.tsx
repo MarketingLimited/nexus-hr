@@ -8,7 +8,7 @@ const DepartmentDropdown = () => {
   return (
     <SelectContent>
       <SelectItem value="all">All Departments</SelectItem>
-      {departments?.data?.map((dept: any) => (
+      {departments?.map((dept: any) => (
         <SelectItem key={dept.id} value={dept.name}>
           {dept.name}
         </SelectItem>

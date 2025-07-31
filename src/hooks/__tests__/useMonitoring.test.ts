@@ -37,13 +37,20 @@ describe('useMonitoring hooks', () => {
     it('should fetch system health successfully', async () => {
       const mockHealth = {
         data: {
-          status: 'healthy',
-          uptime: 99.5,
-          lastCheck: '2024-01-01T10:00:00Z',
-          services: [
-            { name: 'Database', status: 'healthy' },
-            { name: 'API', status: 'healthy' }
-          ]
+          status: 'healthy' as const,
+          score: 95,
+          checks: [
+            {
+              id: 'db-check',
+              name: 'Database',
+              category: 'performance' as const,
+              status: 'pass' as const,
+              message: 'Database is healthy',
+              lastRun: '2024-01-01T10:00:00Z',
+              duration: 150
+            }
+          ],
+          lastUpdated: '2024-01-01T10:00:00Z'
         }
       }
 
@@ -65,11 +72,44 @@ describe('useMonitoring hooks', () => {
     it('should fetch performance metrics successfully', async () => {
       const mockMetrics = {
         data: {
-          cpuUsage: 45.2,
-          memoryUsage: 67.8,
-          diskUsage: 23.1,
-          networkLatency: 12.5,
-          responseTime: 150.3,
+          cpu: {
+            usage: 45.2,
+            cores: 8,
+            loadAverage: [1.2, 1.5, 1.8]
+          },
+          memory: {
+            used: 4.2,
+            total: 16,
+            percentage: 67.8,
+            heap: {
+              used: 2.1,
+              total: 4.0
+            }
+          },
+          storage: {
+            database: {
+              size: 1024,
+              connections: 15,
+              queryTime: 25.3
+            },
+            localStorage: {
+              used: 500,
+              quota: 1000,
+              percentage: 50
+            }
+          },
+          network: {
+            latency: 12.5,
+            throughput: 850,
+            activeConnections: 42,
+            failedRequests: 2
+          },
+          application: {
+            responseTime: 150.3,
+            errorRate: 0.1,
+            activeUsers: 245,
+            sessionsActive: 89
+          },
           timestamp: '2024-01-01T10:00:00Z'
         }
       }
@@ -94,15 +134,20 @@ describe('useMonitoring hooks', () => {
         data: [
           {
             id: 'alert-1',
-            type: 'warning',
+            title: 'High CPU Usage',
+            type: 'warning' as const,
+            category: 'performance' as const,
+            source: 'system-monitor',
+            status: 'active' as const,
             message: 'High CPU usage detected',
             timestamp: '2024-01-01T10:00:00Z',
+            createdAt: '2024-01-01T10:00:00Z',
             acknowledged: false
           }
         ]
       }
 
-      vi.mocked(monitoringService.getSystemAlerts).mockResolvedValue(mockAlerts)
+      vi.mocked(monitoringService.getAlerts).mockResolvedValue(mockAlerts)
 
       const { result } = renderHook(() => useSystemAlerts(), {
         wrapper: createWrapper()

@@ -14,20 +14,21 @@ const EmployeeProfile = () => {
   
   const employee = employeesData?.data?.find((emp: any) => emp.id === id) || {
     id: id || "1",
-    name: "Employee Not Found",
+    firstName: "Employee",
+    lastName: "Not Found",
     email: "N/A", 
     phone: "N/A",
     position: "N/A",
     department: "N/A",
     location: "N/A",
-    joinDate: new Date().toISOString().split('T')[0],
+    hireDate: new Date().toISOString().split('T')[0],
     status: "inactive",
     avatar: "/api/placeholder/150/150",
     employeeId: id || "EMP001",
     manager: "N/A",
     salary: "N/A",
     skills: [],
-    bio: "Employee information not available."
+    notes: "Employee information not available."
   };
 
   if (isLoading) {
@@ -75,15 +76,15 @@ const EmployeeProfile = () => {
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={employee.avatar} alt={employee.name} />
+              <AvatarImage src={employee.avatar} alt={`${employee.firstName} ${employee.lastName}`} />
               <AvatarFallback className="text-2xl">
-                {employee.name.split(' ').map(n => n[0]).join('')}
+                {employee.firstName[0]}{employee.lastName[0]}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 space-y-4">
               <div>
-                <h2 className="text-2xl font-bold">{employee.name}</h2>
+                <h2 className="text-2xl font-bold">{employee.firstName} {employee.lastName}</h2>
                 <p className="text-lg text-muted-foreground">{employee.position}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant={employee.status === "active" ? "default" : "secondary"}>
@@ -142,7 +143,7 @@ const EmployeeProfile = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Join Date</label>
-                    <p className="text-sm">{new Date(employee.joinDate).toLocaleDateString()}</p>
+                    <p className="text-sm">{new Date((employee as any).hireDate || (employee as any).joinDate || new Date()).toLocaleDateString()}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Manager</label>
@@ -158,7 +159,7 @@ const EmployeeProfile = () => {
                 
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Bio</label>
-                  <p className="text-sm mt-1">{employee.bio}</p>
+                  <p className="text-sm mt-1">{(employee as any).notes || (employee as any).bio || 'No bio available'}</p>
                 </div>
               </CardContent>
             </Card>
