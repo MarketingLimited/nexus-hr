@@ -18,6 +18,7 @@ import { workflowHandlers } from './workflow'
 import { syncHandlers } from './sync'
 import { migrationHandlers } from './migration'
 import { monitoringHandlers } from './monitoring'
+import { settingsHandlers } from './settings'
 
 export const handlers = [
   ...employeeHandlers,
@@ -39,6 +40,7 @@ export const handlers = [
   ...syncHandlers,
   ...migrationHandlers,
   ...monitoringHandlers,
+  ...settingsHandlers,
   
   // Health check endpoint with realistic delay
   http.get('/api/health', async () => {
