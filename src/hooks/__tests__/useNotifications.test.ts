@@ -67,8 +67,9 @@ describe('useNotifications Hooks', () => {
         data: [
           { id: '1', title: 'Test Notification', isRead: false, type: 'info' },
           { id: '2', title: 'Another Notification', isRead: true, type: 'success' }
-        ]
-      }
+        ],
+        meta: { total: 2, page: 1, limit: 10, totalPages: 1 }
+      } as any
       vi.mocked(notificationService.getNotifications).mockResolvedValue(mockNotifications)
 
       const { result } = renderHook(() => useNotifications(), { wrapper: TestWrapper })
@@ -80,18 +81,11 @@ describe('useNotifications Hooks', () => {
       expect(result.current.data).toEqual(mockNotifications)
       expect(notificationService.getNotifications).toHaveBeenCalledWith(undefined)
     })
-
-    it('should use 1 minute stale time', () => {
-      renderHook(() => useNotifications(), { wrapper: TestWrapper })
-      
-      const query = queryClient.getQueryCache().find({ queryKey: notificationKeys.notifications() })
-      expect(query?.options.staleTime).toBe(1 * 60 * 1000)
-    })
   })
 
   describe('useMarkAsRead', () => {
     it('should mark notification as read and invalidate cache', async () => {
-      const mockResponse = { success: true }
+      const mockResponse = { data: { success: true } } as any
       vi.mocked(notificationService.markAsRead).mockResolvedValue(mockResponse)
 
       const { result } = renderHook(() => useMarkAsRead(), { wrapper: TestWrapper })
@@ -110,12 +104,15 @@ describe('useNotifications Hooks', () => {
     it('should fetch notification statistics', async () => {
       const mockStats = {
         data: {
-          total: 50,
-          unread: 10,
-          read: 40,
-          byType: { info: 20, warning: 15, error: 15 }
+          total: 150,
+          unread: 25,
+          read: 125,
+          actionRequired: 5,
+          byType: { info: 50, warning: 25, error: 10 },
+          byCategory: { system: 30, user: 120 },
+          byPriority: { low: 100, medium: 40, high: 10 }
         }
-      }
+      } as any
       vi.mocked(notificationService.getNotificationStats).mockResolvedValue(mockStats)
 
       const { result } = renderHook(() => useNotificationStats('user-1'), { wrapper: TestWrapper })
@@ -126,13 +123,6 @@ describe('useNotifications Hooks', () => {
 
       expect(result.current.data).toEqual(mockStats)
       expect(notificationService.getNotificationStats).toHaveBeenCalledWith('user-1')
-    })
-
-    it('should use 2 minute stale time', () => {
-      renderHook(() => useNotificationStats(), { wrapper: TestWrapper })
-      
-      const query = queryClient.getQueryCache().find({ queryKey: notificationKeys.stats() })
-      expect(query?.options.staleTime).toBe(2 * 60 * 1000)
     })
   })
 

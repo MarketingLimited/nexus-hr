@@ -2,7 +2,14 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { createTestQueryClient } from '../../test-utils'
+import { 
+  createTestQueryClient,
+  createMockAttendanceRecord,
+  createMockWorkSchedule,
+  createMockTimeOffRequest,
+  createMockAttendancePolicy,
+  createMockAttendanceStats
+} from '../../test-utils'
 import {
   useAttendanceRecords,
   useAttendanceRecord,
@@ -117,7 +124,7 @@ describe('useAttendance Hooks', () => {
           status: 'present',
           totalHours: 8
         })
-      }
+      } as any
       vi.mocked(attendanceService.getAttendanceRecord).mockResolvedValue(mockRecord)
 
       const { result } = renderHook(() => useAttendanceRecord('att-1'), { wrapper })
@@ -147,7 +154,7 @@ describe('useAttendance Hooks', () => {
           date: '2024-01-16',
           status: 'present'
         })
-      }
+      } as any
       vi.mocked(attendanceService.createAttendanceRecord).mockResolvedValue(mockRecord)
 
       const { result } = renderHook(() => useCreateAttendanceRecord(), { wrapper })
@@ -168,7 +175,7 @@ describe('useAttendance Hooks', () => {
     })
 
     it('should invalidate records and stats queries on success', async () => {
-      const mockRecord = { data: createMockAttendanceRecord({ id: 'att-new' }) }
+      const mockRecord = { data: createMockAttendanceRecord({ id: 'att-new' }) } as any
       vi.mocked(attendanceService.createAttendanceRecord).mockResolvedValue(mockRecord)
 
       // Pre-populate cache
@@ -200,7 +207,7 @@ describe('useAttendance Hooks', () => {
           clockOut: '17:30:00',
           totalHours: 8.5
         })
-      }
+      } as any
       vi.mocked(attendanceService.updateAttendanceRecord).mockResolvedValue(mockUpdatedRecord)
 
       const { result } = renderHook(() => useUpdateAttendanceRecord(), { wrapper })
@@ -231,7 +238,7 @@ describe('useAttendance Hooks', () => {
             endTime: '17:00:00'
           })
         ]
-      }
+      } as any
       vi.mocked(attendanceService.getWorkSchedules).mockResolvedValue(mockSchedules)
 
       const { result } = renderHook(() => useWorkSchedules('emp-1'), { wrapper })
@@ -263,7 +270,7 @@ describe('useAttendance Hooks', () => {
             status: 'pending'
           })
         ]
-      }
+      } as any
       vi.mocked(attendanceService.getTimeOffRequests).mockResolvedValue(mockRequests)
 
       const filters = { employeeId: 'emp-1', status: 'pending' }
@@ -288,7 +295,7 @@ describe('useAttendance Hooks', () => {
             description: 'Standard working hours policy'
           })
         ]
-      }
+      } as any
       vi.mocked(attendanceService.getAttendancePolicies).mockResolvedValue(mockPolicies)
 
       const { result } = renderHook(() => useAttendancePolicies(), { wrapper })
@@ -319,7 +326,7 @@ describe('useAttendance Hooks', () => {
           lateDays: 5,
           attendanceRate: 85
         })
-      }
+      } as any
       vi.mocked(attendanceService.getAttendanceStats).mockResolvedValue(mockStats)
 
       const filters = { employeeId: 'emp-1', startDate: '2024-01-01' }
@@ -344,7 +351,7 @@ describe('useAttendance Hooks', () => {
   describe('Clock Operations', () => {
     describe('useClockIn', () => {
       it('should clock in successfully', async () => {
-        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-new', status: 'present' }) }
+        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-new', status: 'present' }) } as any
         vi.mocked(attendanceService.clockIn).mockResolvedValue(mockResponse)
 
         const { result } = renderHook(() => useClockIn(), { wrapper })
@@ -361,7 +368,7 @@ describe('useAttendance Hooks', () => {
 
     describe('useClockOut', () => {
       it('should clock out successfully', async () => {
-        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-1', status: 'present' }) }
+        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-1', status: 'present' }) } as any
         vi.mocked(attendanceService.clockOut).mockResolvedValue(mockResponse)
 
         const { result } = renderHook(() => useClockOut(), { wrapper })
@@ -378,7 +385,7 @@ describe('useAttendance Hooks', () => {
 
     describe('useStartBreak', () => {
       it('should start break successfully', async () => {
-        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-1', status: 'present' }) }
+        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-1', status: 'present' }) } as any
         vi.mocked(attendanceService.startBreak).mockResolvedValue(mockResponse)
 
         const { result } = renderHook(() => useStartBreak(), { wrapper })
@@ -395,7 +402,7 @@ describe('useAttendance Hooks', () => {
 
     describe('useEndBreak', () => {
       it('should end break successfully', async () => {
-        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-1', status: 'present' }) }
+        const mockResponse = { data: createMockAttendanceRecord({ id: 'att-1', status: 'present' }) } as any
         vi.mocked(attendanceService.endBreak).mockResolvedValue(mockResponse)
 
         const { result } = renderHook(() => useEndBreak(), { wrapper })

@@ -118,7 +118,7 @@ describe('useEmployees Hooks', () => {
     it('should fetch single employee by ID when enabled', async () => {
       const mockEmployee = { 
         data: { id: 'emp-1', name: 'John Doe', email: 'john@example.com' }
-      }
+      } as any
       vi.mocked(employeeService.getById).mockResolvedValue(mockEmployee)
 
       const { result } = renderHook(() => useEmployee('emp-1', true), { wrapper })
@@ -163,9 +163,10 @@ describe('useEmployees Hooks', () => {
     it('should fetch employee statistics', async () => {
       const mockStats = {
         data: {
-          totalEmployees: 150,
-          activeEmployees: 142,
-          byStatus: { active: 142, inactive: 8 },
+          total: 150,
+          active: 142,
+          inactive: 8,
+          terminated: 0,
           byDepartment: { Engineering: 50, HR: 25, Sales: 30 },
           byLocation: { 'New York': 75, 'San Francisco': 75 }
         }
@@ -198,20 +199,22 @@ describe('useEmployees Hooks', () => {
         data: { 
           id: 'emp-new', 
           employeeId: 'EMP001',
-          name: 'New Employee', 
+          firstName: 'New', 
+          lastName: 'Employee',
           email: 'new@example.com' 
         }
-      }
+      } as any
       vi.mocked(employeeService.create).mockResolvedValue(mockEmployee)
 
       const { result } = renderHook(() => useCreateEmployee(), { wrapper })
 
       const newEmployeeData = {
-        name: 'New Employee',
+        firstName: 'New',
+        lastName: 'Employee',
         email: 'new@example.com',
         department: 'Engineering',
         position: 'Developer'
-      }
+      } as any
       result.current.mutate(newEmployeeData)
 
       await waitFor(() => {
@@ -228,7 +231,7 @@ describe('useEmployees Hooks', () => {
 
       const { result } = renderHook(() => useCreateEmployee(), { wrapper })
 
-      result.current.mutate({ name: 'Test Employee' })
+      result.current.mutate({ firstName: 'Test', lastName: 'Employee' } as any)
 
       await waitFor(() => {
         expect(result.current.isError).toBe(true)
@@ -238,7 +241,7 @@ describe('useEmployees Hooks', () => {
     })
 
     it('should invalidate employee queries on success', async () => {
-      const mockEmployee = { data: { id: 'emp-new', name: 'New Employee' } }
+      const mockEmployee = { data: { id: 'emp-new', firstName: 'New', lastName: 'Employee' } } as any
       vi.mocked(employeeService.create).mockResolvedValue(mockEmployee)
 
       // Pre-populate cache
@@ -246,7 +249,7 @@ describe('useEmployees Hooks', () => {
 
       const { result } = renderHook(() => useCreateEmployee(), { wrapper })
 
-      result.current.mutate({ name: 'New Employee' })
+      result.current.mutate({ firstName: 'New', lastName: 'Employee' } as any)
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true)
@@ -261,16 +264,16 @@ describe('useEmployees Hooks', () => {
   describe('useUpdateEmployee', () => {
     it('should update employee successfully', async () => {
       const mockUpdatedEmployee = { 
-        data: { id: 'emp-1', name: 'Updated Name', position: 'Senior Developer' }
-      }
+        data: { id: 'emp-1', firstName: 'Updated', lastName: 'Name', position: 'Senior Developer' }
+      } as any
       vi.mocked(employeeService.update).mockResolvedValue(mockUpdatedEmployee)
 
       const { result } = renderHook(() => useUpdateEmployee(), { wrapper })
 
       const updateData = {
         id: 'emp-1',
-        data: { name: 'Updated Name', position: 'Senior Developer' }
-      }
+        data: { firstName: 'Updated', lastName: 'Name', position: 'Senior Developer' }
+      } as any
       result.current.mutate(updateData)
 
       await waitFor(() => {
@@ -287,7 +290,7 @@ describe('useEmployees Hooks', () => {
 
       const { result } = renderHook(() => useUpdateEmployee(), { wrapper })
 
-      result.current.mutate({ id: 'emp-1', data: { name: 'Test' } })
+      result.current.mutate({ id: 'emp-1', data: { firstName: 'Test' } } as any)
 
       await waitFor(() => {
         expect(result.current.isError).toBe(true)
@@ -297,7 +300,7 @@ describe('useEmployees Hooks', () => {
     })
 
     it('should invalidate specific employee query on success', async () => {
-      const mockUpdatedEmployee = { data: { id: 'emp-1', name: 'Updated' } }
+      const mockUpdatedEmployee = { data: { id: 'emp-1', firstName: 'Updated' } } as any
       vi.mocked(employeeService.update).mockResolvedValue(mockUpdatedEmployee)
 
       // Pre-populate cache for specific employee
@@ -305,7 +308,7 @@ describe('useEmployees Hooks', () => {
 
       const { result } = renderHook(() => useUpdateEmployee(), { wrapper })
 
-      result.current.mutate({ id: 'emp-1', data: { name: 'Updated' } })
+      result.current.mutate({ id: 'emp-1', data: { firstName: 'Updated' } } as any)
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true)
@@ -319,7 +322,7 @@ describe('useEmployees Hooks', () => {
 
   describe('useDeleteEmployee', () => {
     it('should delete employee successfully', async () => {
-      const mockResponse = { message: 'Employee deleted successfully' }
+      const mockResponse = { data: { message: 'Employee deleted successfully' } }
       vi.mocked(employeeService.delete).mockResolvedValue(mockResponse)
 
       const { result } = renderHook(() => useDeleteEmployee(), { wrapper })
