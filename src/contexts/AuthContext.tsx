@@ -61,23 +61,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const checkAuthStatus = async () => {
+    console.log('🔍 Checking auth status...')
     const token = localStorage.getItem('auth_token')
+    
     if (!token) {
+      console.log('❌ No token found, setting loading to false')
       dispatch({ type: 'SET_LOADING', payload: false })
       return
     }
 
+    console.log('🔑 Token found, validating...')
+    
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ Auth check timeout, forcing logout')
+      dispatch({ type: 'LOGOUT' })
+    }, 10000) // 10 second timeout
+
     try {
       const response = await authService.getCurrentUser()
+      clearTimeout(timeoutId)
+      
+      console.log('✅ User authenticated:', response.data.email)
       dispatch({ type: 'SET_USER', payload: response.data })
       
       // Get user permissions
-      const permissionsResponse = await authService.getPermissions({ 
-        role: response.data.role.name 
-      })
-      dispatch({ type: 'SET_PERMISSIONS', payload: permissionsResponse.data })
+      try {
+        const permissionsResponse = await authService.getPermissions({ 
+          role: response.data.role.name 
+        })
+        dispatch({ type: 'SET_PERMISSIONS', payload: permissionsResponse.data })
+        console.log('✅ Permissions loaded:', permissionsResponse.data.length, 'permissions')
+      } catch (permError) {
+        console.warn('⚠️ Failed to load permissions:', permError)
+        // Continue without permissions
+        dispatch({ type: 'SET_PERMISSIONS', payload: [] })
+      }
     } catch (error) {
-      console.error('Auth check failed:', error)
+      clearTimeout(timeoutId)
+      console.error('❌ Auth check failed:', error)
       dispatch({ type: 'LOGOUT' })
     }
   }

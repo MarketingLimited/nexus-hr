@@ -138,24 +138,32 @@ export const authHandlers = [
 
   // Get current user
   http.get('/api/auth/me', ({ request }) => {
+    console.log('🔍 MSW: GET /api/auth/me called')
+    
     const authHeader = request.headers.get('Authorization')
     if (!authHeader) {
+      console.log('❌ MSW: No authorization header')
       return HttpResponse.json({ error: 'No authorization header' }, { status: 401 })
     }
 
     const token = authHeader.replace('Bearer ', '')
+    console.log('🔑 MSW: Checking token:', token.substring(0, 20) + '...')
+    
     const session = userSessions.find(s => s.token === token)
     
     if (!session) {
+      console.log('❌ MSW: Invalid token, no session found')
       return HttpResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
     if (new Date(session.expiresAt) < new Date()) {
+      console.log('❌ MSW: Token expired')
       return HttpResponse.json({ error: 'Token expired' }, { status: 401 })
     }
 
     const user = users.find(u => u.id === session.userId)
     if (!user) {
+      console.log('❌ MSW: User not found for session')
       return HttpResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -166,6 +174,7 @@ export const authHandlers = [
       lastAccessedAt: new Date().toISOString()
     }
 
+    console.log('✅ MSW: Returning user data for:', user.email)
     return HttpResponse.json({ data: user })
   }),
 

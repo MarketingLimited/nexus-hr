@@ -98,8 +98,12 @@ async function enableMocking() {
       await worker.start({
         onUnhandledRequest: 'warn',
         serviceWorker: {
-          url: '/mockServiceWorker.js'
-        }
+          url: '/mockServiceWorker.js',
+          options: {
+            scope: '/'
+          }
+        },
+        waitUntilReady: true
       })
       
       console.log('🔧 MSW enabled for API mocking')
