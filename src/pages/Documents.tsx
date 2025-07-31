@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDocumentStats, useDocumentCategories, useDocuments } from "@/hooks/useDocuments";
 
 const Documents = () => {
+  // API hooks
+  const { data: stats, isLoading: statsLoading } = useDocumentStats();
+  const { data: categories, isLoading: categoriesLoading } = useDocumentCategories();
+  const { data: documents, isLoading: documentsLoading } = useDocuments({ limit: 5 });
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -32,8 +38,12 @@ const Documents = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-green-600">+34 this month</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.totalDocuments?.toLocaleString() || 0}</div>
+            )}
+            <p className="text-xs text-green-600">+{stats?.monthlyGrowth || 0} this month</p>
           </CardContent>
         </Card>
         
@@ -42,8 +52,12 @@ const Documents = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Storage Used</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.4 GB</div>
-            <p className="text-xs text-muted-foreground">Of 10 GB limit</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.storageUsed || '0 GB'}</div>
+            )}
+            <p className="text-xs text-muted-foreground">Of {stats?.storageLimit || '10 GB'} limit</p>
           </CardContent>
         </Card>
 
@@ -52,8 +66,12 @@ const Documents = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Shared Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">156</div>
-            <p className="text-xs text-muted-foreground">12.5% of total</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.sharedDocuments || 0}</div>
+            )}
+            <p className="text-xs text-muted-foreground">{stats?.sharedPercentage || 0}% of total</p>
           </CardContent>
         </Card>
 
@@ -62,7 +80,11 @@ const Documents = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.recentActivity || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">Documents this week</p>
           </CardContent>
         </Card>

@@ -3,12 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import PayrollProcessing from "@/components/payroll/PayrollProcessing";
 import SalaryStructure from "@/components/payroll/SalaryStructure";
 import PayslipGenerator from "@/components/payroll/PayslipGenerator";
 import TaxCalculator from "@/components/payroll/TaxCalculator";
+import { usePayrollStats, usePayrollHistory, usePayrollStatus } from "@/hooks/usePayroll";
 
 const Payroll = () => {
+  // API hooks
+  const { data: stats, isLoading: statsLoading } = usePayrollStats();
+  const { data: status, isLoading: statusLoading } = usePayrollStatus();
+  const { data: history, isLoading: historyLoading } = usePayrollHistory({ limit: 3 });
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -30,8 +36,12 @@ const Payroll = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Payroll</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$284,520</div>
-            <p className="text-xs text-green-600">+2.1% from last month</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <div className="text-2xl font-bold">${stats?.monthlyTotal?.toLocaleString() || 0}</div>
+            )}
+            <p className="text-xs text-green-600">+{stats?.monthlyGrowth || 0}% from last month</p>
           </CardContent>
         </Card>
         
@@ -40,7 +50,11 @@ const Payroll = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Salary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$4,850</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">${stats?.avgSalary?.toLocaleString() || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">Per employee</p>
           </CardContent>
         </Card>
@@ -50,7 +64,11 @@ const Payroll = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Next Payroll</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.daysToNext || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">Days remaining</p>
           </CardContent>
         </Card>
@@ -60,7 +78,11 @@ const Payroll = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Tax Deductions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$68,285</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="text-2xl font-bold">${stats?.taxDeductions?.toLocaleString() || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
@@ -87,34 +109,75 @@ const Payroll = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">December 2024 Payroll</p>
-                    <p className="text-sm text-muted-foreground">Processing period: Dec 1-31, 2024</p>
-                  </div>
-                  <Badge variant="secondary">In Progress</Badge>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Salary calculations</span>
-                    <span className="text-green-600">✓ Complete</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Tax calculations</span>
-                    <span className="text-green-600">✓ Complete</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Overtime processing</span>
-                    <span className="text-orange-600">⏳ In Progress</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Final approval</span>
-                    <span className="text-muted-foreground">⏸ Pending</span>
-                  </div>
-                </div>
+                {statusLoading ? (
+                  <>
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <Skeleton className="h-5 w-40 mb-2" />
+                        <Skeleton className="h-4 w-56" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                    <div className="space-y-3">
+                      {Array.from({ length: 4 }, (_, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{status?.currentPeriod || 'December 2024 Payroll'}</p>
+                        <p className="text-sm text-muted-foreground">Processing period: {status?.processingPeriod || 'Dec 1-31, 2024'}</p>
+                      </div>
+                      <Badge variant={status?.status === 'completed' ? 'default' : 'secondary'}>
+                        {status?.status || 'In Progress'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {status?.steps?.map((step: any, index: number) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span>{step.name}</span>
+                          <span className={
+                            step.status === 'completed' ? 'text-green-600' :
+                            step.status === 'in-progress' ? 'text-orange-600' :
+                            'text-muted-foreground'
+                          }>
+                            {step.status === 'completed' ? '✓ Complete' :
+                             step.status === 'in-progress' ? '⏳ In Progress' :
+                             '⏸ Pending'}
+                          </span>
+                        </div>
+                      )) || (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span>Salary calculations</span>
+                            <span className="text-green-600">✓ Complete</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Tax calculations</span>
+                            <span className="text-green-600">✓ Complete</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Overtime processing</span>
+                            <span className="text-orange-600">⏳ In Progress</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Final approval</span>
+                            <span className="text-muted-foreground">⏸ Pending</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
 
-                <Button className="w-full gap-2">
+                <Button className="w-full gap-2" disabled={statusLoading}>
                   <Play className="h-4 w-4" />
                   Continue Processing
                 </Button>
@@ -130,27 +193,38 @@ const Payroll = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[
-                    { period: "November 2024", amount: "$278,420", status: "Completed", date: "Nov 30, 2024" },
-                    { period: "October 2024", amount: "$275,680", status: "Completed", date: "Oct 31, 2024" },
-                    { period: "September 2024", amount: "$272,150", status: "Completed", date: "Sep 30, 2024" },
-                  ].map((payroll, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{payroll.period}</p>
-                        <p className="text-sm text-muted-foreground">{payroll.date}</p>
+                  {historyLoading ? (
+                    Array.from({ length: 3 }, (_, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <Skeleton className="h-5 w-32 mb-2" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                        <div className="text-right">
+                          <Skeleton className="h-5 w-20 mb-1" />
+                          <Skeleton className="h-4 w-16" />
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{payroll.amount}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {payroll.status}
-                        </Badge>
+                    ))
+                  ) : (
+                    history?.data?.map((payroll: any) => (
+                      <div key={payroll.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{payroll.period}</p>
+                          <p className="text-sm text-muted-foreground">{new Date(payroll.processedDate).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">${payroll.totalAmount?.toLocaleString()}</p>
+                          <Badge variant="outline" className="text-xs">
+                            {payroll.status}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )) || []
+                  )}
                 </div>
                 
-                <Button variant="outline" className="w-full mt-4 gap-2">
+                <Button variant="outline" className="w-full mt-4 gap-2" disabled={historyLoading}>
                   <Download className="h-4 w-4" />
                   Export Reports
                 </Button>

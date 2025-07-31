@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAssetStats, useAssetCategories, useAssets } from "@/hooks/useAssets";
 
 const Assets = () => {
+  // API hooks
+  const { data: stats, isLoading: statsLoading } = useAssetStats();
+  const { data: categories, isLoading: categoriesLoading } = useAssetCategories();
+  const { data: assets, isLoading: assetsLoading } = useAssets({ limit: 5 });
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -26,8 +32,12 @@ const Assets = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Assets</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">342</div>
-            <p className="text-xs text-green-600">+15 this month</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.totalAssets || 0}</div>
+            )}
+            <p className="text-xs text-green-600">+{stats?.monthlyGrowth || 0} this month</p>
           </CardContent>
         </Card>
         
@@ -36,8 +46,12 @@ const Assets = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Assigned</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">298</div>
-            <p className="text-xs text-muted-foreground">87% utilization</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.assignedAssets || 0}</div>
+            )}
+            <p className="text-xs text-muted-foreground">{stats?.utilizationRate || 0}% utilization</p>
           </CardContent>
         </Card>
 
@@ -46,7 +60,11 @@ const Assets = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Available</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">44</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.availableAssets || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">Ready for assignment</p>
           </CardContent>
         </Card>
@@ -56,8 +74,12 @@ const Assets = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Under Maintenance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-orange-600">2 due this week</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.maintenanceAssets || 0}</div>
+            )}
+            <p className="text-xs text-orange-600">{stats?.maintenanceDueThisWeek || 0} due this week</p>
           </CardContent>
         </Card>
       </div>

@@ -3,8 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useOnboardingStats, useOnboardingProcesses, useOnboardingTemplate } from "@/hooks/useOnboarding";
 
 const Onboarding = () => {
+  // API hooks
+  const { data: stats, isLoading: statsLoading } = useOnboardingStats();
+  const { data: processes, isLoading: processesLoading } = useOnboardingProcesses({ limit: 4 });
+  const { data: template, isLoading: templateLoading } = useOnboardingTemplate();
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -26,8 +32,12 @@ const Onboarding = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Processes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-green-600">+2 this week</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.activeProcesses || 0}</div>
+            )}
+            <p className="text-xs text-green-600">+{stats?.weeklyGrowth || 0} this week</p>
           </CardContent>
         </Card>
         
@@ -36,8 +46,12 @@ const Onboarding = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Completion Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">92%</div>
-            <p className="text-xs text-green-600">+3% improvement</p>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.completionRate || 0}%</div>
+            )}
+            <p className="text-xs text-green-600">+{stats?.completionImprovement || 0}% improvement</p>
           </CardContent>
         </Card>
 
@@ -46,7 +60,11 @@ const Onboarding = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Duration</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5.2</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.avgDuration || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">Days to complete</p>
           </CardContent>
         </Card>
@@ -56,7 +74,11 @@ const Onboarding = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Pending Tasks</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            {statsLoading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <div className="text-2xl font-bold">{stats?.pendingTasks || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">Across all processes</p>
           </CardContent>
         </Card>
@@ -73,32 +95,51 @@ const Onboarding = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: "Alex Thompson", role: "Software Engineer", progress: 75, startDate: "Dec 16, 2024", daysLeft: 2 },
-                { name: "Maria Rodriguez", role: "Product Manager", progress: 45, startDate: "Dec 18, 2024", daysLeft: 4 },
-                { name: "David Kim", role: "UX Designer", progress: 90, startDate: "Dec 12, 2024", daysLeft: 1 },
-                { name: "Lisa Wang", role: "Data Analyst", progress: 25, startDate: "Dec 20, 2024", daysLeft: 6 },
-              ].map((process, index) => (
-                <div key={index} className="p-4 border rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{process.name}</p>
-                      <p className="text-sm text-muted-foreground">{process.role}</p>
+              {processesLoading ? (
+                Array.from({ length: 4 }, (_, i) => (
+                  <div key={i} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Skeleton className="h-5 w-32 mb-2" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
                     </div>
-                    <Badge variant={process.progress >= 90 ? "default" : process.progress >= 50 ? "secondary" : "outline"}>
-                      {process.daysLeft} days left
-                    </Badge>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{process.progress}%</span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                      <Skeleton className="h-2 w-full" />
                     </div>
-                    <Progress value={process.progress} />
+                    <Skeleton className="h-3 w-24" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Started: {process.startDate}</p>
-                </div>
-              ))}
+                ))
+              ) : (
+                processes?.data?.map((process: any) => (
+                  <div key={process.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{process.employeeName}</p>
+                        <p className="text-sm text-muted-foreground">{process.role}</p>
+                      </div>
+                      <Badge variant={process.progress >= 90 ? "default" : process.progress >= 50 ? "secondary" : "outline"}>
+                        {process.daysLeft} days left
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress</span>
+                        <span>{process.progress}%</span>
+                      </div>
+                      <Progress value={process.progress} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Started: {new Date(process.startDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )) || []
+              )}
             </div>
           </CardContent>
         </Card>
@@ -112,34 +153,60 @@ const Onboarding = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[
-                { task: "Send welcome email", completed: true, category: "Pre-boarding" },
-                { task: "Prepare workspace", completed: true, category: "Pre-boarding" },
-                { task: "IT equipment setup", completed: true, category: "Day 1" },
-                { task: "Office tour and introductions", completed: false, category: "Day 1" },
-                { task: "HR documentation", completed: false, category: "Day 1" },
-                { task: "System access setup", completed: false, category: "Week 1" },
-                { task: "Department orientation", completed: false, category: "Week 1" },
-                { task: "Role-specific training", completed: false, category: "Week 2" },
-                { task: "30-day check-in", completed: false, category: "Month 1" },
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-3 p-2">
-                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
-                    item.completed ? 'bg-green-500 border-green-500' : 'border-muted-foreground'
-                  }`}>
-                    {item.completed && <CheckCircle className="h-3 w-3 text-white" />}
+              {templateLoading ? (
+                Array.from({ length: 9 }, (_, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2">
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-40 mb-1" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                      {item.task}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{item.category}</p>
+                ))
+              ) : (
+                template?.tasks?.map((item: any, index: number) => (
+                  <div key={index} className="flex items-center gap-3 p-2">
+                    <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                      item.completed ? 'bg-green-500 border-green-500' : 'border-muted-foreground'
+                    }`}>
+                      {item.completed && <CheckCircle className="h-3 w-3 text-white" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                        {item.task}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{item.category}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )) || [
+                  { task: "Send welcome email", completed: true, category: "Pre-boarding" },
+                  { task: "Prepare workspace", completed: true, category: "Pre-boarding" },
+                  { task: "IT equipment setup", completed: true, category: "Day 1" },
+                  { task: "Office tour and introductions", completed: false, category: "Day 1" },
+                  { task: "HR documentation", completed: false, category: "Day 1" },
+                  { task: "System access setup", completed: false, category: "Week 1" },
+                  { task: "Department orientation", completed: false, category: "Week 1" },
+                  { task: "Role-specific training", completed: false, category: "Week 2" },
+                  { task: "30-day check-in", completed: false, category: "Month 1" },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2">
+                    <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                      item.completed ? 'bg-green-500 border-green-500' : 'border-muted-foreground'
+                    }`}>
+                      {item.completed && <CheckCircle className="h-3 w-3 text-white" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                        {item.task}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{item.category}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             
-            <Button variant="outline" className="w-full mt-4">
+            <Button variant="outline" className="w-full mt-4" disabled={templateLoading}>
               Customize Template
             </Button>
           </CardContent>
