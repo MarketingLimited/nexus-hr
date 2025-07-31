@@ -14,6 +14,17 @@ Simply visit the [Lovable Project](https://lovable.dev/projects/437ac2ac-4c9b-45
 
 Changes made via Lovable will be committed automatically to this repo.
 
+## Configuration
+
+The application uses a backend API. Specify the API base URL using the
+`VITE_API_URL` environment variable. You can copy `.env.example` and adjust the
+value as needed:
+
+```sh
+cp .env.example .env
+# Edit .env and set VITE_API_URL
+```
+
 **Use your preferred IDE**
 
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
