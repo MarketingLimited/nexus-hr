@@ -1,5 +1,6 @@
 // Core API client configuration
-const BASE_URL = '/api'
+// Configure base URL from environment variable with fallback to relative '/api'
+const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 export interface ApiResponse<T> {
   data: T
