@@ -19,58 +19,75 @@ const adminUser = users.find(u => u.role.name === 'Admin') || users[0]
 export const authHandlers = [
   // Authentication  
   http.post('/api/auth/login', async ({ request }) => {
-    const { email, password } = await request.json() as { email: string, password: string }
-    
-    const user = users.find(u => u.email === email && u.isActive === true)
-    
-    if (!user) {
-      return HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 })
-    }
-
-    // In a real app, you'd verify the password hash
-    // For demo purposes, we'll accept any password for existing users
-    
-    // Create session
-    const session: Session = {
-      id: crypto.randomUUID(),
-      userId: user.id,
-      token: `token_${crypto.randomUUID()}`,
-      refreshToken: `refresh_${crypto.randomUUID()}`,
-      deviceInfo: {
-        userAgent: 'Mock Browser',
-        ip: '127.0.0.1',
-        location: 'Mock Location',
-        device: 'Desktop'
-      },
-      isActive: true,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString(),
-      lastAccessedAt: new Date().toISOString()
-    }
-
-    userSessions.push(session)
-
-    // Update last login
-    const userIndex = users.findIndex(u => u.id === user.id)
-    users[userIndex] = {
-      ...users[userIndex],
-      lastLogin: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    return HttpResponse.json({
-      data: {
-        user: {
-          ...user,
-          lastLogin: users[userIndex].lastLogin
-        },
-        session: {
-          token: session.token,
-          refreshToken: session.refreshToken,
-          expiresAt: session.expiresAt
-        }
+    try {
+      const { email, password } = await request.json() as { email: string, password: string }
+      
+      console.log('🔐 Login attempt for:', email)
+      
+      const user = users.find(u => u.email === email && u.isActive === true)
+      
+      if (!user) {
+        console.log('❌ User not found:', email)
+        return HttpResponse.json({ 
+          data: null,
+          error: 'Invalid credentials' 
+        }, { status: 401 })
       }
-    })
+
+      console.log('✅ User found:', user.email, user.role.name)
+      
+      // In a real app, you'd verify the password hash
+      // For demo purposes, we'll accept any password for existing users
+      
+      // Create session
+      const session: Session = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        token: `token_${crypto.randomUUID()}`,
+        refreshToken: `refresh_${crypto.randomUUID()}`,
+        deviceInfo: {
+          userAgent: 'Mock Browser',
+          ip: '127.0.0.1',
+          location: 'Mock Location',
+          device: 'Desktop'
+        },
+        isActive: true,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        createdAt: new Date().toISOString(),
+        lastAccessedAt: new Date().toISOString()
+      }
+
+      userSessions.push(session)
+
+      // Update last login
+      const userIndex = users.findIndex(u => u.id === user.id)
+      users[userIndex] = {
+        ...users[userIndex],
+        lastLogin: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      console.log('🚀 Login successful for:', user.email)
+      return HttpResponse.json({
+        data: {
+          user: {
+            ...user,
+            lastLogin: users[userIndex].lastLogin
+          },
+          session: {
+            token: session.token,
+            refreshToken: session.refreshToken,
+            expiresAt: session.expiresAt
+          }
+        }
+      })
+    } catch (error) {
+      console.error('❌ Login error:', error)
+      return HttpResponse.json({ 
+        data: null,
+        error: 'Internal server error' 
+      }, { status: 500 })
+    }
   }),
 
   http.post('/api/auth/logout', async ({ request }) => {

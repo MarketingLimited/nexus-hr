@@ -53,6 +53,7 @@ export function LoginForm() {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
@@ -68,6 +69,7 @@ export function LoginForm() {
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"

@@ -86,41 +86,65 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Initialize MSW - start in development and preview environments
-const shouldStartMSW = import.meta.env.DEV || 
-  import.meta.env.MODE === 'preview' || 
-  window.location.hostname.includes('lovableproject.com') ||
-  window.location.hostname.includes('lovable.app') ||
-  window.location.hostname.includes('localhost')
-
-async function startMSW() {
-  if (shouldStartMSW) {
+// Initialize MSW for API mocking in development
+async function enableMocking() {
+  if (import.meta.env.DEV || 
+      window.location.hostname.includes('lovableproject.com') ||
+      window.location.hostname.includes('lovable.app')) {
+    
     try {
       const { worker } = await import('./mocks/browser')
+      
       await worker.start({
-        onUnhandledRequest: 'bypass',
+        onUnhandledRequest: 'warn',
         serviceWorker: {
-          url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
+          url: '/mockServiceWorker.js'
         }
       })
-      console.log('MSW service worker started successfully in', import.meta.env.MODE)
+      
+      console.log('🔧 MSW enabled for API mocking')
+      
+      // Log when intercepting auth requests
+      worker.events.on('request:start', ({ request }) => {
+        if (request.url.includes('/api/auth/')) {
+          console.log('🔐 MSW intercepting auth request:', request.url)
+        }
+      })
+      
     } catch (error) {
-      console.error('Failed to start MSW:', error)
+      console.error('❌ Failed to start MSW:', error)
+      console.warn('⚠️ Running without API mocking')
     }
   }
 }
 
-// Start MSW without blocking app rendering
-startMSW()
+// Start MSW and then render the app
+enableMocking().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <QueryProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </QueryProvider>
+      </BrowserRouter>
+    </StrictMode>,
+  )
+}).catch((error) => {
+  console.error('Failed to initialize app:', error)
+  // Fallback: render without MSW
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <QueryProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </QueryProvider>
+      </BrowserRouter>
+    </StrictMode>,
+  )
+})
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <QueryProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </QueryProvider>
-    </BrowserRouter>
-  </StrictMode>,
-)
+// This will be replaced by the MSW initialization above

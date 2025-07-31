@@ -240,7 +240,7 @@ export const generateUsers = (count: number = 50): User[] => {
     
     return {
       id: faker.string.uuid(),
-      username: faker.internet.userName({ firstName, lastName }).toLowerCase(),
+      username: faker.internet.username({ firstName, lastName }).toLowerCase(),
       email: faker.internet.email({ firstName, lastName }).toLowerCase(),
       firstName,
       lastName,
