@@ -12,20 +12,25 @@ const shouldStartMSW = import.meta.env.DEV ||
   window.location.hostname.includes('lovable') ||
   window.location.hostname.includes('localhost')
 
-if (shouldStartMSW) {
-  try {
-    const { worker } = await import('./mocks/browser')
-    await worker.start({
-      onUnhandledRequest: 'bypass',
-      serviceWorker: {
-        url: '/mockServiceWorker.js'
-      }
-    })
-    console.log('MSW service worker started successfully in', import.meta.env.MODE)
-  } catch (error) {
-    console.error('Failed to start MSW:', error)
+async function startMSW() {
+  if (shouldStartMSW) {
+    try {
+      const { worker } = await import('./mocks/browser')
+      await worker.start({
+        onUnhandledRequest: 'bypass',
+        serviceWorker: {
+          url: '/mockServiceWorker.js'
+        }
+      })
+      console.log('MSW service worker started successfully in', import.meta.env.MODE)
+    } catch (error) {
+      console.error('Failed to start MSW:', error)
+    }
   }
 }
+
+// Start MSW without blocking app rendering
+startMSW()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
