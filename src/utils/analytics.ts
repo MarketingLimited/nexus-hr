@@ -1,7 +1,7 @@
 // Analytics calculation utilities
 export interface DateRange {
-  startDate: string
-  endDate: string
+  start: Date
+  end: Date
 }
 
 export interface AnalyticsFilters {
@@ -12,66 +12,57 @@ export interface AnalyticsFilters {
   month?: number
 }
 
-// Date utilities for analytics
 export const analyticsUtils = {
-  // Get current year
   getCurrentYear: () => new Date().getFullYear(),
-  
-  // Get current month (1-based)
   getCurrentMonth: () => new Date().getMonth() + 1,
-  
-  // Get date range for current month
+
   getCurrentMonthRange: (): DateRange => {
     const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth()
-    
-    return {
-      startDate: new Date(year, month, 1).toISOString(),
-      endDate: new Date(year, month + 1, 0).toISOString()
-    }
+    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    return { start, end }
   },
-  
-  // Get date range for current year
+
   getCurrentYearRange: (): DateRange => {
-    const year = new Date().getFullYear()
-    return {
-      startDate: new Date(year, 0, 1).toISOString(),
-      endDate: new Date(year, 11, 31).toISOString()
-    }
+    const now = new Date()
+    const start = new Date(now.getFullYear(), 0, 1)
+    const end = new Date(now.getFullYear(), 11, 31)
+    return { start, end }
   },
-  
-  // Get date range for last N days
+
   getLastNDaysRange: (days: number): DateRange => {
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - days)
-    
-    return {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
-    }
+    const end = new Date()
+    const start = new Date()
+    start.setDate(start.getDate() - days)
+    return { start, end }
   },
-  
-  // Calculate percentage change
+
   calculatePercentageChange: (current: number, previous: number): number => {
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
   },
-  
-  // Calculate completion rate
+
   calculateCompletionRate: (completed: number, total: number): number => {
     if (total === 0) return 0
     return (completed / total) * 100
   },
-  
-  // Group data by period
-  groupByPeriod: <T extends { createdAt: string }>(
-    data: T[], 
-    period: 'day' | 'week' | 'month' | 'year'
-  ): Record<string, T[]> => {
-    return data.reduce((groups, item) => {
-      const date = new Date(item.createdAt)
+
+  formatCurrency: (amount: number, currency = 'USD'): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount)
+  },
+
+  formatPercentage: (value: number, decimals = 1): string => {
+    return `${value.toFixed(decimals)}%`
+  },
+
+  groupByPeriod: (data: any[], period: 'day' | 'week' | 'month' | 'quarter' | 'year') => {
+    const grouped: Record<string, any[]> = {}
+    
+    data.forEach(item => {
+      const date = new Date(item.createdAt || item.date)
       let key: string
       
       switch (period) {
@@ -86,6 +77,10 @@ export const analyticsUtils = {
         case 'month':
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
           break
+        case 'quarter':
+          const quarter = Math.floor(date.getMonth() / 3) + 1
+          key = `${date.getFullYear()}-Q${quarter}`
+          break
         case 'year':
           key = date.getFullYear().toString()
           break
@@ -93,109 +88,197 @@ export const analyticsUtils = {
           key = date.toISOString().split('T')[0]
       }
       
-      if (!groups[key]) groups[key] = []
-      groups[key].push(item)
-      return groups
-    }, {} as Record<string, T[]>)
+      if (!grouped[key]) grouped[key] = []
+      grouped[key].push(item)
+    })
+    
+    return grouped
   },
-  
-  // Calculate trend (increasing, decreasing, stable)
+
   calculateTrend: (values: number[]): 'increasing' | 'decreasing' | 'stable' => {
     if (values.length < 2) return 'stable'
     
-    const first = values[0]
-    const last = values[values.length - 1]
-    const threshold = 0.05 // 5% threshold for stability
+    const trend = values.reduce((acc, val, idx) => {
+      if (idx === 0) return acc
+      return acc + (val - values[idx - 1])
+    }, 0)
     
-    const change = Math.abs(last - first) / Math.max(first, 1)
+    const threshold = values.reduce((a, b) => a + b, 0) / values.length * 0.1
     
-    if (change < threshold) return 'stable'
-    return last > first ? 'increasing' : 'decreasing'
-  }
-}
+    if (trend > threshold) return 'increasing'
+    if (trend < -threshold) return 'decreasing'
+    return 'stable'
+  },
 
-// Common analytics calculations
-export const analyticsCalculations = {
-  // Employee analytics
-  calculateEmployeeMetrics: (employees: any[]) => {
-    const total = employees.length
-    const active = employees.filter(emp => emp.status === 'active').length
-    const inactive = employees.filter(emp => emp.status === 'inactive').length
-    const terminated = employees.filter(emp => emp.status === 'terminated').length
-    
-    const byDepartment = employees.reduce((acc, emp) => {
-      acc[emp.department] = (acc[emp.department] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    const byLocation = employees.reduce((acc, emp) => {
-      acc[emp.location] = (acc[emp.location] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    return {
-      total,
-      active,
-      inactive,
-      terminated,
-      activeRate: analyticsUtils.calculateCompletionRate(active, total),
-      byDepartment,
-      byLocation
-    }
+  calculateAverage: (values: number[]): number => {
+    if (values.length === 0) return 0
+    return values.reduce((sum, val) => sum + val, 0) / values.length
   },
-  
-  // Leave analytics
-  calculateLeaveMetrics: (requests: any[], balances: any[]) => {
-    const totalRequests = requests.length
-    const pending = requests.filter(req => req.status === 'pending').length
-    const approved = requests.filter(req => req.status === 'approved').length
-    const rejected = requests.filter(req => req.status === 'rejected').length
-    
-    const approvalRate = analyticsUtils.calculateCompletionRate(approved, totalRequests)
-    const rejectionRate = analyticsUtils.calculateCompletionRate(rejected, totalRequests)
-    
-    const totalDaysRequested = requests.reduce((sum, req) => sum + req.days, 0)
-    const averageDaysPerRequest = totalRequests > 0 ? totalDaysRequested / totalRequests : 0
-    
-    const utilizationRate = balances.length > 0 
-      ? balances.reduce((sum, balance) => sum + (balance.used / balance.allocated), 0) / balances.length * 100
-      : 0
-    
-    return {
-      totalRequests,
-      pending,
-      approved,
-      rejected,
-      approvalRate,
-      rejectionRate,
-      totalDaysRequested,
-      averageDaysPerRequest,
-      utilizationRate
-    }
+
+  calculateMedian: (values: number[]): number => {
+    if (values.length === 0) return 0
+    const sorted = [...values].sort((a, b) => a - b)
+    const mid = Math.floor(sorted.length / 2)
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
   },
-  
-  // Payroll analytics
-  calculatePayrollMetrics: (payslips: any[]) => {
-    const totalPayslips = payslips.length
-    const totalGross = payslips.reduce((sum, slip) => sum + slip.grossSalary, 0)
-    const totalNet = payslips.reduce((sum, slip) => sum + slip.netSalary, 0)
-    const totalDeductions = payslips.reduce((sum, slip) => sum + slip.totalDeductions, 0)
+
+  calculateStandardDeviation: (values: number[]): number => {
+    if (values.length === 0) return 0
+    const avg = analyticsUtils.calculateAverage(values)
+    const squareDiffs = values.map(value => Math.pow(value - avg, 2))
+    const avgSquareDiff = analyticsUtils.calculateAverage(squareDiffs)
+    return Math.sqrt(avgSquareDiff)
+  },
+
+  getDateRange: (period: 'week' | 'month' | 'quarter' | 'year'): DateRange => {
+    const now = new Date()
+    const start = new Date()
     
-    const averageGross = totalPayslips > 0 ? totalGross / totalPayslips : 0
-    const averageNet = totalPayslips > 0 ? totalNet / totalPayslips : 0
-    const deductionRate = totalGross > 0 ? (totalDeductions / totalGross) * 100 : 0
-    
-    const uniqueEmployees = new Set(payslips.map(slip => slip.employeeId)).size
-    
-    return {
-      totalPayslips,
-      totalGross,
-      totalNet,
-      totalDeductions,
-      averageGross,
-      averageNet,
-      deductionRate,
-      uniqueEmployees
+    switch (period) {
+      case 'week':
+        start.setDate(now.getDate() - 7)
+        break
+      case 'month':
+        start.setMonth(now.getMonth() - 1)
+        break
+      case 'quarter':
+        start.setMonth(now.getMonth() - 3)
+        break
+      case 'year':
+        start.setFullYear(now.getFullYear() - 1)
+        break
     }
+    
+    return { start, end: now }
+  },
+
+  // Cross-module analytics functions
+  calculateCorrelation: (x: number[], y: number[]): number => {
+    if (x.length !== y.length || x.length === 0) return 0
+    
+    const n = x.length
+    const sumX = x.reduce((a, b) => a + b, 0)
+    const sumY = y.reduce((a, b) => a + b, 0)
+    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0)
+    const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0)
+    const sumYY = y.reduce((sum, yi) => sum + yi * yi, 0)
+    
+    const numerator = n * sumXY - sumX * sumY
+    const denominator = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY))
+    
+    return denominator === 0 ? 0 : numerator / denominator
+  },
+
+  groupBy: (data: any[], key: string): Record<string, any[]> => {
+    return data.reduce((grouped, item) => {
+      const groupKey = item[key] || 'Unknown'
+      if (!grouped[groupKey]) grouped[groupKey] = []
+      grouped[groupKey].push(item)
+      return grouped
+    }, {} as Record<string, any[]>)
+  },
+
+  calculateProductivityImpact: (leaveData: any[]): number => {
+    // Simulate productivity impact calculation
+    const totalLeaveDays = leaveData.reduce((sum, leave) => sum + (leave.days || 0), 0)
+    const avgImpact = Math.min(totalLeaveDays * 0.1, 50) // Max 50% impact
+    return Math.round(avgImpact * 100) / 100
+  },
+
+  calculateRetentionCorrelation: (employeeData: any[]): number => {
+    // Simulate correlation between salary and retention
+    const activeSalaries = employeeData
+      .filter(emp => emp.status === 'active')
+      .map(emp => emp.salary || 50000)
+    
+    const terminatedSalaries = employeeData
+      .filter(emp => emp.status === 'terminated')
+      .map(emp => emp.salary || 50000)
+    
+    const activeAvg = analyticsUtils.calculateAverage(activeSalaries)
+    const terminatedAvg = analyticsUtils.calculateAverage(terminatedSalaries)
+    
+    return activeAvg > terminatedAvg ? 0.75 : 0.25
+  },
+
+  calculateTurnoverRisk: (employee: any): number => {
+    let risk = 0
+    
+    // Tenure-based risk
+    const tenure = new Date().getTime() - new Date(employee.startDate || employee.createdAt).getTime()
+    const tenureYears = tenure / (1000 * 60 * 60 * 24 * 365)
+    if (tenureYears < 1) risk += 0.3
+    else if (tenureYears < 2) risk += 0.2
+    else if (tenureYears > 10) risk += 0.1
+    
+    // Performance-based risk
+    if (employee.performanceScore && employee.performanceScore < 3) risk += 0.4
+    
+    // Salary-based risk
+    const marketSalary = 70000
+    if (employee.salary && employee.salary < marketSalary * 0.9) risk += 0.3
+    
+    return Math.min(risk, 1)
+  },
+
+  getTurnoverFactors: (employee: any): string[] => {
+    const factors: string[] = []
+    
+    const tenure = new Date().getTime() - new Date(employee.startDate || employee.createdAt).getTime()
+    const tenureYears = tenure / (1000 * 60 * 60 * 24 * 365)
+    
+    if (tenureYears < 1) factors.push('New employee (< 1 year)')
+    if (employee.performanceScore && employee.performanceScore < 3) factors.push('Low performance score')
+    if (employee.salary && employee.salary < 60000) factors.push('Below-market compensation')
+    if (!employee.lastPromotion || new Date().getTime() - new Date(employee.lastPromotion).getTime() > 2 * 365 * 24 * 60 * 60 * 1000) {
+      factors.push('No recent promotion')
+    }
+    
+    return factors
+  },
+
+  predictLeavePatterns: (leaveData: any[]): Array<{ period: string; expectedRequests: number; confidence: number }> => {
+    const monthlyData = analyticsUtils.groupByPeriod(leaveData, 'month')
+    const predictions: Array<{ period: string; expectedRequests: number; confidence: number }> = []
+    
+    const now = new Date()
+    for (let i = 1; i <= 6; i++) {
+      const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1)
+      const monthKey = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}`
+      
+      const historicalAvg = Object.values(monthlyData).reduce((sum, requests) => sum + requests.length, 0) / Object.keys(monthlyData).length
+      const seasonalMultiplier = [1.2, 0.8, 1.0, 1.1, 0.9, 1.3][i - 1]
+      
+      predictions.push({
+        period: monthKey,
+        expectedRequests: Math.round(historicalAvg * seasonalMultiplier),
+        confidence: Math.max(0.6, 1 - (i * 0.1))
+      })
+    }
+    
+    return predictions
+  },
+
+  projectCosts: (months: number): Array<{ month: string; projectedCost: number; variance: number }> => {
+    const projections: Array<{ month: string; projectedCost: number; variance: number }> = []
+    const baseCost = 500000
+    const growthRate = 0.03
+    
+    const now = new Date()
+    for (let i = 1; i <= months; i++) {
+      const futureDate = new Date(now.getFullYear(), now.getMonth() + i, 1)
+      const monthKey = `${futureDate.getFullYear()}-${String(futureDate.getMonth() + 1).padStart(2, '0')}`
+      
+      const projectedCost = baseCost * Math.pow(1 + growthRate, i)
+      const variance = Math.random() * 0.1 - 0.05
+      
+      projections.push({
+        month: monthKey,
+        projectedCost: Math.round(projectedCost),
+        variance: Math.round(variance * 100) / 100
+      })
+    }
+    
+    return projections
   }
 }

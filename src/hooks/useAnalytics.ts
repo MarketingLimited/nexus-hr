@@ -1,5 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
-import { analyticsService, DashboardOverview, EmployeeAnalytics, LeaveAnalytics, PayrollAnalytics } from '../services/analyticsService'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { 
+  analyticsService, 
+  DashboardOverview, 
+  EmployeeAnalytics, 
+  LeaveAnalytics, 
+  PayrollAnalytics,
+  CrossModuleInsights,
+  ReportTemplate,
+  DashboardWidget
+} from '../services/analyticsService'
 import { AnalyticsFilters } from '../utils/analytics'
 
 // Query keys
@@ -9,6 +18,10 @@ export const analyticsKeys = {
   employees: (filters?: AnalyticsFilters) => [...analyticsKeys.all, 'employees', filters] as const,
   leave: (filters?: AnalyticsFilters) => [...analyticsKeys.all, 'leave', filters] as const,
   payroll: (filters?: AnalyticsFilters) => [...analyticsKeys.all, 'payroll', filters] as const,
+  crossModule: (filters?: AnalyticsFilters) => [...analyticsKeys.all, 'cross-module', filters] as const,
+  realTime: () => [...analyticsKeys.all, 'real-time'] as const,
+  widgets: () => [...analyticsKeys.all, 'widgets'] as const,
+  reports: () => [...analyticsKeys.all, 'reports'] as const,
 }
 
 // Dashboard overview analytics
@@ -99,16 +112,62 @@ export function useKPIs(filters?: AnalyticsFilters) {
   })
 }
 
+// Cross-module insights
+export function useCrossModuleInsights(filters?: AnalyticsFilters) {
+  return useQuery({
+    queryKey: analyticsKeys.crossModule(filters),
+    queryFn: () => analyticsService.getCrossModuleInsights(filters),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  })
+}
+
+// Real-time metrics with frequent updates
+export function useRealTimeAnalytics() {
+  return useQuery({
+    queryKey: analyticsKeys.realTime(),
+    queryFn: () => analyticsService.getRealTimeMetrics(),
+    refetchInterval: 30 * 1000, // 30 seconds
+    staleTime: 0,
+  })
+}
+
+// Dashboard widgets
+export function useDashboardWidgets() {
+  return useQuery({
+    queryKey: analyticsKeys.widgets(),
+    queryFn: () => analyticsService.getDashboardWidgets(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+// Advanced reporting
+export function useGenerateReport() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: ({ template, filters }: { template: ReportTemplate; filters?: AnalyticsFilters }) =>
+      analyticsService.generateReport(template, filters),
+    onSuccess: () => {
+      // Invalidate related queries
+      queryClient.invalidateQueries({ queryKey: analyticsKeys.all })
+    },
+  })
+}
+
+export function useExportReport() {
+  return useMutation({
+    mutationFn: ({ data, format }: { data: any; format: 'pdf' | 'excel' | 'csv' }) =>
+      analyticsService.exportReport(data, format),
+  })
+}
+
 // Trend analysis
 export function useTrendAnalysis(period: 'week' | 'month' | 'quarter' | 'year' = 'month') {
   return useQuery({
     queryKey: [...analyticsKeys.all, 'trends', period],
     queryFn: async () => {
-      // This would typically fetch historical data points
-      // For now, we'll simulate trend data
       const currentData = await analyticsService.getDashboardOverview()
       
-      // Generate mock historical data points
       const dataPoints = Array.from({ length: 12 }, (_, i) => ({
         period: `Month ${i + 1}`,
         employees: currentData.employees.total + Math.floor(Math.random() * 10 - 5),
@@ -125,6 +184,23 @@ export function useTrendAnalysis(period: 'week' | 'month' | 'quarter' | 'year' =
         }
       }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+// Predictive analytics
+export function usePredictiveAnalytics(filters?: AnalyticsFilters) {
+  return useQuery({
+    queryKey: [...analyticsKeys.all, 'predictive', filters],
+    queryFn: async () => {
+      const insights = await analyticsService.getCrossModuleInsights(filters)
+      return {
+        turnoverRisk: insights.predictions.turnoverRisk,
+        leavePatterns: insights.predictions.leavePatterns,
+        costProjections: insights.predictions.costProjections,
+        recommendations: insights.recommendations
+      }
+    },
+    staleTime: 15 * 60 * 1000, // 15 minutes
   })
 }

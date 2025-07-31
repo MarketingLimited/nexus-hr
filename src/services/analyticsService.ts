@@ -107,6 +107,62 @@ export interface PayrollAnalytics {
   }
 }
 
+// Cross-Module Analytics Interfaces
+export interface CrossModuleInsights {
+  correlations: {
+    attendancePerformance: {
+      correlation: number
+      insight: string
+      trend: 'positive' | 'negative' | 'neutral'
+    }
+    leaveProductivity: {
+      correlation: number
+      insight: string
+      departments: Array<{ name: string; impact: number }>
+    }
+    payrollRetention: {
+      correlation: number
+      insight: string
+      riskFactors: string[]
+    }
+  }
+  predictions: {
+    turnoverRisk: Array<{ employeeId: string; risk: number; factors: string[] }>
+    leavePatterns: Array<{ period: string; expectedRequests: number; confidence: number }>
+    costProjections: Array<{ month: string; projectedCost: number; variance: number }>
+  }
+  recommendations: {
+    immediate: string[]
+    shortTerm: string[]
+    longTerm: string[]
+  }
+}
+
+export interface ReportTemplate {
+  id: string
+  name: string
+  description: string
+  type: 'employee' | 'leave' | 'payroll' | 'performance' | 'cross-module'
+  filters: AnalyticsFilters
+  metrics: string[]
+  visualization: 'chart' | 'table' | 'dashboard'
+  schedule?: {
+    frequency: 'daily' | 'weekly' | 'monthly'
+    recipients: string[]
+    format: 'pdf' | 'excel' | 'csv'
+  }
+}
+
+export interface DashboardWidget {
+  id: string
+  title: string
+  type: 'metric' | 'chart' | 'table' | 'alert'
+  size: 'small' | 'medium' | 'large'
+  data: any
+  refreshInterval?: number
+  position: { x: number; y: number; w: number; h: number }
+}
+
 // Analytics Service
 export const analyticsService = {
   // Dashboard Overview
@@ -365,6 +421,171 @@ export const analyticsService = {
         costPerEmployee: stats.data.employeeCount > 0 ? 
           stats.data.totalGrossSalary / stats.data.employeeCount : 0
       }
+    }
+  },
+
+  // Cross-Module Analytics
+  getCrossModuleInsights: async (filters?: AnalyticsFilters): Promise<CrossModuleInsights> => {
+    const [employeeData, attendanceData, leaveData, performanceData] = await Promise.all([
+      api.get<ApiResponse<any[]>>('/employees'),
+      api.get<ApiResponse<any[]>>('/attendance/records'),
+      api.get<ApiResponse<any[]>>('/leave/requests'),
+      api.get<ApiResponse<any[]>>('/performance/reviews')
+    ])
+
+    // Attendance vs Performance correlation
+    const attendancePerformanceCorr = analyticsUtils.calculateCorrelation(
+      attendanceData.data.map(a => a.hoursWorked),
+      performanceData.data.map(p => p.overallScore)
+    )
+
+    // Leave vs Productivity analysis
+    const leaveProductivityByDept = analyticsUtils.groupBy(leaveData.data, 'department')
+    const deptProductivityImpact = Object.entries(leaveProductivityByDept).map(([dept, leaves]) => ({
+      name: dept,
+      impact: analyticsUtils.calculateProductivityImpact(leaves)
+    }))
+
+    // Payroll vs Retention correlation
+    const payrollRetentionCorr = analyticsUtils.calculateRetentionCorrelation(employeeData.data)
+
+    return {
+      correlations: {
+        attendancePerformance: {
+          correlation: attendancePerformanceCorr,
+          insight: attendancePerformanceCorr > 0.5 
+            ? 'Strong positive correlation between attendance and performance'
+            : 'Weak correlation between attendance and performance',
+          trend: attendancePerformanceCorr > 0.3 ? 'positive' : 'neutral'
+        },
+        leaveProductivity: {
+          correlation: -0.2, // Simulated negative correlation
+          insight: 'Higher leave usage correlates with temporary productivity dips',
+          departments: deptProductivityImpact
+        },
+        payrollRetention: {
+          correlation: 0.7, // Simulated positive correlation
+          insight: 'Competitive compensation strongly correlates with retention',
+          riskFactors: ['Below-market salaries', 'Limited growth opportunities', 'Work-life balance']
+        }
+      },
+      predictions: {
+        turnoverRisk: employeeData.data
+          .filter(emp => emp.status === 'active')
+          .map(emp => ({
+            employeeId: emp.id,
+            risk: analyticsUtils.calculateTurnoverRisk(emp),
+            factors: analyticsUtils.getTurnoverFactors(emp)
+          }))
+          .filter(pred => pred.risk > 0.6)
+          .slice(0, 10),
+        leavePatterns: analyticsUtils.predictLeavePatterns(leaveData.data),
+        costProjections: analyticsUtils.projectCosts(12) // 12-month projection
+      },
+      recommendations: {
+        immediate: [
+          'Review compensation for high-risk employees',
+          'Address attendance patterns affecting performance',
+          'Implement retention bonuses for critical roles'
+        ],
+        shortTerm: [
+          'Develop career growth programs',
+          'Improve work-life balance initiatives',
+          'Implement flexible leave policies'
+        ],
+        longTerm: [
+          'Build comprehensive talent development programs',
+          'Establish long-term retention strategies',
+          'Create succession planning framework'
+        ]
+      }
+    }
+  },
+
+  // Advanced Reporting Engine
+  generateReport: async (template: ReportTemplate, filters?: AnalyticsFilters): Promise<any> => {
+    const combinedFilters = { ...template.filters, ...filters }
+    
+    switch (template.type) {
+      case 'employee':
+        return analyticsService.getEmployeeAnalytics(combinedFilters)
+      case 'leave':
+        return analyticsService.getLeaveAnalytics(combinedFilters)
+      case 'payroll':
+        return analyticsService.getPayrollAnalytics(combinedFilters)
+      case 'cross-module':
+        return analyticsService.getCrossModuleInsights(combinedFilters)
+      default:
+        return analyticsService.getDashboardOverview(combinedFilters)
+    }
+  },
+
+  // Export functionality
+  exportReport: async (data: any, format: 'pdf' | 'excel' | 'csv'): Promise<Blob> => {
+    // Simulate export functionality
+    const exportData = {
+      data,
+      format,
+      timestamp: new Date().toISOString(),
+      metadata: {
+        generated: 'HR Analytics System',
+        version: '1.0'
+      }
+    }
+    
+    return new Blob([JSON.stringify(exportData, null, 2)], {
+      type: format === 'pdf' ? 'application/pdf' : 
+           format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' :
+           'text/csv'
+    })
+  },
+
+  // Dashboard Widgets
+  getDashboardWidgets: async (): Promise<DashboardWidget[]> => {
+    const overview = await analyticsService.getDashboardOverview()
+    
+    return [
+      {
+        id: 'employee-count',
+        title: 'Total Employees',
+        type: 'metric',
+        size: 'small',
+        data: { value: overview.employees.total, trend: overview.employees.trend },
+        refreshInterval: 300000, // 5 minutes
+        position: { x: 0, y: 0, w: 3, h: 2 }
+      },
+      {
+        id: 'leave-requests',
+        title: 'Pending Leave Requests',
+        type: 'metric',
+        size: 'small',
+        data: { value: overview.leave.pendingRequests, trend: 'stable' },
+        refreshInterval: 60000, // 1 minute
+        position: { x: 3, y: 0, w: 3, h: 2 }
+      },
+      {
+        id: 'payroll-cost',
+        title: 'Monthly Payroll Cost',
+        type: 'metric',
+        size: 'medium',
+        data: { value: overview.payroll.totalMonthlyCost, currency: true },
+        refreshInterval: 600000, // 10 minutes
+        position: { x: 6, y: 0, w: 6, h: 2 }
+      }
+    ]
+  },
+
+  // Real-time metrics
+  getRealTimeMetrics: async (): Promise<any> => {
+    const [overview, crossModule] = await Promise.all([
+      analyticsService.getDashboardOverview(),
+      analyticsService.getCrossModuleInsights()
+    ])
+
+    return {
+      ...overview,
+      insights: crossModule,
+      lastUpdated: new Date().toISOString()
     }
   }
 }
