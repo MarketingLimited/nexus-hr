@@ -13,6 +13,10 @@ import Performance from './pages/Performance'
 import Onboarding from './pages/Onboarding'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
+import { Security } from './pages/Security'
+import { Workflows } from './pages/Workflows'
+import { Integration } from './pages/Integration'
+import { Monitoring } from './pages/Monitoring'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -64,6 +68,26 @@ function App() {
                 <Route path="/settings" element={
                   <ProtectedRoute requiredPermission="settings.read">
                     <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/security" element={
+                  <ProtectedRoute requiredRole="Admin">
+                    <Security />
+                  </ProtectedRoute>
+                } />
+                <Route path="/workflows" element={
+                  <ProtectedRoute requiredPermission="workflows.read">
+                    <Workflows />
+                  </ProtectedRoute>
+                } />
+                <Route path="/integration" element={
+                  <ProtectedRoute requiredRole="Admin">
+                    <Integration />
+                  </ProtectedRoute>
+                } />
+                <Route path="/monitoring" element={
+                  <ProtectedRoute requiredRole="Admin">
+                    <Monitoring />
                   </ProtectedRoute>
                 } />
                 <Route path="/404" element={<NotFound />} />
