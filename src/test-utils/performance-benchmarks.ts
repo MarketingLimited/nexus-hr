@@ -44,9 +44,9 @@ class PerformanceBenchmark {
   private setupNetworkMonitoring() {
     // Mock fetch to count network requests
     const originalFetch = global.fetch
-    global.fetch = vi.fn((...args) => {
+    global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       this.networkRequestCount++
-      return originalFetch?.(...args) || Promise.resolve(new Response())
+      return originalFetch?.(input, init) || Promise.resolve(new Response())
     })
   }
 
@@ -256,6 +256,12 @@ class PerformanceRegression {
         current: currentMetrics.networkRequests,
         baseline: baseline.metrics.networkRequests,
         change: ((currentMetrics.networkRequests - baseline.metrics.networkRequests) / baseline.metrics.networkRequests) * 100
+      },
+      bundleSize: {
+        current: currentMetrics.bundleSize || 0,
+        baseline: baseline.metrics.bundleSize || 0,
+        change: baseline.metrics.bundleSize ? 
+          ((currentMetrics.bundleSize || 0) - baseline.metrics.bundleSize) / baseline.metrics.bundleSize * 100 : 0
       }
     }
 
@@ -439,7 +445,7 @@ function generateCoverageRecommendations(byFile: Record<string, number>): string
 /**
  * Default performance thresholds for different types of tests
  */
-export const defaultThresholds = {
+export const performanceThresholds = {
   component: {
     maxRenderTime: 100, // 100ms
     maxInteractionTime: 50, // 50ms
@@ -458,10 +464,4 @@ export const defaultThresholds = {
     maxMemoryUsage: 1024 * 512, // 512KB
     maxNetworkRequests: 1
   }
-}
-
-// Export all performance utilities (removing duplicates)
-export {
-  PerformanceBenchmark,
-  defaultThresholds
 }

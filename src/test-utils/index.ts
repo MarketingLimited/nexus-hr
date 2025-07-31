@@ -127,43 +127,45 @@ export const setupTestSuite = (config: TestConfig = {}) => {
   const cleanup = setupTestEnvironment()
   
   if (config.viewport) {
-    configureTestEnvironment({ viewport: config.viewport })
-  }
-  
-  if (config.theme) {
-    configureTestEnvironment({ theme: config.theme })
-  }
-  
-  if (config.network) {
-    configureTestEnvironment({ connectionType: config.network })
+    // Apply viewport configuration
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: config.viewport.width,
+    })
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: config.viewport.height,
+    })
   }
   
   return cleanup
 }
 
 // Test runner helpers for different test types
-export const runUnitTests = (testFn: () => void) => {
-  testCategories.unit('Unit Tests', testFn)
+export const runUnitTests = (name: string, testFn: () => void) => {
+  describe(`[UNIT] ${name}`, testFn)
 }
 
-export const runIntegrationTests = (testFn: () => void) => {
-  testCategories.integration('Integration Tests', testFn)
+export const runIntegrationTests = (name: string, testFn: () => void) => {
+  describe(`[INTEGRATION] ${name}`, testFn)
 }
 
-export const runE2ETests = (testFn: () => void) => {
-  testCategories.e2e('End-to-End Tests', testFn)
+export const runE2ETests = (name: string, testFn: () => void) => {
+  describe(`[E2E] ${name}`, testFn)
 }
 
-export const runPerformanceTests = (testFn: () => void) => {
-  testCategories.performance('Performance Tests', testFn)
+export const runPerformanceTests = (name: string, testFn: () => void) => {
+  describe(`[PERFORMANCE] ${name}`, testFn)
 }
 
-export const runAccessibilityTests = (testFn: () => void) => {
-  testCategories.accessibility('Accessibility Tests', testFn)
+export const runAccessibilityTests = (name: string, testFn: () => void) => {
+  describe(`[A11Y] ${name}`, testFn)
 }
 
-export const runVisualTests = (testFn: () => void) => {
-  testCategories.visual('Visual Regression Tests', testFn)
+export const runVisualTests = (name: string, testFn: () => void) => {
+  describe(`[VISUAL] ${name}`, testFn)
 }
 
 // Test data generators for common scenarios

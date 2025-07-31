@@ -279,12 +279,15 @@ export const setupTestEnvironment = () => {
   }
 
   // Mock IntersectionObserver
-  global.IntersectionObserver = class IntersectionObserver {
-    constructor() {}
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  }
+  global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+    observe: vi.fn(),
+    unobserve: vi.fn(),
+    disconnect: vi.fn(),
+    root: null,
+    rootMargin: '',
+    thresholds: [],
+    takeRecords: vi.fn(() => [])
+  }))
 
   // Mock HTMLElement.scrollIntoView
   HTMLElement.prototype.scrollIntoView = vi.fn()

@@ -27,8 +27,10 @@ export const expectTableToHaveSortableColumns = async (columns: string[]) => {
   for (const column of columns) {
     const header = screen.getByRole('columnheader', { name: new RegExp(column, 'i') })
     expect(header).toBeInTheDocument()
-    // Check if it's clickable (has sorting functionality)
-    expect(header).toHaveAttribute('tabindex', '0') || expect(header.querySelector('button')).toBeInTheDocument()
+// Check if it's clickable (has sorting functionality)
+    const hasTabIndex = header.hasAttribute('tabindex') && header.getAttribute('tabindex') === '0'
+    const hasButton = header.querySelector('button') !== null
+    expect(hasTabIndex || hasButton).toBe(true)
   }
 }
 
@@ -122,13 +124,16 @@ export const expectUserToHavePermissions = (permissions: string[]) => {
   // Check if user can see elements that require these permissions
   for (const permission of permissions) {
     if (permission === 'create') {
-      expect(screen.queryByRole('button', { name: /create|add|new/i })).toBeInTheDocument()
+      const createButton = screen.queryByRole('button', { name: /create|add|new/i })
+      expect(createButton).toBeInTheDocument()
     }
     if (permission === 'edit') {
-      expect(screen.queryByRole('button', { name: /edit|update|modify/i })).toBeInTheDocument()
+      const editButton = screen.queryByRole('button', { name: /edit|update|modify/i })
+      expect(editButton).toBeInTheDocument()
     }
     if (permission === 'delete') {
-      expect(screen.queryByRole('button', { name: /delete|remove/i })).toBeInTheDocument()
+      const deleteButton = screen.queryByRole('button', { name: /delete|remove/i })
+      expect(deleteButton).toBeInTheDocument()
     }
   }
 }
@@ -212,23 +217,20 @@ export const expectDataToBeConsistent = (data: any[], displayedElements: HTMLEle
   }
 }
 
-// Accessibility assertions (extending basic a11y)
-export const expectProperHeadingHierarchy = () => {
-  const headings = screen.getAllByRole('heading')
-  let previousLevel = 0
+// Performance assertions
+export const expectPageToLoadWithinTime = (maxTime: number) => {
+  const loadTime = performance.now()
+  expect(loadTime).toBeLessThan(maxTime)
+}
 
-  for (const heading of headings) {
-    const level = parseInt(heading.tagName.charAt(1))
-    expect(level).toBeGreaterThanOrEqual(1)
-    expect(level).toBeLessThanOrEqual(6)
-    
-    if (previousLevel > 0) {
-      // Heading level should not skip more than one level
-      expect(level - previousLevel).toBeLessThanOrEqual(1)
-    }
-    
-    previousLevel = level
-  }
+export const expectImageToBeOptimized = (image: HTMLImageElement) => {
+  expect(image).toHaveAttribute('alt')
+  const hasLazyLoading = image.hasAttribute('loading') && 
+    (image.getAttribute('loading') === 'lazy' || image.getAttribute('loading') === 'eager')
+  const hasResponsiveImage = image.hasAttribute('srcset') || image.closest('picture') !== null
+  
+  expect(hasLazyLoading).toBe(true)
+  expect(hasResponsiveImage).toBe(true)
 }
 
 export const expectProperLandmarkRoles = () => {

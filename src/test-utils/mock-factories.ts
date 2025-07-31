@@ -460,8 +460,14 @@ export const createMockHandlers = () => {
     leave: {
       getRequests: vi.fn().mockResolvedValue(MockAPIFactory.createPaginatedResponse(Array.from({ length: 15 }, () => MockDataFactory.createLeaveRequest()))),
       create: vi.fn().mockResolvedValue(MockAPIFactory.createSuccessResponse(MockDataFactory.createLeaveRequest())),
-      approve: vi.fn().mockResolvedValue(MockAPIFactory.createSuccessResponse(MockDataFactory.createLeaveRequest({ status: 'approved' }))),
-      reject: vi.fn().mockResolvedValue(MockAPIFactory.createSuccessResponse(MockDataFactory.createLeaveRequest({ status: 'rejected' })))
+      approve: vi.fn().mockResolvedValue(MockAPIFactory.createSuccessResponse({
+        ...MockDataFactory.createLeaveRequest(),
+        status: 'approved'
+      })),
+      reject: vi.fn().mockResolvedValue(MockAPIFactory.createSuccessResponse({
+        ...MockDataFactory.createLeaveRequest(),
+        status: 'rejected'
+      }))
     },
 
     // Auth handlers
