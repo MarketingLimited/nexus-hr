@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { NavigationBreadcrumb } from '@/components/ui/navigation-breadcrumb'
 import { SecurityDashboard } from '@/components/security/SecurityDashboard'
 import { AuditTrail } from '@/components/security/AuditTrail'
 import { DeviceManager } from '@/components/security/DeviceManager'
@@ -12,6 +13,8 @@ export const Security = () => {
 
   return (
     <div className="space-y-6">
+      <NavigationBreadcrumb />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

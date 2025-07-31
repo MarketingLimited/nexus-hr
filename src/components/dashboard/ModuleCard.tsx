@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { LucideIcon, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface ModuleCardProps {
   title: string;
@@ -87,9 +88,12 @@ export default function ModuleCard({
               variant={index === 0 ? "default" : "outline"}
               size="sm"
               className="group/btn"
+              asChild
             >
-              {action.label}
-              <ArrowRight className="ml-2 h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+              <Link to={action.href}>
+                {action.label}
+                <ArrowRight className="ml-2 h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
+              </Link>
             </Button>
           ))}
         </div>

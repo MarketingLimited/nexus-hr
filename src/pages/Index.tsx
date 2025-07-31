@@ -4,6 +4,7 @@ import StatsCard from "@/components/dashboard/StatsCard";
 import ModuleCard from "@/components/dashboard/ModuleCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { 
   Users, 
   Calendar, 
@@ -13,7 +14,11 @@ import {
   Clock, 
   BarChart3,
   TrendingUp,
-  Building2
+  Building2,
+  Shield,
+  GitBranch,
+  RefreshCw,
+  Activity
 } from "lucide-react";
 
 const Index = () => {
@@ -85,8 +90,8 @@ const Index = () => {
                   { label: "New This Month", value: "12", trend: "up" }
                 ]}
                 actions={[
-                  { label: "View All", href: "#employees" },
-                  { label: "Add Employee", href: "#employees/new" }
+                  { label: "View All", href: "/employees" },
+                  { label: "Add Employee", href: "/employees" }
                 ]}
                 notifications={3}
               />
@@ -101,8 +106,8 @@ const Index = () => {
                   { label: "Approved Today", value: "5", trend: "up" }
                 ]}
                 actions={[
-                  { label: "Review Requests", href: "#leaves" },
-                  { label: "Leave Calendar", href: "#leaves/calendar" }
+                  { label: "Review Requests", href: "/leave" },
+                  { label: "Leave Calendar", href: "/leave" }
                 ]}
                 notifications={18}
               />
@@ -117,8 +122,8 @@ const Index = () => {
                   { label: "Total Amount", value: "$284K", trend: "up" }
                 ]}
                 actions={[
-                  { label: "Run Payroll", href: "#payroll" },
-                  { label: "View Reports", href: "#payroll/reports" }
+                  { label: "Run Payroll", href: "/payroll" },
+                  { label: "View Reports", href: "/payroll" }
                 ]}
               />
 
@@ -132,8 +137,8 @@ const Index = () => {
                   { label: "Due This Week", value: "12", trend: "stable" }
                 ]}
                 actions={[
-                  { label: "Review Dashboard", href: "#performance" },
-                  { label: "Set Goals", href: "#performance/goals" }
+                  { label: "Review Dashboard", href: "/performance" },
+                  { label: "Set Goals", href: "/performance" }
                 ]}
                 notifications={5}
               />
@@ -148,8 +153,8 @@ const Index = () => {
                   { label: "Completion Rate", value: "92%", trend: "up" }
                 ]}
                 actions={[
-                  { label: "View Progress", href: "#onboarding" },
-                  { label: "Start Process", href: "#onboarding/new" }
+                  { label: "View Progress", href: "/onboarding" },
+                  { label: "Start Process", href: "/onboarding" }
                 ]}
                 notifications={2}
               />
@@ -164,10 +169,85 @@ const Index = () => {
                   { label: "Late Arrivals", value: "3", trend: "down" }
                 ]}
                 actions={[
-                  { label: "View Reports", href: "#attendance" },
-                  { label: "Clock In/Out", href: "#attendance/clock" }
+                  { label: "View Reports", href: "/attendance" },
+                  { label: "Clock In/Out", href: "/attendance" }
                 ]}
               />
+            </div>
+
+            {/* System Management Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">System Management</h2>
+                  <p className="text-muted-foreground">Enterprise tools for security, automation, and monitoring</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <ModuleCard
+                  title="Security Center"
+                  description="Monitor threats and manage access"
+                  icon={Shield}
+                  color="red"
+                  stats={[
+                    { label: "Active Threats", value: "3", trend: "down" },
+                    { label: "Security Score", value: "92%", trend: "up" }
+                  ]}
+                  actions={[
+                    { label: "Security Dashboard", href: "/security" },
+                    { label: "View Alerts", href: "/security" }
+                  ]}
+                  notifications={3}
+                />
+
+                <ModuleCard
+                  title="Workflow Engine"
+                  description="Automate business processes"
+                  icon={GitBranch}
+                  color="purple"
+                  stats={[
+                    { label: "Active Workflows", value: "8", trend: "stable" },
+                    { label: "Automation Rate", value: "87%", trend: "up" }
+                  ]}
+                  actions={[
+                    { label: "Workflow Builder", href: "/workflows" },
+                    { label: "View Templates", href: "/workflows" }
+                  ]}
+                />
+
+                <ModuleCard
+                  title="Integration Hub"
+                  description="Connect and sync external systems"
+                  icon={RefreshCw}
+                  color="blue"
+                  stats={[
+                    { label: "Connected Systems", value: "6", trend: "up" },
+                    { label: "Success Rate", value: "99.2%", trend: "stable" }
+                  ]}
+                  actions={[
+                    { label: "Sync Dashboard", href: "/integration" },
+                    { label: "Data Migration", href: "/integration" }
+                  ]}
+                  notifications={2}
+                />
+
+                <ModuleCard
+                  title="System Monitor"
+                  description="Real-time performance monitoring"
+                  icon={Activity}
+                  color="green"
+                  stats={[
+                    { label: "System Health", value: "Healthy", trend: "stable" },
+                    { label: "Uptime", value: "99.9%", trend: "up" }
+                  ]}
+                  actions={[
+                    { label: "Health Dashboard", href: "/monitoring" },
+                    { label: "View Alerts", href: "/monitoring" }
+                  ]}
+                  notifications={1}
+                />
+              </div>
             </div>
 
             {/* Bottom section with quick actions and recent activity */}
@@ -177,6 +257,9 @@ const Index = () => {
             </div>
           </main>
         </div>
+        
+        {/* Floating Action Button */}
+        <FloatingActionButton />
       </div>
     </div>
   );

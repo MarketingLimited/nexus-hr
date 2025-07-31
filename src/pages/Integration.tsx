@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { NavigationBreadcrumb } from '@/components/ui/navigation-breadcrumb'
 import { SyncDashboard } from '@/components/integration/SyncDashboard'
 import { MigrationWizard } from '@/components/integration/MigrationWizard'
 import { RefreshCw, Download, Upload, Settings, Database, Cloud } from 'lucide-react'
@@ -12,6 +13,8 @@ export const Integration = () => {
 
   return (
     <div className="space-y-6">
+      <NavigationBreadcrumb />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { NavigationBreadcrumb } from '@/components/ui/navigation-breadcrumb'
 import { SystemMonitor } from '@/components/monitoring/SystemMonitor'
 import { HealthChecks } from '@/components/monitoring/HealthChecks'
 import { Activity, Heart, Server, AlertTriangle, Settings, RefreshCw } from 'lucide-react'
@@ -12,6 +13,8 @@ export const Monitoring = () => {
 
   return (
     <div className="space-y-6">
+      <NavigationBreadcrumb />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

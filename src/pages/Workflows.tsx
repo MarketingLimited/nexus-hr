@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { NavigationBreadcrumb } from '@/components/ui/navigation-breadcrumb'
 import { WorkflowBuilder } from '@/components/workflow/WorkflowBuilder'
 import { GitBranch, Play, Pause, Settings, Plus } from 'lucide-react'
 
@@ -11,6 +12,8 @@ export const Workflows = () => {
 
   return (
     <div className="space-y-6">
+      <NavigationBreadcrumb />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
