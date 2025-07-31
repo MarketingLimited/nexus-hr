@@ -1,5 +1,21 @@
 import { useState, useMemo } from "react";
 import { Search, Filter, Download, Upload, RefreshCw, Database, Settings } from "lucide-react";
+import { useDepartments } from "@/hooks/useDepartments";
+
+const DepartmentDropdown = () => {
+  const { data: departments } = useDepartments();
+  
+  return (
+    <SelectContent>
+      <SelectItem value="all">All Departments</SelectItem>
+      {departments?.data?.map((dept: any) => (
+        <SelectItem key={dept.id} value={dept.name}>
+          {dept.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  );
+};
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -227,13 +243,7 @@ const SystemManagement = () => {
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    <SelectItem value="Engineering">Engineering</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Sales">Sales</SelectItem>
-                    <SelectItem value="HR">HR</SelectItem>
-                  </SelectContent>
+                  <DepartmentDropdown />
                 </Select>
                 <Select value={search.filters.status || 'all'} onValueChange={(value) => search.updateFilters({ status: value })}>
                   <SelectTrigger className="w-32">

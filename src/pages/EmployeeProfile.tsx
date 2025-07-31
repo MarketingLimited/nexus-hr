@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useEmployees } from "@/hooks/useEmployees";
 import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Building, User, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,25 +10,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmployeeProfile = () => {
   const { id } = useParams();
+  const { data: employeesData, isLoading, error } = useEmployees();
   
-  // Mock employee data - in real app, fetch by ID
-  const employee = {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@company.com", 
-    phone: "+1 (555) 123-4567",
-    position: "Senior Software Engineer",
-    department: "Engineering",
-    location: "New York, NY",
-    joinDate: "2022-03-15",
-    status: "active",
+  const employee = employeesData?.data?.find((emp: any) => emp.id === id) || {
+    id: id || "1",
+    name: "Employee Not Found",
+    email: "N/A", 
+    phone: "N/A",
+    position: "N/A",
+    department: "N/A",
+    location: "N/A",
+    joinDate: new Date().toISOString().split('T')[0],
+    status: "inactive",
     avatar: "/api/placeholder/150/150",
-    employeeId: "EMP001",
-    manager: "John Doe",
-    salary: "$95,000",
-    skills: ["React", "TypeScript", "Node.js", "Python"],
-    bio: "Experienced software engineer with a passion for creating scalable web applications and mentoring junior developers."
+    employeeId: id || "EMP001",
+    manager: "N/A",
+    salary: "N/A",
+    skills: [],
+    bio: "Employee information not available."
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">Loading employee profile...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center text-destructive">Error loading employee profile</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

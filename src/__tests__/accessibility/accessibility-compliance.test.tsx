@@ -1,13 +1,49 @@
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
-import { Security } from '../../pages/Security'
-import { Workflows } from '../../pages/Workflows'
-import { Integration } from '../../pages/Integration'
-import { Monitoring } from '../../pages/Monitoring'
+import Security from '../../pages/Security'
+import Workflows from '../../pages/Workflows'
+import Integration from '../../pages/Integration'
+import Monitoring from '../../pages/Monitoring'
+import Index from '../../pages/Index'
+
+// Mock hooks to prevent API calls during tests
+vi.mock('@/hooks/useSecurity', () => ({
+  useSecurity: () => ({
+    useSecurityEvents: () => ({ data: [], isLoading: false }),
+    useActiveSessions: () => ({ data: [], isLoading: false }),
+    useSecurityMetrics: () => ({ data: {}, isLoading: false })
+  })
+}))
+
+vi.mock('@/hooks/useWorkflow', () => ({
+  useWorkflows: () => ({ data: { data: [] }, isLoading: false }),
+  useWorkflowTemplates: () => ({ data: { data: [] }, isLoading: false }),
+  useWorkflowAnalytics: () => ({ data: {}, isLoading: false })
+}))
+
+vi.mock('@/hooks/useSync', () => ({
+  useSync: () => ({ data: {}, isLoading: false }),
+  useSyncOperations: () => ({ data: [], isLoading: false })
+}))
+
+vi.mock('@/hooks/useMonitoring', () => ({
+  useMonitoring: () => ({
+    useSystemHealth: () => ({ data: {}, isLoading: false }),
+    usePerformanceMetrics: () => ({ data: {}, isLoading: false }),
+    useAlerts: () => ({ data: [], isLoading: false })
+  })
+}))
+
+vi.mock('@/hooks/useDashboard', () => ({
+  useDashboard: () => ({
+    data: { stats: { totalEmployees: 100, activeProjects: 10, pendingTasks: 5, completionRate: 85 } },
+    isLoading: false
+  })
+}))
 
 // Extend Jest matchers
 expect.extend(toHaveNoViolations)
