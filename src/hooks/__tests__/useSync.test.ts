@@ -165,7 +165,7 @@ describe('useSync hooks', () => {
 
   describe('useStartSync', () => {
     it('should start sync successfully', async () => {
-      vi.mocked(syncService.startSync).mockResolvedValue()
+      vi.mocked(syncService.startSync).mockResolvedValue(undefined)
 
       const { result } = renderHook(() => useStartSync(), {
         wrapper: createWrapper()
