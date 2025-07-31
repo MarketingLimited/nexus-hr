@@ -157,7 +157,7 @@ export const privacyHandlers = [
       return HttpResponse.json({ error: 'Classification not found' }, { status: 404 })
     }
 
-    dataClassifications[classIndex] = { ...dataClassifications[classIndex], ...update }
+    dataClassifications[classIndex] = { ...dataClassifications[classIndex], ...(update as Partial<DataClassification>) }
     return HttpResponse.json({ data: dataClassifications[classIndex] })
   }),
 
@@ -177,7 +177,7 @@ export const privacyHandlers = [
   // Update consent
   http.put('/api/privacy/consent/:id', async ({ params, request }) => {
     const { id } = params
-    const { granted, purpose } = await request.json()
+    const { granted, purpose } = await request.json() as { granted: boolean; purpose?: string }
     const consentIndex = consentRecords.findIndex(c => c.id === id)
     
     if (consentIndex === -1) {
@@ -259,11 +259,12 @@ export const privacyHandlers = [
       return HttpResponse.json({ error: 'Request not found' }, { status: 404 })
     }
 
-    if (update.status === 'completed' && !dataSubjectRequests[requestIndex].completedAt) {
-      update.completedAt = new Date().toISOString()
+    const updateData = update as Partial<DataSubjectRequest>
+    if (updateData.status === 'completed' && !dataSubjectRequests[requestIndex].completedAt) {
+      updateData.completedAt = new Date().toISOString()
     }
 
-    dataSubjectRequests[requestIndex] = { ...dataSubjectRequests[requestIndex], ...update }
+    dataSubjectRequests[requestIndex] = { ...dataSubjectRequests[requestIndex], ...updateData }
     return HttpResponse.json({ data: dataSubjectRequests[requestIndex] })
   }),
 
@@ -287,7 +288,7 @@ export const privacyHandlers = [
 
   // Request data export
   http.post('/api/privacy/data-export', async ({ request }) => {
-    const { userId, dataCategories, format } = await request.json()
+    const { userId, dataCategories, format } = await request.json() as { userId: string; dataCategories: string[]; format: 'json' | 'csv' | 'xml' }
     const newExport: DataExportRequest = {
       id: `export_${Date.now()}`,
       userId,

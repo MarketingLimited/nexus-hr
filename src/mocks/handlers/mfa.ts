@@ -192,7 +192,7 @@ export const mfaHandlers = [
 
   // Generate backup codes
   http.post('/api/mfa/backup-codes', async ({ request }) => {
-    const { userId } = await request.json()
+    const { userId } = await request.json() as { userId: string }
 
     const backupCodes = Array.from({ length: 10 }, () => 
       Math.random().toString(36).substring(2, 10).toUpperCase()
@@ -247,7 +247,7 @@ export const mfaHandlers = [
 
   // Initiate MFA challenge
   http.post('/api/mfa/challenge', async ({ request }) => {
-    const { userId, preferredMethod } = await request.json()
+    const { userId, preferredMethod } = await request.json() as { userId: string; preferredMethod?: string }
 
     const userMethods = mfaMethods.filter(m => m.userId === userId && m.isEnabled)
     if (userMethods.length === 0) {
@@ -276,7 +276,7 @@ export const mfaHandlers = [
 
   // Verify MFA challenge
   http.post('/api/mfa/verify', async ({ request }) => {
-    const { challengeId, code } = await request.json()
+    const { challengeId, code } = await request.json() as { challengeId: string; code: string }
 
     const challengeIndex = activeChallenges.findIndex(c => c.id === challengeId)
     if (challengeIndex === -1) {
@@ -328,7 +328,7 @@ export const mfaHandlers = [
 
   // Set security questions
   http.post('/api/mfa/security-questions', async ({ request }) => {
-    const { userId, questionsAndAnswers } = await request.json()
+    const { userId, questionsAndAnswers } = await request.json() as { userId: string; questionsAndAnswers: any[] }
 
     // Update user security settings
     const userSettingsIndex = userSecuritySettings.findIndex(s => s.userId === userId)
@@ -365,7 +365,7 @@ export const mfaHandlers = [
 
   // Unlock account
   http.post('/api/mfa/unlock-account', async ({ request }) => {
-    const { userId, adminUserId, reason } = await request.json()
+    const { userId, adminUserId, reason } = await request.json() as { userId: string; adminUserId: string; reason: string }
 
     const userSettingsIndex = userSecuritySettings.findIndex(s => s.userId === userId)
     if (userSettingsIndex === -1) {
