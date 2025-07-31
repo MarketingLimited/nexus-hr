@@ -1,11 +1,8 @@
 import { render, RenderOptions, RenderResult } from '@testing-library/react'
 import { ReactElement } from 'react'
-import { axe, toHaveNoViolations } from 'jest-axe'
+import { axe } from 'jest-axe'
 import userEvent from '@testing-library/user-event'
 import { expect } from 'vitest'
-
-// Extend Jest matchers
-expect.extend(toHaveNoViolations)
 
 // Accessibility testing utilities
 export interface AccessibilityTestOptions {
@@ -82,7 +79,7 @@ export const expectNoA11yViolations = async (
   }
   
   const results = await axe(container, config)
-  expect(results).toHaveNoViolations()
+  expect(results.violations).toHaveLength(0)
 }
 
 /**

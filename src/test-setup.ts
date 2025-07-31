@@ -2,6 +2,11 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeAll, afterAll } from 'vitest'
 import { server } from './test-utils/msw-server'
+import { expect } from 'vitest'
+import { toHaveNoViolations } from 'jest-axe'
+
+// Extend expect with jest-axe matchers
+expect.extend(toHaveNoViolations)
 
 // Runs a cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {

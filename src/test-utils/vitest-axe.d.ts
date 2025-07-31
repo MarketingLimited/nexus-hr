@@ -1,0 +1,10 @@
+import { expect } from 'vitest'
+
+declare module 'vitest' {
+  interface Assertion<T = any> {
+    toHaveNoViolations(): T
+  }
+  interface AsymmetricMatchersContaining {
+    toHaveNoViolations(): any
+  }
+}
