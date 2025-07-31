@@ -60,8 +60,6 @@ export const MigrationWizard = () => {
     try {
       await createJob.mutateAsync({
         name: migrationConfig.name,
-        sourceType: migrationConfig.sourceType,
-        targetSystem: migrationConfig.targetSystem,
         config: {
           mapping: migrationConfig.mapping,
           batchSize: 1000,

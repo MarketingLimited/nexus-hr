@@ -38,7 +38,8 @@ let migrationJobs: MigrationJob[] = [
         required: true
       }
     ],
-    config: {
+      config: {
+        validateData: true,
       batchSize: 100,
       skipErrors: true,
       validateOnly: false,
@@ -96,7 +97,8 @@ let migrationTemplates: MigrationTemplate[] = [
       { sourceField: 'Email', targetField: 'email', validationRules: ['email'], required: true },
       { sourceField: 'Department', targetField: 'department', required: false }
     ],
-    config: {
+      config: {
+        validateData: true,
       batchSize: 100,
       skipErrors: false,
       validateOnly: false,
