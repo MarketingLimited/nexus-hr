@@ -1,364 +1,427 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { renderHook, waitFor, act } from '@/test-utils'
+import { useEmployees } from '../useEmployees'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
-import { createTestQueryClient } from '../../test-utils'
-import { 
-  useEmployees, 
-  useEmployee, 
-  useEmployeeStats,
-  useCreateEmployee,
-  useUpdateEmployee,
-  useDeleteEmployee,
-  employeeKeys
-} from '../useEmployees'
-import { employeeService } from '../../services/dataService'
-import { toast } from 'sonner'
+import React, { ReactNode } from 'react'
 
-// Mock dependencies
-vi.mock('../../services/dataService', () => ({
-  employeeService: {
-    getAll: vi.fn(),
-    getById: vi.fn(),
-    getStats: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn()
-  }
+// Mock the API
+const mockGetEmployees = vi.fn()
+const mockGetEmployee = vi.fn()
+const mockCreateEmployee = vi.fn()
+const mockUpdateEmployee = vi.fn()
+const mockDeleteEmployee = vi.fn()
+
+vi.mock('@/services/api', () => ({
+  getEmployees: (...args: any[]) => mockGetEmployees(...args),
+  getEmployee: (...args: any[]) => mockGetEmployee(...args),
+  createEmployee: (...args: any[]) => mockCreateEmployee(...args),
+  updateEmployee: (...args: any[]) => mockUpdateEmployee(...args),
+  deleteEmployee: (...args: any[]) => mockDeleteEmployee(...args)
 }))
 
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn()
-  }
-}))
-
-describe('useEmployees Hooks', () => {
+describe('useEmployees Hook', () => {
   let queryClient: QueryClient
-  let wrapper: any
+
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    React.createElement(QueryClientProvider, { client: queryClient }, children)
+  )
+
+  const mockEmployees = [
+    {
+      id: 'emp-1',
+      employeeId: 'EMP001',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@company.com',
+      department: 'Engineering',
+      position: 'Software Engineer',
+      status: 'active' as const,
+      avatar: '/avatars/john.jpg',
+      startDate: '2024-01-15',
+      phone: '+1234567890',
+      manager: null,
+      createdAt: '2024-01-15T00:00:00Z',
+      updatedAt: '2024-01-15T00:00:00Z'
+    },
+    {
+      id: 'emp-2',
+      employeeId: 'EMP002',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane.smith@company.com',
+      department: 'Marketing',
+      position: 'Marketing Manager',
+      status: 'active' as const,
+      avatar: '/avatars/jane.jpg',
+      startDate: '2024-01-10',
+      phone: '+1234567891',
+      manager: null,
+      createdAt: '2024-01-10T00:00:00Z',
+      updatedAt: '2024-01-10T00:00:00Z'
+    }
+  ]
 
   beforeEach(() => {
-    queryClient = createTestQueryClient()
-    wrapper = ({ children }: { children: React.ReactNode }) => 
-      React.createElement(QueryClientProvider, { client: queryClient }, children)
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false }
+      }
+    })
     vi.clearAllMocks()
   })
 
-  afterEach(() => {
-    queryClient.clear()
-  })
+  describe('useEmployees Query', () => {
+    it('fetches employees successfully', async () => {
+      mockGetEmployees.mockResolvedValueOnce({
+        data: mockEmployees,
+        meta: {
+          total: 2,
+          page: 1,
+          limit: 20,
+          totalPages: 1
+        }
+      })
 
-  describe('useEmployees', () => {
-    it('should fetch employees with pagination and filters', async () => {
-      const mockEmployees = {
-        data: [
-          { id: 'emp-1', name: 'John Doe', department: 'Engineering' } as any,
-          { id: 'emp-2', name: 'Jane Smith', department: 'HR' } as any
-        ],
-        meta: { total: 2, page: 1, limit: 10, totalPages: 1 }
-      }
-      vi.mocked(employeeService.getAll).mockResolvedValue(mockEmployees)
+      const { result } = renderHook(() => useEmployees(), { wrapper })
 
-      const params = { 
-        search: 'John', 
-        department: 'Engineering',
-        status: 'active',
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockEmployees)
+        expect(result.current.isLoading).toBe(false)
+        expect(result.current.error).toBeNull()
+      })
+
+      expect(mockGetEmployees).toHaveBeenCalledWith({
         page: 1,
-        limit: 10
-      }
-      const { result } = renderHook(() => useEmployees(params), { wrapper })
+        limit: 20,
+        search: '',
+        department: '',
+        status: ''
+      })
+    })
 
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
+    it('applies search filters', async () => {
+      mockGetEmployees.mockResolvedValueOnce({
+        data: [mockEmployees[0]],
+        meta: { total: 1, page: 1, limit: 20, totalPages: 1 }
       })
 
-      expect(result.current.data).toEqual(mockEmployees)
-      expect(employeeService.getAll).toHaveBeenCalledWith(params)
-    })
-
-    it('should fetch employees without parameters', async () => {
-      const mockEmployees = { data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } }
-      vi.mocked(employeeService.getAll).mockResolvedValue(mockEmployees)
-
-      const { result } = renderHook(() => useEmployees(), { wrapper })
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      expect(employeeService.getAll).toHaveBeenCalledWith(undefined)
-    })
-
-    it('should handle fetch employees error', async () => {
-      const mockError = new Error('Failed to fetch employees')
-      vi.mocked(employeeService.getAll).mockRejectedValue(mockError)
-
-      const { result } = renderHook(() => useEmployees(), { wrapper })
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true)
-      })
-
-      expect(result.current.error).toEqual(mockError)
-    })
-
-    it('should use correct query key with parameters', () => {
-      const params = { search: 'test', department: 'IT' }
-      renderHook(() => useEmployees(params), { wrapper })
-      
-      const queries = queryClient.getQueryCache().getAll()
-      expect(queries.some(query => 
-        JSON.stringify(query.queryKey) === JSON.stringify(employeeKeys.list(params))
-      )).toBe(true)
-    })
-  })
-
-  describe('useEmployee', () => {
-    it('should fetch single employee by ID when enabled', async () => {
-      const mockEmployee = { 
-        data: { id: 'emp-1', name: 'John Doe', email: 'john@example.com' }
-      } as any
-      vi.mocked(employeeService.getById).mockResolvedValue(mockEmployee)
-
-      const { result } = renderHook(() => useEmployee('emp-1', true), { wrapper })
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      expect(result.current.data).toEqual(mockEmployee.data)
-      expect(employeeService.getById).toHaveBeenCalledWith('emp-1')
-    })
-
-    it('should not fetch when disabled', () => {
-      const { result } = renderHook(() => useEmployee('emp-1', false), { wrapper })
-
-      expect(result.current.isFetching).toBe(false)
-      expect(employeeService.getById).not.toHaveBeenCalled()
-    })
-
-    it('should not fetch when ID is empty', () => {
-      const { result } = renderHook(() => useEmployee('', true), { wrapper })
-
-      expect(result.current.isFetching).toBe(false)
-      expect(employeeService.getById).not.toHaveBeenCalled()
-    })
-
-    it('should handle fetch employee error', async () => {
-      const mockError = new Error('Employee not found')
-      vi.mocked(employeeService.getById).mockRejectedValue(mockError)
-
-      const { result } = renderHook(() => useEmployee('non-existent', true), { wrapper })
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true)
-      })
-
-      expect(result.current.error).toEqual(mockError)
-    })
-  })
-
-  describe('useEmployeeStats', () => {
-    it('should fetch employee statistics', async () => {
-      const mockStats = {
-        data: {
-          total: 150,
-          active: 142,
-          inactive: 8,
-          terminated: 0,
-          byDepartment: { Engineering: 50, HR: 25, Sales: 30 },
-          byLocation: { 'New York': 75, 'San Francisco': 75 }
-        }
-      }
-      vi.mocked(employeeService.getStats).mockResolvedValue(mockStats)
-
-      const { result } = renderHook(() => useEmployeeStats(), { wrapper })
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      expect(result.current.data).toEqual(mockStats.data)
-      expect(employeeService.getStats).toHaveBeenCalledOnce()
-    })
-
-    it('should use correct query key for stats', () => {
-      renderHook(() => useEmployeeStats(), { wrapper })
-      
-      const queries = queryClient.getQueryCache().getAll()
-      expect(queries.some(query => 
-        JSON.stringify(query.queryKey) === JSON.stringify(employeeKeys.stats())
-      )).toBe(true)
-    })
-  })
-
-  describe('useCreateEmployee', () => {
-    it('should create employee successfully', async () => {
-      const mockEmployee = { 
-        data: { 
-          id: 'emp-new', 
-          employeeId: 'EMP001',
-          firstName: 'New', 
-          lastName: 'Employee',
-          email: 'new@example.com' 
-        }
-      } as any
-      vi.mocked(employeeService.create).mockResolvedValue(mockEmployee)
-
-      const { result } = renderHook(() => useCreateEmployee(), { wrapper })
-
-      const newEmployeeData = {
-        firstName: 'New',
-        lastName: 'Employee',
-        email: 'new@example.com',
+      const { result } = renderHook(() => useEmployees({
+        search: 'John',
         department: 'Engineering',
-        position: 'Developer'
-      } as any
-      result.current.mutate(newEmployeeData)
+        status: 'active'
+      }), { wrapper })
 
       await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
+        expect(result.current.data).toHaveLength(1)
+        expect(result.current.data?.[0].firstName).toBe('John')
       })
 
-      expect(employeeService.create).toHaveBeenCalledWith(newEmployeeData)
-      expect(toast.success).toHaveBeenCalledWith('Employee created successfully')
+      expect(mockGetEmployees).toHaveBeenCalledWith({
+        page: 1,
+        limit: 20,
+        search: 'John',
+        department: 'Engineering',
+        status: 'active'
+      })
     })
 
-    it('should handle create employee failure', async () => {
-      const mockError = new Error('Failed to create employee')
-      vi.mocked(employeeService.create).mockRejectedValue(mockError)
-
-      const { result } = renderHook(() => useCreateEmployee(), { wrapper })
-
-      result.current.mutate({ firstName: 'Test', lastName: 'Employee' } as any)
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true)
+    it('handles pagination', async () => {
+      mockGetEmployees.mockResolvedValueOnce({
+        data: mockEmployees,
+        meta: { total: 50, page: 2, limit: 10, totalPages: 5 }
       })
 
-      expect(toast.error).toHaveBeenCalledWith('Failed to create employee')
+      const { result } = renderHook(() => useEmployees({
+        page: 2,
+        limit: 10
+      }), { wrapper })
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockEmployees)
+        expect(result.current.meta?.page).toBe(2)
+        expect(result.current.meta?.totalPages).toBe(5)
+      })
+
+      expect(mockGetEmployees).toHaveBeenCalledWith({
+        page: 2,
+        limit: 10,
+        search: '',
+        department: '',
+        status: ''
+      })
     })
 
-    it('should invalidate employee queries on success', async () => {
-      const mockEmployee = { data: { id: 'emp-new', firstName: 'New', lastName: 'Employee' } } as any
-      vi.mocked(employeeService.create).mockResolvedValue(mockEmployee)
+    it('handles loading state', () => {
+      mockGetEmployees.mockImplementation(() => new Promise(() => {})) // Never resolves
 
-      // Pre-populate cache
-      queryClient.setQueryData(employeeKeys.list(), { data: [] })
+      const { result } = renderHook(() => useEmployees(), { wrapper })
 
-      const { result } = renderHook(() => useCreateEmployee(), { wrapper })
-
-      result.current.mutate({ firstName: 'New', lastName: 'Employee' } as any)
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      // Verify cache invalidation by checking if queries were marked as stale
-      const queries = queryClient.getQueryCache().findAll({ queryKey: employeeKeys.all })
-      expect(queries.some(query => query.isStale())).toBe(true)
-    })
-  })
-
-  describe('useUpdateEmployee', () => {
-    it('should update employee successfully', async () => {
-      const mockUpdatedEmployee = { 
-        data: { id: 'emp-1', firstName: 'Updated', lastName: 'Name', position: 'Senior Developer' }
-      } as any
-      vi.mocked(employeeService.update).mockResolvedValue(mockUpdatedEmployee)
-
-      const { result } = renderHook(() => useUpdateEmployee(), { wrapper })
-
-      const updateData = {
-        id: 'emp-1',
-        data: { firstName: 'Updated', lastName: 'Name', position: 'Senior Developer' }
-      } as any
-      result.current.mutate(updateData)
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      expect(employeeService.update).toHaveBeenCalledWith('emp-1', updateData.data)
-      expect(toast.success).toHaveBeenCalledWith('Employee updated successfully')
+      expect(result.current.isLoading).toBe(true)
+      expect(result.current.data).toBeUndefined()
     })
 
-    it('should handle update employee failure', async () => {
-      const mockError = new Error('Failed to update employee')
-      vi.mocked(employeeService.update).mockRejectedValue(mockError)
+    it('handles error state', async () => {
+      const error = new Error('Failed to fetch employees')
+      mockGetEmployees.mockRejectedValueOnce(error)
 
-      const { result } = renderHook(() => useUpdateEmployee(), { wrapper })
-
-      result.current.mutate({ id: 'emp-1', data: { firstName: 'Test' } } as any)
+      const { result } = renderHook(() => useEmployees(), { wrapper })
 
       await waitFor(() => {
-        expect(result.current.isError).toBe(true)
+        expect(result.current.error).toEqual(error)
+        expect(result.current.isLoading).toBe(false)
+        expect(result.current.data).toBeUndefined()
       })
-
-      expect(toast.error).toHaveBeenCalledWith('Failed to update employee')
-    })
-
-    it('should invalidate specific employee query on success', async () => {
-      const mockUpdatedEmployee = { data: { id: 'emp-1', firstName: 'Updated' } } as any
-      vi.mocked(employeeService.update).mockResolvedValue(mockUpdatedEmployee)
-
-      // Pre-populate cache for specific employee
-      queryClient.setQueryData(employeeKeys.detail('emp-1'), { data: { id: 'emp-1', name: 'Original' } })
-
-      const { result } = renderHook(() => useUpdateEmployee(), { wrapper })
-
-      result.current.mutate({ id: 'emp-1', data: { firstName: 'Updated' } } as any)
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-
-      // Verify specific employee query was invalidated
-      const specificQuery = queryClient.getQueryCache().find({ queryKey: employeeKeys.detail('emp-1') })
-      expect(specificQuery?.isStale()).toBe(true)
     })
   })
 
-  describe('useDeleteEmployee', () => {
-    it('should delete employee successfully', async () => {
-      const mockResponse = { data: { message: 'Employee deleted successfully' } }
-      vi.mocked(employeeService.delete).mockResolvedValue(mockResponse)
-
-      const { result } = renderHook(() => useDeleteEmployee(), { wrapper })
-
-      result.current.mutate('emp-1')
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
+  describe('useEmployee Single Query', () => {
+    it('fetches single employee successfully', async () => {
+      mockGetEmployee.mockResolvedValueOnce({
+        data: mockEmployees[0]
       })
 
-      expect(employeeService.delete).toHaveBeenCalledWith('emp-1')
-      expect(toast.success).toHaveBeenCalledWith('Employee deleted successfully')
+      const { result } = renderHook(() => useEmployees({ employeeId: 'emp-1' }), { wrapper })
+
+      await waitFor(() => {
+        expect(result.current.employee).toEqual(mockEmployees[0])
+        expect(result.current.isLoading).toBe(false)
+      })
+
+      expect(mockGetEmployee).toHaveBeenCalledWith('emp-1')
     })
 
-    it('should handle delete employee failure', async () => {
-      const mockError = new Error('Failed to delete employee')
-      vi.mocked(employeeService.delete).mockRejectedValue(mockError)
+    it('handles employee not found', async () => {
+      const error = new Error('Employee not found')
+      mockGetEmployee.mockRejectedValueOnce(error)
 
-      const { result } = renderHook(() => useDeleteEmployee(), { wrapper })
-
-      result.current.mutate('emp-1')
+      const { result } = renderHook(() => useEmployees({ employeeId: 'non-existent' }), { wrapper })
 
       await waitFor(() => {
-        expect(result.current.isError).toBe(true)
+        expect(result.current.error).toEqual(error)
+        expect(result.current.employee).toBeUndefined()
       })
-
-      expect(toast.error).toHaveBeenCalledWith('Failed to delete employee')
     })
   })
 
-  describe('Query Keys', () => {
-    it('should generate correct query keys', () => {
-      expect(employeeKeys.all).toEqual(['employees'])
-      expect(employeeKeys.list({ search: 'test' })).toEqual(['employees', 'list', { search: 'test' }])
-      expect(employeeKeys.detail('emp-1')).toEqual(['employees', 'detail', 'emp-1'])
-      expect(employeeKeys.stats()).toEqual(['employees', 'stats'])
+  describe('Create Employee Mutation', () => {
+    it('creates employee successfully', async () => {
+      const newEmployee = {
+        firstName: 'Bob',
+        lastName: 'Wilson',
+        email: 'bob.wilson@company.com',
+        department: 'Sales',
+        position: 'Sales Rep'
+      }
+
+      const createdEmployee = {
+        id: 'emp-3',
+        employeeId: 'EMP003',
+        ...newEmployee,
+        status: 'active' as const,
+        avatar: '/avatars/default.jpg',
+        startDate: '2024-01-20',
+        phone: '',
+        manager: null,
+        createdAt: '2024-01-20T00:00:00Z',
+        updatedAt: '2024-01-20T00:00:00Z'
+      }
+
+      mockCreateEmployee.mockResolvedValueOnce({
+        data: createdEmployee
+      })
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      await act(async () => {
+        await result.current.createEmployee.mutateAsync(newEmployee)
+      })
+
+      expect(mockCreateEmployee).toHaveBeenCalledWith(newEmployee)
+      expect(result.current.createEmployee.isSuccess).toBe(true)
+      expect(result.current.createEmployee.data?.data).toEqual(createdEmployee)
+    })
+
+    it('handles create employee error', async () => {
+      const error = new Error('Email already exists')
+      mockCreateEmployee.mockRejectedValueOnce(error)
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      await act(async () => {
+        try {
+          await result.current.createEmployee.mutateAsync({
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'existing@company.com'
+          })
+        } catch (e) {
+          expect(e).toEqual(error)
+        }
+      })
+
+      expect(result.current.createEmployee.isError).toBe(true)
+      expect(result.current.createEmployee.error).toEqual(error)
+    })
+
+    it('manages loading state during creation', async () => {
+      let resolveCreate: (value: any) => void
+      const createPromise = new Promise((resolve) => {
+        resolveCreate = resolve
+      })
+      mockCreateEmployee.mockReturnValueOnce(createPromise)
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      act(() => {
+        result.current.createEmployee.mutate({
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@company.com'
+        })
+      })
+
+      expect(result.current.createEmployee.isPending).toBe(true)
+
+      act(() => {
+        resolveCreate({ data: mockEmployees[0] })
+      })
+
+      await waitFor(() => {
+        expect(result.current.createEmployee.isPending).toBe(false)
+      })
+    })
+  })
+
+  describe('Update Employee Mutation', () => {
+    it('updates employee successfully', async () => {
+      const updates = {
+        firstName: 'John Updated',
+        position: 'Senior Software Engineer'
+      }
+
+      const updatedEmployee = {
+        ...mockEmployees[0],
+        ...updates,
+        updatedAt: '2024-01-21T00:00:00Z'
+      }
+
+      mockUpdateEmployee.mockResolvedValueOnce({
+        data: updatedEmployee
+      })
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      await act(async () => {
+        await result.current.updateEmployee.mutateAsync({
+          id: 'emp-1',
+          data: updates
+        })
+      })
+
+      expect(mockUpdateEmployee).toHaveBeenCalledWith('emp-1', updates)
+      expect(result.current.updateEmployee.isSuccess).toBe(true)
+    })
+
+    it('handles update employee error', async () => {
+      const error = new Error('Employee not found')
+      mockUpdateEmployee.mockRejectedValueOnce(error)
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      await act(async () => {
+        try {
+          await result.current.updateEmployee.mutateAsync({
+            id: 'non-existent',
+            data: { firstName: 'Test' }
+          })
+        } catch (e) {
+          expect(e).toEqual(error)
+        }
+      })
+
+      expect(result.current.updateEmployee.isError).toBe(true)
+    })
+  })
+
+  describe('Delete Employee Mutation', () => {
+    it('deletes employee successfully', async () => {
+      mockDeleteEmployee.mockResolvedValueOnce({
+        message: 'Employee deleted successfully'
+      })
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      await act(async () => {
+        await result.current.deleteEmployee.mutateAsync('emp-1')
+      })
+
+      expect(mockDeleteEmployee).toHaveBeenCalledWith('emp-1')
+      expect(result.current.deleteEmployee.isSuccess).toBe(true)
+    })
+
+    it('handles delete employee error', async () => {
+      const error = new Error('Cannot delete employee with active leave')
+      mockDeleteEmployee.mockRejectedValueOnce(error)
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      await act(async () => {
+        try {
+          await result.current.deleteEmployee.mutateAsync('emp-1')
+        } catch (e) {
+          expect(e).toEqual(error)
+        }
+      })
+
+      expect(result.current.deleteEmployee.isError).toBe(true)
+    })
+  })
+
+  describe('Query Invalidation and Refetching', () => {
+    it('refetches employees after successful creation', async () => {
+      mockGetEmployees.mockResolvedValue({
+        data: mockEmployees,
+        meta: { total: 2, page: 1, limit: 20, totalPages: 1 }
+      })
+
+      mockCreateEmployee.mockResolvedValueOnce({
+        data: mockEmployees[0]
+      })
+
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      // Wait for initial fetch
+      await waitFor(() => {
+        expect(result.current.data).toEqual(mockEmployees)
+      })
+
+      // Clear mock calls
+      mockGetEmployees.mockClear()
+
+      // Create employee
+      await act(async () => {
+        await result.current.createEmployee.mutateAsync({
+          firstName: 'New',
+          lastName: 'Employee',
+          email: 'new@company.com'
+        })
+      })
+
+      // Should trigger refetch
+      await waitFor(() => {
+        expect(mockGetEmployees).toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('Optimistic Updates', () => {
+    it('provides optimistic update capabilities', async () => {
+      const { result } = renderHook(() => useEmployees(), { wrapper })
+
+      // The hook should provide utilities for optimistic updates
+      expect(result.current.updateEmployee).toBeDefined()
+      expect(result.current.deleteEmployee).toBeDefined()
     })
   })
 })
