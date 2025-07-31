@@ -14,6 +14,10 @@ export interface SyncOperation {
   retryCount: number
   maxRetries: number
   error?: string
+  operation: string
+  progress?: number
+  createdAt: string
+  completedAt?: string
   conflictData?: {
     local: any
     remote: any
@@ -33,6 +37,7 @@ export interface SyncConflict {
   autoResolvable: boolean
   resolutionStrategy?: 'local_wins' | 'remote_wins' | 'merge' | 'manual'
   createdAt: string
+  detectedAt: string
 }
 
 export interface SyncStats {
@@ -44,6 +49,8 @@ export interface SyncStats {
   lastSyncTime?: string
   nextSyncTime?: string
   syncInProgress: boolean
+  inProgress: number
+  lastSync?: string
   averageSyncTime: number
   successRate: number
 }

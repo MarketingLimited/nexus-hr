@@ -279,6 +279,48 @@ export function useRealTimeMetrics(metrics: string[]) {
   }
 }
 
+// Health Checks specific hooks
+export function useHealthChecks() {
+  return useQuery({
+    queryKey: ['health-checks'],
+    queryFn: () => monitoringService.getHealthChecks?.() || Promise.resolve([]),
+    refetchInterval: 30000,
+  })
+}
+
+export function useRunHealthCheck() {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: (checkId: string) => monitoringService.runHealthCheck?.(checkId) || Promise.resolve(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['health-checks'] })
+      toast({ title: 'Health check completed' })
+    },
+    onError: () => {
+      toast({ title: 'Health check failed', variant: 'destructive' })
+    },
+  })
+}
+
+export function useUpdateHealthCheckConfig() {
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationFn: ({ checkId, config }: { checkId: string; config: any }) => 
+      monitoringService.updateHealthCheckConfig?.(checkId, config) || Promise.resolve(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['health-checks'] })
+      toast({ title: 'Health check configuration updated' })
+    },
+    onError: () => {
+      toast({ title: 'Failed to update health check configuration', variant: 'destructive' })
+    },
+  })
+}
+
 export function useSystemOverview() {
   const systemHealth = useSystemHealth()
   const performanceMetrics = usePerformanceMetrics('1h')

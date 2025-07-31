@@ -66,23 +66,24 @@ export const HealthChecks = () => {
     }
   }
 
-  const groupedChecks = healthChecks?.reduce((groups, check) => {
+  const healthCheckData = Array.isArray(healthChecks?.data) ? healthChecks.data : []
+  const groupedChecks = healthCheckData.reduce((groups, check) => {
     const category = check.category || 'other'
     if (!groups[category]) {
       groups[category] = []
     }
     groups[category].push(check)
     return groups
-  }, {} as Record<string, typeof healthChecks>) || {}
+  }, {} as Record<string, any[]>) || {}
 
-  const overallStatus = healthChecks?.every(check => check.status === 'passing') 
+  const overallStatus = healthCheckData.every(check => check.status === 'passing') 
     ? 'passing' 
-    : healthChecks?.some(check => check.status === 'failing')
+    : healthCheckData.some(check => check.status === 'failing')
     ? 'failing'
     : 'warning'
 
-  const passingChecks = healthChecks?.filter(check => check.status === 'passing').length || 0
-  const totalChecks = healthChecks?.length || 0
+  const passingChecks = healthCheckData.filter(check => check.status === 'passing').length || 0
+  const totalChecks = healthCheckData.length || 0
 
   return (
     <div className="space-y-6">
@@ -149,7 +150,7 @@ export const HealthChecks = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-500">
-              {healthChecks?.filter(check => check.status === 'warning').length || 0}
+              {healthCheckData.filter(check => check.status === 'warning').length || 0}
             </div>
             <p className="text-xs text-muted-foreground">need attention</p>
           </CardContent>
@@ -162,7 +163,7 @@ export const HealthChecks = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {healthChecks?.filter(check => check.status === 'failing').length || 0}
+              {healthCheckData.filter(check => check.status === 'failing').length || 0}
             </div>
             <p className="text-xs text-muted-foreground">critical issues</p>
           </CardContent>
@@ -248,7 +249,6 @@ export const HealthChecks = () => {
                             <span className="text-xs text-muted-foreground">Enabled</span>
                             <Switch 
                               checked={check.enabled} 
-                              size="sm"
                               onCheckedChange={(enabled) => {
                                 updateConfig.mutate({ 
                                   checkId: check.id, 

@@ -40,6 +40,7 @@ export interface MigrationConfig {
   createBackup: boolean
   overwriteExisting: boolean
   conflictResolution: 'skip' | 'overwrite' | 'merge'
+  mapping?: FieldMapping[]
   customSettings?: Record<string, any>
 }
 
@@ -68,6 +69,7 @@ export interface DataPreview {
   rows: any[][]
   totalRows: number
   sampleSize: number
+  recordCount: number
   detectedSchema: {
     field: string
     type: 'string' | 'number' | 'date' | 'boolean' | 'email' | 'phone'

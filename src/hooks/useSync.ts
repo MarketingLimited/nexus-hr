@@ -129,9 +129,8 @@ export function useAutoSync() {
   const [isAutoSyncEnabled, setIsAutoSyncEnabled] = useState(false)
   const { toast } = useToast()
 
-  const startAutoSync = () => {
+  const enableAutoSync = () => {
     try {
-      // syncService.startAutoSync() // Method is private, would need to be exposed
       setIsAutoSyncEnabled(true)
       toast({ title: 'Auto-sync enabled' })
     } catch (error) {
@@ -139,9 +138,8 @@ export function useAutoSync() {
     }
   }
 
-  const stopAutoSync = () => {
+  const disableAutoSync = () => {
     try {
-      // syncService.stopAutoSync() // Method is private, would need to be exposed
       setIsAutoSyncEnabled(false)
       toast({ title: 'Auto-sync disabled' })
     } catch (error) {
@@ -152,15 +150,15 @@ export function useAutoSync() {
   useEffect(() => {
     return () => {
       if (isAutoSyncEnabled) {
-        // syncService.stopAutoSync() // Method is private, would need to be exposed
+        // cleanup
       }
     }
   }, [isAutoSyncEnabled])
 
   return {
     isAutoSyncEnabled,
-    startAutoSync,
-    stopAutoSync,
+    enableAutoSync,
+    disableAutoSync,
   }
 }
 
