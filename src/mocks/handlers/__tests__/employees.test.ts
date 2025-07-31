@@ -310,7 +310,7 @@ describe('Employee Handlers', () => {
           email: expect.any(String),
           department: expect.any(String),
           position: expect.any(String),
-          status: expect.oneOf(['active', 'inactive', 'terminated']),
+          status: expect.stringMatching(/^(active|inactive|terminated)$/),
           avatar: expect.any(String),
           phone: expect.any(String),
           startDate: expect.any(String),

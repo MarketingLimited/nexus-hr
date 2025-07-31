@@ -282,7 +282,7 @@ describe('Auth Handlers', () => {
           email: expect.any(String),
           firstName: expect.any(String),
           lastName: expect.any(String),
-          role: expect.oneOf(['admin', 'hr', 'manager', 'employee']),
+          role: expect.stringMatching(/^(admin|hr|manager|employee)$/),
           avatar: expect.any(String),
           permissions: expect.any(Array)
         })

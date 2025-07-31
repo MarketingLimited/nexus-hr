@@ -44,3 +44,5 @@ function render(
 }
 
 export { render, screen, waitFor, fireEvent }
+export { renderHook } from '@testing-library/react'
+export { act } from '@testing-library/react'
