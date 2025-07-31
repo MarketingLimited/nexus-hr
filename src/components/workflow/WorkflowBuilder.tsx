@@ -49,6 +49,7 @@ export const WorkflowBuilder = () => {
     try {
       await createWorkflow.mutateAsync({
         ...newWorkflow,
+        type: newWorkflow.type as any,
         status: 'draft',
         initiatedBy: 'current-user'
       })
