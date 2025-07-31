@@ -1,12 +1,13 @@
+
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { axe, toHaveNoViolations } from 'jest-axe'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
-import Security from '../../pages/Security'
-import Workflows from '../../pages/Workflows'
-import Integration from '../../pages/Integration'
-import Monitoring from '../../pages/Monitoring'
+import { Security } from '../../pages/Security'
+import { Workflows } from '../../pages/Workflows'
+import { Integration } from '../../pages/Integration'
+import { Monitoring } from '../../pages/Monitoring'
 
 // Extend Jest matchers
 expect.extend(toHaveNoViolations)

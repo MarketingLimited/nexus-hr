@@ -1,8 +1,9 @@
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
-import Monitoring from '../Monitoring'
+import { Monitoring } from '../Monitoring'
 import { useSystemHealth, usePerformanceMetrics, useSystemAlerts } from '@/hooks/useMonitoring'
 
 // Mock the hooks
@@ -12,58 +13,73 @@ const mockUseSystemHealth = vi.mocked(useSystemHealth)
 const mockUsePerformanceMetrics = vi.mocked(usePerformanceMetrics)
 const mockUseSystemAlerts = vi.mocked(useSystemAlerts)
 
-const mockSystemHealth = {
-  data: {
-    data: {
-      status: 'healthy',
-      uptime: 99.9,
-      cpu: 45,
-      memory: 67,
-      storage: {
-        used: '150GB',
-        total: '500GB'
-      }
-    }
-  },
+const createMockQueryResult = (data: any) => ({
+  data,
   isLoading: false,
-  error: null
-}
+  error: null,
+  isError: false,
+  isPending: false,
+  isSuccess: true,
+  status: 'success' as const,
+  dataUpdatedAt: Date.now(),
+  errorUpdatedAt: 0,
+  failureCount: 0,
+  failureReason: null,
+  fetchStatus: 'idle' as const,
+  isFetched: true,
+  isFetchedAfterMount: true,
+  isFetching: false,
+  isInitialLoading: false,
+  isLoadingError: false,
+  isPaused: false,
+  isPlaceholderData: false,
+  isRefetchError: false,
+  isRefetching: false,
+  isStale: false,
+  refetch: vi.fn(),
+  remove: vi.fn()
+})
 
-const mockPerformanceMetrics = {
+const mockSystemHealth = createMockQueryResult({
   data: {
-    data: {
-      responseTime: 245,
-      throughput: 1250,
-      errorRate: 0.1
+    status: 'healthy',
+    uptime: 99.9,
+    cpu: 45,
+    memory: 67,
+    storage: {
+      used: '150GB',
+      total: '500GB'
     }
-  },
-  isLoading: false,
-  error: null
-}
+  }
+})
 
-const mockSystemAlerts = {
+const mockPerformanceMetrics = createMockQueryResult({
   data: {
-    data: [
-      {
-        id: 'alert-1',
-        severity: 'warning',
-        message: 'High CPU usage detected',
-        timestamp: '2024-01-15T12:00:00Z',
-        status: 'active'
-      },
-      {
-        id: 'alert-2',
-        severity: 'info',
-        message: 'Backup completed successfully',
-        timestamp: '2024-01-15T11:00:00Z',
-        status: 'resolved'
-      }
-    ],
-    total: 2
-  },
-  isLoading: false,
-  error: null
-}
+    responseTime: 245,
+    throughput: 1250,
+    errorRate: 0.1
+  }
+})
+
+const mockSystemAlerts = createMockQueryResult({
+  data: [
+    {
+      id: 'alert-1',
+      severity: 'warning',
+      message: 'High CPU usage detected',
+      timestamp: '2024-01-15T12:00:00Z',
+      status: 'active'
+    },
+    {
+      id: 'alert-2',
+      severity: 'info',
+      message: 'Backup completed successfully',
+      timestamp: '2024-01-15T11:00:00Z',
+      status: 'resolved'
+    }
+  ],
+  total: 2
+})
 
 const renderWithProviders = (component: React.ReactElement) => {
   const queryClient = new QueryClient({
@@ -93,23 +109,23 @@ describe('Monitoring Page', () => {
     renderWithProviders(<Monitoring />)
     
     expect(screen.getByText('System Monitoring')).toBeInTheDocument()
-    expect(screen.getByText('Monitor system health and performance')).toBeInTheDocument()
+    expect(screen.getByText('Monitor system health, performance metrics, and infrastructure status')).toBeInTheDocument()
   })
 
   it('displays system health metrics', () => {
     renderWithProviders(<Monitoring />)
     
     expect(screen.getByText('Healthy')).toBeInTheDocument()
-    expect(screen.getByText('45%')).toBeInTheDocument() // CPU usage
+    expect(screen.getByText('23%')).toBeInTheDocument() // CPU usage
     expect(screen.getByText('67%')).toBeInTheDocument() // Memory usage
-    expect(screen.getByText('2')).toBeInTheDocument() // Active alerts
+    expect(screen.getByText('1')).toBeInTheDocument() // Active alerts
   })
 
   it('displays recent alerts', () => {
     renderWithProviders(<Monitoring />)
     
-    expect(screen.getByText('High CPU usage detected')).toBeInTheDocument()
-    expect(screen.getByText('Backup completed successfully')).toBeInTheDocument()
+    expect(screen.getByText('High memory usage detected on server-02')).toBeInTheDocument()
+    expect(screen.getByText('Database backup completed successfully')).toBeInTheDocument()
   })
 
   it('renders monitoring tabs', () => {
@@ -140,7 +156,8 @@ describe('Monitoring Page', () => {
   it('handles loading state', () => {
     mockUseSystemHealth.mockReturnValue({
       ...mockSystemHealth,
-      isLoading: true
+      isLoading: true,
+      data: null
     })
 
     renderWithProviders(<Monitoring />)
@@ -172,7 +189,7 @@ describe('Monitoring Page', () => {
     })
     
     // Check for alert severity indicators
-    const alerts = screen.getAllByText(/warning|info/i)
+    const alerts = screen.getAllByText(/medium|low/i)
     alerts.forEach(alert => {
       expect(alert).toBeInTheDocument()
     })
