@@ -1,7 +1,15 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react'
-import { User } from '@/mocks/data/auth'
-import { authService } from '@/services/dataService'
+import { api } from '@/services/api'
 import { toast } from 'sonner'
+
+interface User {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+  role: string
+  employee?: any
+}
 
 interface AuthState {
   user: User | null
@@ -63,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = async () => {
     console.log('🔍 Checking auth status...')
     const token = localStorage.getItem('auth_token')
-    
+
     if (!token) {
       console.log('❌ No token found, setting loading to false')
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -71,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     console.log('🔑 Token found, validating...')
-    
+
     // Add timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       console.log('⏰ Auth check timeout, forcing logout')
@@ -79,24 +87,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 10000) // 10 second timeout
 
     try {
-      const response = await authService.getCurrentUser()
+      const response = await api.get<{ status: string; data: { user: User } }>('/auth/profile')
       clearTimeout(timeoutId)
-      
-      console.log('✅ User authenticated:', response.data.email)
-      dispatch({ type: 'SET_USER', payload: response.data })
-      
-      // Get user permissions
-      try {
-        const permissionsResponse = await authService.getPermissions({ 
-          role: response.data.role.name 
-        })
-        dispatch({ type: 'SET_PERMISSIONS', payload: permissionsResponse.data })
-        console.log('✅ Permissions loaded:', permissionsResponse.data.length, 'permissions')
-      } catch (permError) {
-        console.warn('⚠️ Failed to load permissions:', permError)
-        // Continue without permissions
-        dispatch({ type: 'SET_PERMISSIONS', payload: [] })
-      }
+
+      console.log('✅ User authenticated:', response.data.user.email)
+      dispatch({ type: 'SET_USER', payload: response.data.user })
+
+      // Set basic permissions based on role
+      const basicPermissions = generatePermissionsFromRole(response.data.user.role)
+      dispatch({ type: 'SET_PERMISSIONS', payload: basicPermissions })
+      console.log('✅ Permissions set for role:', response.data.user.role)
     } catch (error) {
       clearTimeout(timeoutId)
       console.error('❌ Auth check failed:', error)
@@ -104,20 +104,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Generate permissions based on role
+  const generatePermissionsFromRole = (role: string): string[] => {
+    const permissions: string[] = []
+
+    if (role === 'ADMIN') {
+      return ['*'] // Admin has all permissions
+    }
+
+    if (role === 'HR') {
+      permissions.push(
+        'employees.read', 'employees.write', 'employees.delete',
+        'attendance.read', 'attendance.write',
+        'leave.read', 'leave.write', 'leave.approve',
+        'documents.read', 'documents.write',
+        'performance.read', 'performance.write',
+        'onboarding.read', 'onboarding.write'
+      )
+    }
+
+    if (role === 'MANAGER') {
+      permissions.push(
+        'employees.read',
+        'attendance.read', 'attendance.write',
+        'leave.read', 'leave.approve',
+        'performance.read', 'performance.write',
+        'documents.read'
+      )
+    }
+
+    if (role === 'EMPLOYEE') {
+      permissions.push(
+        'employees.read',
+        'attendance.read', 'attendance.write',
+        'leave.read', 'leave.write',
+        'documents.read',
+        'performance.read'
+      )
+    }
+
+    return permissions
+  }
+
   const login = async (email: string, password: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
-      const response = await authService.login({ email, password })
-      
-      localStorage.setItem('auth_token', response.data.session.token)
+      const response = await api.post<{ status: string; data: { token: string; user: User } }>(
+        '/auth/login',
+        { email, password }
+      )
+
+      localStorage.setItem('auth_token', response.data.token)
       dispatch({ type: 'SET_USER', payload: response.data.user })
-      
-      // Get user permissions
-      const permissionsResponse = await authService.getPermissions({ 
-        role: response.data.user.role.name 
-      })
-      dispatch({ type: 'SET_PERMISSIONS', payload: permissionsResponse.data })
-      
+
+      // Set permissions based on role
+      const basicPermissions = generatePermissionsFromRole(response.data.user.role)
+      dispatch({ type: 'SET_PERMISSIONS', payload: basicPermissions })
+
       toast.success('Login successful')
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -128,7 +171,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await authService.logout()
       dispatch({ type: 'LOGOUT' })
       toast.success('Logged out successfully')
     } catch (error) {
@@ -138,11 +180,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const hasPermission = (permission: string): boolean => {
-    return state.permissions.includes(permission) || state.user?.role.name === 'Admin'
+    if (state.permissions.includes('*')) return true // Admin has all permissions
+    return state.permissions.includes(permission) || state.user?.role === 'ADMIN'
   }
 
   const hasRole = (role: string): boolean => {
-    return state.user?.role.name === role
+    return state.user?.role === role || state.user?.role === 'ADMIN'
   }
 
   const value: AuthContextType = {

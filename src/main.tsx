@@ -87,14 +87,17 @@ if ('serviceWorker' in navigator) {
 }
 
 // Initialize MSW for API mocking in development
+// Set VITE_USE_MSW=true to enable MSW, otherwise it uses real backend API
 async function enableMocking() {
-  if (import.meta.env.DEV || 
+  const useMSW = import.meta.env.VITE_USE_MSW === 'true'
+
+  if (useMSW && (import.meta.env.DEV ||
       window.location.hostname.includes('lovableproject.com') ||
-      window.location.hostname.includes('lovable.app')) {
-    
+      window.location.hostname.includes('lovable.app'))) {
+
     try {
       const { worker } = await import('./mocks/browser')
-      
+
       await worker.start({
         onUnhandledRequest: 'warn',
         serviceWorker: {
@@ -105,20 +108,22 @@ async function enableMocking() {
         },
         waitUntilReady: true
       })
-      
+
       console.log('🔧 MSW enabled for API mocking')
-      
+
       // Log when intercepting auth requests
       worker.events.on('request:start', ({ request }) => {
         if (request.url.includes('/api/auth/')) {
           console.log('🔐 MSW intercepting auth request:', request.url)
         }
       })
-      
+
     } catch (error) {
       console.error('❌ Failed to start MSW:', error)
       console.warn('⚠️ Running without API mocking')
     }
+  } else {
+    console.log('🚀 Using real backend API at:', import.meta.env.VITE_API_URL || '/api')
   }
 }
 
