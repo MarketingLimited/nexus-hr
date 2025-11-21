@@ -204,6 +204,12 @@ export const returnAsset = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { returnDate = new Date(), condition, notes } = req.body;
 
+    // Get current asset first
+    const currentAsset = await prisma.asset.findUnique({ where: { id } });
+    if (!currentAsset) {
+      throw new AppError('Asset not found', 404);
+    }
+
     const asset = await prisma.asset.update({
       where: { id },
       data: {
@@ -212,7 +218,7 @@ export const returnAsset = async (req: AuthRequest, res: Response) => {
         returnDate: new Date(returnDate),
         status: 'AVAILABLE',
         condition,
-        notes: notes || asset.notes,
+        notes: notes || currentAsset.notes,
       },
     });
 
