@@ -1,0 +1,368 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(EMPLOYEE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employee Employee?
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  HR
+  MANAGER
+  EMPLOYEE
+}
+
+model Employee {
+  id           String          @id @default(uuid())
+  userId       String          @unique
+  employeeId   String          @unique
+  firstName    String
+  lastName     String
+  email        String          @unique
+  phone        String?
+  avatar       String?
+  position     String
+  department   String
+  location     String
+  hireDate     DateTime
+  status       EmployeeStatus  @default(ACTIVE)
+  salary       Decimal?
+  manager      String?
+  skills       String[]
+  bio          String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  user                User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendanceRecords   AttendanceRecord[]
+  performanceReviews  PerformanceReview[]
+  goals               Goal[]
+  feedbackGiven       Feedback[]             @relation("FeedbackFrom")
+  feedbackReceived    Feedback[]             @relation("FeedbackTo")
+  documents           Document[]
+  leaveRequests       LeaveRequest[]
+  payrollRecords      PayrollRecord[]
+  onboardingTasks     OnboardingTask[]
+  assetAssignments    AssetAssignment[]
+
+  @@map("employees")
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+model AttendanceRecord {
+  id           String           @id @default(uuid())
+  employeeId   String
+  date         DateTime
+  clockIn      DateTime?
+  clockOut     DateTime?
+  status       AttendanceStatus @default(PRESENT)
+  workHours    Decimal?
+  breakMinutes Int              @default(0)
+  location     String?
+  notes        String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@map("attendance_records")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  LEAVE
+}
+
+model PerformanceReview {
+  id             String       @id @default(uuid())
+  employeeId     String
+  reviewerId     String
+  period         String
+  type           ReviewType
+  status         ReviewStatus @default(PENDING)
+  overallRating  Decimal?
+  competencies   Json?
+  goals          String[]
+  feedback       Json?
+  selfAssessment Json?
+  reviewDate     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("performance_reviews")
+}
+
+enum ReviewType {
+  ANNUAL
+  QUARTERLY
+  PROBATION
+  PROJECT
+}
+
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Goal {
+  id          String       @id @default(uuid())
+  employeeId  String
+  title       String
+  description String
+  category    GoalCategory
+  priority    Priority     @default(MEDIUM)
+  targetDate  DateTime
+  status      GoalStatus   @default(NOT_STARTED)
+  progress    Int          @default(0)
+  metrics     String[]
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+enum GoalCategory {
+  PERFORMANCE
+  DEVELOPMENT
+  BEHAVIORAL
+  PROJECT
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum GoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+model Feedback {
+  id             String           @id @default(uuid())
+  fromEmployeeId String
+  toEmployeeId   String
+  type           FeedbackType
+  category       FeedbackCategory
+  rating         Int
+  comments       String
+  anonymous      Boolean          @default(false)
+  status         FeedbackStatus   @default(DRAFT)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  fromEmployee Employee @relation("FeedbackFrom", fields: [fromEmployeeId], references: [id], onDelete: Cascade)
+  toEmployee   Employee @relation("FeedbackTo", fields: [toEmployeeId], references: [id], onDelete: Cascade)
+
+  @@map("feedback")
+}
+
+enum FeedbackType {
+  PEER
+  UPWARD
+  DOWNWARD
+  SELF
+  THREE_SIXTY
+}
+
+enum FeedbackCategory {
+  PERFORMANCE
+  COLLABORATION
+  LEADERSHIP
+  TECHNICAL
+  COMMUNICATION
+}
+
+enum FeedbackStatus {
+  DRAFT
+  SUBMITTED
+  ACKNOWLEDGED
+}
+
+model Document {
+  id          String         @id @default(uuid())
+  name        String
+  type        String?
+  category    String?
+  filePath    String
+  fileSize    Int
+  mimeType    String
+  employeeId  String?
+  folderId    String?
+  tags        String[]
+  uploadedBy  String
+  uploadedAt  DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  employee    Employee?      @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  permissions DocumentPermission[]
+
+  @@map("documents")
+}
+
+model DocumentPermission {
+  id         String   @id @default(uuid())
+  documentId String
+  userId     String
+  permission String
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@map("document_permissions")
+}
+
+model LeaveRequest {
+  id          String        @id @default(uuid())
+  employeeId  String
+  leaveType   LeaveType
+  startDate   DateTime
+  endDate     DateTime
+  days        Int
+  reason      String?
+  status      LeaveStatus   @default(PENDING)
+  approvedBy  String?
+  approvedAt  DateTime?
+  rejectedBy  String?
+  rejectedAt  DateTime?
+  comments    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("leave_requests")
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  PERSONAL
+  MATERNITY
+  PATERNITY
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model PayrollRecord {
+  id              String   @id @default(uuid())
+  employeeId      String
+  period          String
+  baseSalary      Decimal
+  allowances      Decimal  @default(0)
+  deductions      Decimal  @default(0)
+  tax             Decimal  @default(0)
+  netSalary       Decimal
+  status          String   @default("pending")
+  processedAt     DateTime?
+  processedBy     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("payroll_records")
+}
+
+model OnboardingTask {
+  id          String   @id @default(uuid())
+  employeeId  String
+  title       String
+  description String?
+  category    String
+  status      String   @default("pending")
+  dueDate     DateTime?
+  completedAt DateTime?
+  assignedTo  String?
+  priority    String   @default("medium")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_tasks")
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  serialNumber String  @unique
+  status      String   @default("available")
+  value       Decimal?
+  purchaseDate DateTime?
+  warrantyExpiry DateTime?
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments AssetAssignment[]
+
+  @@map("assets")
+}
+
+model AssetAssignment {
+  id          String    @id @default(uuid())
+  assetId     String
+  employeeId  String
+  assignedBy  String
+  assignedAt  DateTime  @default(now())
+  returnedAt  DateTime?
+  condition   String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  asset    Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("asset_assignments")
+}
