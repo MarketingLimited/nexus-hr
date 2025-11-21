@@ -30,7 +30,11 @@ jobs:
 
       - name: Run linter
         run: npm run lint
-        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
 
       - name: Build frontend
         run: npm run build
@@ -96,6 +100,13 @@ jobs:
         working-directory: ./server
         run: npm run build
 
+      - name: Run backend tests
+        working-directory: ./server
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nexus_hr_test
+          NODE_ENV: test
+
       - name: Upload backend build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -156,10 +167,3 @@ jobs:
 
       - name: Check TypeScript
         run: npx tsc --noEmit
-        continue-on-error: true
-
-      - name: Code complexity analysis
-        run: |
-          echo "Running code complexity analysis..."
-          npx ts-node --version || echo "ts-node not available"
-        continue-on-error: true

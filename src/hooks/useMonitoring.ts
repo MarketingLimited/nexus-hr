@@ -255,8 +255,14 @@ export function useRunDiagnostics() {
   })
 }
 
+interface MetricsData {
+  timestamp: string
+  metrics: Record<string, number | string>
+  [key: string]: unknown
+}
+
 export function useRealTimeMetrics(metrics: string[]) {
-  const [metricsData, setMetricsData] = useState<any>(null)
+  const [metricsData, setMetricsData] = useState<MetricsData | null>(null)
   const [isSubscribed, setIsSubscribed] = useState(false)
 
   useEffect(() => {
@@ -312,7 +318,7 @@ export function useUpdateHealthCheckConfig() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async ({ checkId, config }: { checkId: string; config: any }) => {
+    mutationFn: async ({ checkId, config }: { checkId: string; config: Record<string, unknown> }) => {
       const result = await monitoringService.updateHealthCheckConfig(checkId, config)
       return result
     },

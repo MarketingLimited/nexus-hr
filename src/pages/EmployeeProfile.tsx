@@ -12,9 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePerformanceReviews, useGoals, useFeedback } from "@/hooks/usePerformance";
 import { useDocuments } from "@/hooks/useDocuments";
+import type { Employee, PerformanceReview, Goal, Feedback, Document } from "@/types";
 
 const EmployeeProfile = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { data: employeesData, isLoading, error } = useEmployees();
 
   // Fetch performance and document data
@@ -24,28 +25,39 @@ const EmployeeProfile = () => {
   const { data: documentsData, isLoading: documentsLoading } = useDocuments({ createdBy: id });
 
   // Filter data for this specific employee
-  const employeeReviews = reviewsData?.data?.filter((review: any) => review.employeeId === id) || [];
-  const employeeGoals = goalsData?.data?.filter((goal: any) => goal.employeeId === id) || [];
-  const employeeFeedback = feedbackData?.data?.filter((feedback: any) => feedback.toEmployeeId === id) || [];
-  const employeeDocuments = documentsData?.data || [];
+  const employeeReviews: PerformanceReview[] = reviewsData?.data?.filter(
+    (review: PerformanceReview) => review.employeeId === id
+  ) || [];
+  const employeeGoals: Goal[] = goalsData?.data?.filter(
+    (goal: Goal) => goal.employeeId === id
+  ) || [];
+  const employeeFeedback: Feedback[] = feedbackData?.data?.filter(
+    (feedback: Feedback) => feedback.toEmployeeId === id
+  ) || [];
+  const employeeDocuments: Document[] = documentsData?.data || [];
 
-  const employee = employeesData?.data?.find((emp: any) => emp.id === id) || {
+  const employee: Employee = employeesData?.data?.find(
+    (emp: Employee) => emp.id === id
+  ) || {
     id: id || "1",
+    employeeId: id || "EMP001",
     firstName: "Employee",
     lastName: "Not Found",
-    email: "N/A", 
+    email: "N/A",
     phone: "N/A",
     position: "N/A",
     department: "N/A",
     location: "N/A",
     hireDate: new Date().toISOString().split('T')[0],
-    status: "inactive",
+    status: "INACTIVE" as const,
     avatar: "/api/placeholder/150/150",
-    employeeId: id || "EMP001",
     manager: "N/A",
-    salary: "N/A",
+    salary: 0,
     skills: [],
-    notes: "Employee information not available."
+    notes: "Employee information not available.",
+    userId: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   if (isLoading) {
@@ -160,7 +172,7 @@ const EmployeeProfile = () => {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Join Date</label>
-                    <p className="text-sm">{new Date((employee as any).hireDate || (employee as any).joinDate || new Date()).toLocaleDateString()}</p>
+                    <p className="text-sm">{new Date(employee.hireDate || employee.joinDate || new Date()).toLocaleDateString()}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Manager</label>
@@ -176,7 +188,7 @@ const EmployeeProfile = () => {
                 
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Bio</label>
-                  <p className="text-sm mt-1">{(employee as any).notes || (employee as any).bio || 'No bio available'}</p>
+                  <p className="text-sm mt-1">{employee.notes || employee.bio || 'No bio available'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -250,7 +262,7 @@ const EmployeeProfile = () => {
                     <p className="text-muted-foreground">No performance reviews yet</p>
                   ) : (
                     <div className="space-y-4">
-                      {employeeReviews.slice(0, 5).map((review: any) => (
+                      {employeeReviews.slice(0, 5).map((review: PerformanceReview) => (
                         <div key={review.id} className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -293,7 +305,7 @@ const EmployeeProfile = () => {
                     <p className="text-muted-foreground">No active goals</p>
                   ) : (
                     <div className="space-y-4">
-                      {employeeGoals.slice(0, 5).map((goal: any) => (
+                      {employeeGoals.slice(0, 5).map((goal: Goal) => (
                         <div key={goal.id} className="space-y-2 p-4 border rounded-lg">
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -343,7 +355,7 @@ const EmployeeProfile = () => {
                     <p className="text-muted-foreground">No feedback received yet</p>
                   ) : (
                     <div className="space-y-4">
-                      {employeeFeedback.slice(0, 5).map((feedback: any) => (
+                      {employeeFeedback.slice(0, 5).map((feedback: Feedback) => (
                         <div key={feedback.id} className="p-4 border rounded-lg">
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">
@@ -406,7 +418,7 @@ const EmployeeProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {employeeDocuments.map((doc: any) => (
+                    {employeeDocuments.map((doc: Document) => (
                       <TableRow key={doc.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">

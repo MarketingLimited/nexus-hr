@@ -61,8 +61,9 @@ model Employee {
   documents           Document[]
   leaveRequests       LeaveRequest[]
   payrollRecords      PayrollRecord[]
-  onboardingTasks     OnboardingTask[]
+  onboardingChecklists OnboardingChecklist[]
   assetAssignments    AssetAssignment[]
+  assets              Asset[]
 
   @@map("employees")
 }
@@ -255,21 +256,19 @@ model DocumentPermission {
 }
 
 model LeaveRequest {
-  id          String        @id @default(uuid())
-  employeeId  String
-  leaveType   LeaveType
-  startDate   DateTime
-  endDate     DateTime
-  days        Int
-  reason      String?
-  status      LeaveStatus   @default(PENDING)
-  approvedBy  String?
-  approvedAt  DateTime?
-  rejectedBy  String?
-  rejectedAt  DateTime?
-  comments    String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  employeeId       String
+  leaveType        LeaveType
+  startDate        DateTime
+  endDate          DateTime
+  days             Decimal
+  reason           String?
+  status           LeaveStatus   @default(PENDING)
+  approvedBy       String?
+  approvedAt       DateTime?
+  approverComments String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
@@ -283,6 +282,7 @@ enum LeaveType {
   MATERNITY
   PATERNITY
   UNPAID
+  BEREAVEMENT
 }
 
 enum LeaveStatus {
@@ -295,13 +295,17 @@ enum LeaveStatus {
 model PayrollRecord {
   id              String   @id @default(uuid())
   employeeId      String
-  period          String
+  payPeriodStart  DateTime
+  payPeriodEnd    DateTime
   baseSalary      Decimal
   allowances      Decimal  @default(0)
   deductions      Decimal  @default(0)
-  tax             Decimal  @default(0)
+  taxAmount       Decimal  @default(0)
+  bonus           Decimal  @default(0)
+  grossSalary     Decimal
   netSalary       Decimal
-  status          String   @default("pending")
+  status          String   @default("PENDING")
+  paymentDate     DateTime?
   processedAt     DateTime?
   processedBy     String?
   createdAt       DateTime @default(now())
@@ -312,38 +316,59 @@ model PayrollRecord {
   @@map("payroll_records")
 }
 
-model OnboardingTask {
-  id          String   @id @default(uuid())
-  employeeId  String
-  title       String
-  description String?
-  category    String
-  status      String   @default("pending")
-  dueDate     DateTime?
-  completedAt DateTime?
-  assignedTo  String?
-  priority    String   @default("medium")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model OnboardingChecklist {
+  id                      String   @id @default(uuid())
+  employeeId              String
+  startDate               DateTime
+  expectedCompletionDate  DateTime
+  completedAt             DateTime?
+  status                  String   @default("PENDING")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  tasks    OnboardingTask[]
+
+  @@map("onboarding_checklists")
+}
+
+model OnboardingTask {
+  id               String   @id @default(uuid())
+  checklistId      String
+  title            String
+  description      String?
+  order            Int
+  daysToComplete   Int      @default(7)
+  status           String   @default("PENDING")
+  completedAt      DateTime?
+  completedBy      String?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  checklist OnboardingChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
 
   @@map("onboarding_tasks")
 }
 
 model Asset {
-  id          String   @id @default(uuid())
-  name        String
-  type        String
-  serialNumber String  @unique
-  status      String   @default("available")
-  value       Decimal?
-  purchaseDate DateTime?
-  warrantyExpiry DateTime?
-  location    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String
+  category       String
+  serialNumber   String   @unique
+  purchaseDate   DateTime
+  purchasePrice  Decimal
+  status         String   @default("AVAILABLE")
+  description    String?
+  employeeId     String?
+  assignedDate   DateTime?
+  returnDate     DateTime?
+  condition      String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
+  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   assignments AssetAssignment[]
 
   @@map("assets")

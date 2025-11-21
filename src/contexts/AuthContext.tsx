@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react'
 import { api } from '@/services/api'
 import { toast } from 'sonner'
+import type { Employee } from '@/types'
 
 interface User {
   id: string
@@ -8,7 +9,7 @@ interface User {
   firstName: string
   lastName: string
   role: string
-  employee?: any
+  employee?: Employee
 }
 
 interface AuthState {

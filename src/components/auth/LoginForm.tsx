@@ -10,8 +10,8 @@ import { Loader2, Eye, EyeOff } from 'lucide-react'
 export function LoginForm() {
   const { login, isLoading } = useAuth()
   const [formData, setFormData] = useState({
-    email: 'admin@nexushr.com',
-    password: 'admin123'
+    email: '',
+    password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -114,14 +114,6 @@ export function LoginForm() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-sm text-muted-foreground">
-              <p><strong>Admin:</strong> admin@nexushr.com / admin123</p>
-              <p><strong>Employee:</strong> john.doe@nexushr.com / password123</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

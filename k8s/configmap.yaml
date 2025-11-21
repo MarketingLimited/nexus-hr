@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-hr-config
+  namespace: nexus-hr
+  labels:
+    app: nexus-hr
+data:
+  # Database Configuration
+  POSTGRES_DB: nexus_hr
+
+  # Backend Configuration
+  NODE_ENV: "production"
+  PORT: "3001"
+  JWT_EXPIRES_IN: "7d"
+  CORS_ORIGIN: "https://nexushr.com"
+
+  # Frontend Configuration
+  API_URL: "https://api.nexushr.com"
+
+  # Monitoring
+  METRICS_PORT: "9090"
+  LOG_LEVEL: "info"
+
+  # Application Settings
+  MAX_FILE_SIZE: "10485760"  # 10MB
+  MAX_UPLOAD_SIZE: "52428800"  # 50MB
+  SESSION_TIMEOUT: "3600"  # 1 hour
+
+  # Rate Limiting
+  RATE_LIMIT_WINDOW: "900000"  # 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: "100"
+
+  # Email Settings (non-sensitive)
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+  EMAIL_FROM: "noreply@nexushr.com"
