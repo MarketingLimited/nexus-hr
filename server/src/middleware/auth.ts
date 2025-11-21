@@ -48,3 +48,42 @@ export const authorize = (...roles: string[]) => {
     next();
   };
 };
+
+// Check if user can access their own resource or if they're an admin/HR
+export const authorizeOwnerOrAdmin = (resourceUserIdParam: string = 'employeeId') => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const resourceUserId = req.params[resourceUserIdParam] || req.body[resourceUserIdParam];
+
+    // Allow if user is admin, HR, or accessing their own resource
+    if (req.user.role === 'ADMIN' || req.user.role === 'HR' || req.user.id === resourceUserId) {
+      return next();
+    }
+
+    return res.status(403).json({ error: 'You can only access your own resources' });
+  };
+};
+
+// Check specific permissions
+export const hasPermission = (...permissions: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Admin and HR have all permissions
+    if (req.user.role === 'ADMIN' || req.user.role === 'HR') {
+      return next();
+    }
+
+    // For now, managers can manage their team
+    if (req.user.role === 'MANAGER' && permissions.includes('manage_team')) {
+      return next();
+    }
+
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  };
+};

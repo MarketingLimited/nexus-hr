@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
+import { hashPassword, generateTemporaryPassword } from '../utils/password';
 
 export const getEmployees = async (req: Request, res: Response) => {
   try {
@@ -101,6 +102,10 @@ export const createEmployee = async (req: Request, res: Response) => {
       skills = [],
     } = req.body;
 
+    // Generate a secure temporary password
+    const temporaryPassword = generateTemporaryPassword();
+    const hashedPassword = await hashPassword(temporaryPassword);
+
     const employee = await prisma.employee.create({
       data: {
         employeeId: `EMP${Date.now()}`,
@@ -119,7 +124,7 @@ export const createEmployee = async (req: Request, res: Response) => {
         user: {
           create: {
             email,
-            password: 'changeme123', // Should be hashed in production
+            password: hashedPassword,
             firstName,
             lastName,
             role: 'EMPLOYEE',
