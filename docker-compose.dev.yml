@@ -1,0 +1,30 @@
+version: '3.8'
+
+# Development-only docker-compose override
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nexus_hr
+
+  backend:
+    build:
+      context: ./server
+      target: development
+    volumes:
+      - ./server/src:/app/src
+      - ./server/prisma:/app/prisma
+    environment:
+      NODE_ENV: development
+      CORS_ORIGIN: http://localhost:5173
+    command: npm run dev
+    ports:
+      - "3001:3001"
+
+  # For development, we don't run frontend in Docker
+  # Run it locally with: npm run dev
