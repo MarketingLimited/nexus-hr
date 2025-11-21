@@ -1,19 +1,25 @@
 import { QueryClient } from '@tanstack/react-query'
 
+interface QueryError {
+  status?: number
+  message?: string
+}
+
 // Optimized query client configuration for better performance
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Default stale time - data is considered fresh for 5 minutes
       staleTime: 5 * 60 * 1000,
-      
+
       // Cache time - data stays in cache for 10 minutes after becoming unused
       gcTime: 10 * 60 * 1000,
-      
+
       // Retry configuration
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on 4xx errors (client errors)
-        if (error?.status >= 400 && error?.status < 500) {
+        const queryError = error as QueryError
+        if (queryError?.status && queryError.status >= 400 && queryError.status < 500) {
           return false
         }
         // Retry up to 3 times for other errors
@@ -48,16 +54,16 @@ export const queryKeys = {
   employees: {
     all: ['employees'] as const,
     lists: () => [...queryKeys.employees.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.employees.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.employees.lists(), filters] as const,
     details: () => [...queryKeys.employees.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.employees.details(), id] as const,
   },
   
-  // Leave queries  
+  // Leave queries
   leave: {
     all: ['leave'] as const,
     lists: () => [...queryKeys.leave.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.leave.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.leave.lists(), filters] as const,
     details: () => [...queryKeys.leave.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.leave.details(), id] as const,
     balances: () => [...queryKeys.leave.all, 'balances'] as const,
@@ -68,7 +74,7 @@ export const queryKeys = {
   attendance: {
     all: ['attendance'] as const,
     lists: () => [...queryKeys.attendance.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.attendance.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.attendance.lists(), filters] as const,
     details: () => [...queryKeys.attendance.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.attendance.details(), id] as const,
     stats: () => [...queryKeys.attendance.all, 'stats'] as const,
@@ -78,7 +84,7 @@ export const queryKeys = {
   payroll: {
     all: ['payroll'] as const,
     lists: () => [...queryKeys.payroll.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.payroll.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.payroll.lists(), filters] as const,
     details: () => [...queryKeys.payroll.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.payroll.details(), id] as const,
     processing: () => [...queryKeys.payroll.all, 'processing'] as const,
@@ -125,7 +131,7 @@ export const queryKeys = {
   workflows: {
     all: ['workflows'] as const,
     lists: () => [...queryKeys.workflows.all, 'list'] as const,
-    list: (filters: Record<string, any>) => [...queryKeys.workflows.lists(), filters] as const,
+    list: (filters: Record<string, unknown>) => [...queryKeys.workflows.lists(), filters] as const,
     details: () => [...queryKeys.workflows.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.workflows.details(), id] as const,
     templates: () => [...queryKeys.workflows.all, 'templates'] as const,
@@ -139,19 +145,19 @@ export const cacheHelpers = {
   invalidateEntity: (queryClient: QueryClient, entity: keyof typeof queryKeys) => {
     queryClient.invalidateQueries({ queryKey: queryKeys[entity].all })
   },
-  
+
   // Invalidate specific query
-  invalidateQuery: (queryClient: QueryClient, queryKey: any[]) => {
+  invalidateQuery: (queryClient: QueryClient, queryKey: readonly unknown[]) => {
     queryClient.invalidateQueries({ queryKey })
   },
-  
+
   // Remove specific query from cache
-  removeQuery: (queryClient: QueryClient, queryKey: any[]) => {
+  removeQuery: (queryClient: QueryClient, queryKey: readonly unknown[]) => {
     queryClient.removeQueries({ queryKey })
   },
-  
+
   // Update cache optimistically
-  updateCache: <T>(queryClient: QueryClient, queryKey: any[], updater: (oldData: T) => T) => {
+  updateCache: <T>(queryClient: QueryClient, queryKey: readonly unknown[], updater: (oldData: T) => T) => {
     queryClient.setQueryData(queryKey, updater)
   },
   

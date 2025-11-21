@@ -9,6 +9,7 @@ import { LiveAttendanceBoard } from '@/components/attendance/LiveAttendanceBoard
 import { OfflineAttendanceSync } from '@/components/attendance/OfflineAttendanceSync';
 import { ShiftScheduling } from '@/components/attendance/ShiftScheduling';
 import { useAttendanceStats, useAttendanceRecords } from '@/hooks/useAttendance';
+import type { AttendanceRecord } from '@/types';
 import {
   Clock,
   Fingerprint,
@@ -32,7 +33,7 @@ const Attendance = () => {
   const { data: recordsData, isLoading: recordsLoading } = useAttendanceRecords();
 
   // Process data for charts
-  const attendanceRecords = recordsData?.data || [];
+  const attendanceRecords: AttendanceRecord[] = recordsData?.data || [];
   const stats = statsData?.data || {};
 
   // Generate trend data for last 7 days
@@ -44,12 +45,12 @@ const Attendance = () => {
     });
 
     return last7Days.map(date => {
-      const dayRecords = attendanceRecords.filter((r: any) =>
+      const dayRecords = attendanceRecords.filter((r: AttendanceRecord) =>
         r.date?.startsWith(date) || r.clockIn?.startsWith(date)
       );
-      const present = dayRecords.filter((r: any) => r.status === 'present').length;
-      const late = dayRecords.filter((r: any) => r.status === 'late').length;
-      const absent = dayRecords.filter((r: any) => r.status === 'absent').length;
+      const present = dayRecords.filter((r: AttendanceRecord) => r.status === 'PRESENT').length;
+      const late = dayRecords.filter((r: AttendanceRecord) => r.status === 'LATE').length;
+      const absent = dayRecords.filter((r: AttendanceRecord) => r.status === 'ABSENT').length;
 
       return {
         date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -63,7 +64,7 @@ const Attendance = () => {
   // Status distribution
   const statusData = React.useMemo(() => {
     const statusCounts: Record<string, number> = {};
-    attendanceRecords.forEach((record: any) => {
+    attendanceRecords.forEach((record: AttendanceRecord) => {
       const status = record.status || 'unknown';
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
@@ -156,7 +157,7 @@ const Attendance = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {stats.presentToday || attendanceRecords.filter((r: any) => r.status === 'present').length || 0}
+                      {stats.presentToday || attendanceRecords.filter((r: AttendanceRecord) => r.status === 'PRESENT').length || 0}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {stats.attendanceRate || '95'}% attendance rate
@@ -173,7 +174,7 @@ const Attendance = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {stats.lateToday || attendanceRecords.filter((r: any) => r.status === 'late').length || 0}
+                      {stats.lateToday || attendanceRecords.filter((r: AttendanceRecord) => r.status === 'LATE').length || 0}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {stats.latePercentage || '3'}% late rate
@@ -190,7 +191,7 @@ const Attendance = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {stats.absentToday || attendanceRecords.filter((r: any) => r.status === 'absent').length || 0}
+                      {stats.absentToday || attendanceRecords.filter((r: AttendanceRecord) => r.status === 'ABSENT').length || 0}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {stats.absentPercentage || '2'}% absent rate

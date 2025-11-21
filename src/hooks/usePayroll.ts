@@ -1,5 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
+interface PayrollFilters {
+  startDate?: string
+  endDate?: string
+  status?: string
+  employeeId?: string
+  department?: string
+}
+
 // Mock service - replace with actual service when available
 const payrollService = {
   getPayrollStats: async () => ({
@@ -9,7 +17,7 @@ const payrollService = {
     daysToNext: 5,
     taxDeductions: 68285
   }),
-  
+
   getPayrollStatus: async () => ({
     currentPeriod: 'December 2024 Payroll',
     processingPeriod: 'Dec 1-31, 2024',
@@ -21,8 +29,8 @@ const payrollService = {
       { name: 'Final approval', status: 'pending' }
     ]
   }),
-  
-  getPayrollHistory: async (filters: any) => ({
+
+  getPayrollHistory: async (filters?: PayrollFilters) => ({
     data: [
       {
         id: '1',
@@ -63,7 +71,7 @@ export const usePayrollStatus = () => {
   });
 };
 
-export const usePayrollHistory = (filters?: any) => {
+export const usePayrollHistory = (filters?: PayrollFilters) => {
   return useQuery({
     queryKey: ['payroll', 'history', filters],
     queryFn: () => payrollService.getPayrollHistory(filters)

@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
-type DocumentFilters = any;
+interface DocumentFilters {
+  type?: string
+  category?: string
+  search?: string
+  employeeId?: string
+  startDate?: string
+  endDate?: string
+}
 
 const mockDocumentService = {
   getDocumentStats: async () => ({
@@ -12,7 +19,7 @@ const mockDocumentService = {
     sharedPercentage: 12.5,
     recentActivity: 23
   }),
-  getDocuments: async (filters: any) => ({ data: [] })
+  getDocuments: async (filters?: DocumentFilters) => ({ data: [] })
 };
 
 export const useDocumentStats = () => {

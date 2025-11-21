@@ -156,7 +156,7 @@ export function useGenerateReport() {
 
 export function useExportReport() {
   return useMutation({
-    mutationFn: ({ data, format }: { data: any; format: 'pdf' | 'excel' | 'csv' }) =>
+    mutationFn: ({ data, format }: { data: Record<string, unknown>; format: 'pdf' | 'excel' | 'csv' }) =>
       analyticsService.exportReport(data, format),
   })
 }
