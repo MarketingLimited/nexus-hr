@@ -1,17 +1,34 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useEmployees } from "@/hooks/useEmployees";
-import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Building, User, Award } from "lucide-react";
+import { ArrowLeft, Edit, Mail, Phone, MapPin, Calendar, Building, User, Award, Star, Target, FileText, Download, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { usePerformanceReviews, useGoals, useFeedback } from "@/hooks/usePerformance";
+import { useDocuments } from "@/hooks/useDocuments";
 
 const EmployeeProfile = () => {
   const { id } = useParams();
   const { data: employeesData, isLoading, error } = useEmployees();
-  
+
+  // Fetch performance and document data
+  const { data: reviewsData, isLoading: reviewsLoading } = usePerformanceReviews();
+  const { data: goalsData, isLoading: goalsLoading } = useGoals();
+  const { data: feedbackData, isLoading: feedbackLoading } = useFeedback();
+  const { data: documentsData, isLoading: documentsLoading } = useDocuments({ createdBy: id });
+
+  // Filter data for this specific employee
+  const employeeReviews = reviewsData?.data?.filter((review: any) => review.employeeId === id) || [];
+  const employeeGoals = goalsData?.data?.filter((goal: any) => goal.employeeId === id) || [];
+  const employeeFeedback = feedbackData?.data?.filter((feedback: any) => feedback.toEmployeeId === id) || [];
+  const employeeDocuments = documentsData?.data || [];
+
   const employee = employeesData?.data?.find((emp: any) => emp.id === id) || {
     id: id || "1",
     firstName: "Employee",
@@ -213,23 +230,214 @@ const EmployeeProfile = () => {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Performance data will be implemented in Phase 5</p>
-            </CardContent>
-          </Card>
+          {reviewsLoading || goalsLoading || feedbackLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          ) : (
+            <>
+              {/* Performance Reviews */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5" />
+                    Performance Reviews
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {employeeReviews.length === 0 ? (
+                    <p className="text-muted-foreground">No performance reviews yet</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {employeeReviews.slice(0, 5).map((review: any) => (
+                        <div key={review.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium">{review.type} Review</p>
+                              <Badge variant={
+                                review.status === 'completed' ? 'default' :
+                                review.status === 'in_progress' ? 'secondary' : 'outline'
+                              }>
+                                {review.status.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">Period: {review.period}</p>
+                            {review.overallRating && (
+                              <div className="flex items-center gap-2 mt-2">
+                                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                <span className="text-sm font-medium">Rating: {review.overallRating}/5.0</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-right text-sm text-muted-foreground">
+                            {new Date(review.reviewDate || review.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Active Goals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Active Goals
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {employeeGoals.length === 0 ? (
+                    <p className="text-muted-foreground">No active goals</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {employeeGoals.slice(0, 5).map((goal: any) => (
+                        <div key={goal.id} className="space-y-2 p-4 border rounded-lg">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium">{goal.title}</p>
+                              <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant={
+                                  goal.priority === 'critical' ? 'destructive' :
+                                  goal.priority === 'high' ? 'default' : 'secondary'
+                                }>
+                                  {goal.priority}
+                                </Badge>
+                                <Badge variant="outline">{goal.category}</Badge>
+                              </div>
+                            </div>
+                            <Badge variant={
+                              goal.status === 'completed' ? 'default' :
+                              goal.status === 'overdue' ? 'destructive' : 'secondary'
+                            }>
+                              {goal.status.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="font-medium">{goal.progress}%</span>
+                            </div>
+                            <Progress value={goal.progress} className="h-2" />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Target: {new Date(goal.targetDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Feedback */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Feedback</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {employeeFeedback.length === 0 ? (
+                    <p className="text-muted-foreground">No feedback received yet</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {employeeFeedback.slice(0, 5).map((feedback: any) => (
+                        <div key={feedback.id} className="p-4 border rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">{feedback.type}</Badge>
+                              <Badge variant="outline">{feedback.category}</Badge>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm font-medium">{feedback.rating}/5</span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{feedback.comments}</p>
+                          <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>{feedback.anonymous ? 'Anonymous' : 'From colleague'}</span>
+                            <span>{new Date(feedback.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Employee Documents</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Employee Documents
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Document management will be implemented in Phase 7</p>
+              {documentsLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : employeeDocuments.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground">No documents found for this employee</p>
+                  <Button className="mt-4">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Upload Date</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employeeDocuments.map((doc: any) => (
+                      <TableRow key={doc.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{doc.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{doc.type || 'N/A'}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{doc.category || 'General'}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(doc.uploadedAt || doc.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
