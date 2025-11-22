@@ -1,0 +1,1 @@
+Run comprehensive security audit using the Security Audit agent. Check for vulnerabilities in dependencies (npm audit), scan for exposed secrets, validate authentication/authorization, check input validation, and verify CORS/security headers configuration.

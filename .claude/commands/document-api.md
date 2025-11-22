@@ -1,0 +1,1 @@
+Generate or update API documentation using the API Documentation agent. Extract endpoint information from routes, controllers, and validators. Update docs/API.md and generate OpenAPI specification.

@@ -1,0 +1,1 @@
+Analyze performance using the Performance Monitor agent. Check bundle sizes, identify unnecessary re-renders, analyze database queries, check for N+1 problems, and suggest optimizations.

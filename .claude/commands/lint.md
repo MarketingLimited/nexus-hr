@@ -1,0 +1,1 @@
+Run ESLint on both frontend and backend codebases. Report any linting errors or warnings and suggest fixes.

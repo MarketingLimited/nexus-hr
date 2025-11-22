@@ -1,0 +1,1 @@
+Build the project for production. Build both frontend and backend, check for any build errors or warnings, and report the bundle sizes.

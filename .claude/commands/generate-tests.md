@@ -1,0 +1,1 @@
+Generate comprehensive tests for specified files or modules using the Test Generation agent. Ask which component/controller/service needs tests, analyze the code, and generate unit, integration, and accessibility tests.
