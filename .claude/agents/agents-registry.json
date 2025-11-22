@@ -1,0 +1,396 @@
+{
+  "version": "1.0.0",
+  "project": "Nexus HR Management System",
+  "updated": "2025-11-22",
+  "total_agents": 34,
+  "domains": {
+    "architecture": {
+      "description": "System architecture, design patterns, and data modeling",
+      "agents": [
+        {
+          "id": "architect",
+          "name": "System Architect",
+          "file": "architect.md",
+          "priority": "critical",
+          "use_cases": ["System design", "Architecture decisions", "Design patterns"],
+          "triggers": ["new feature", "refactoring", "scaling"]
+        },
+        {
+          "id": "system-design",
+          "name": "System Designer",
+          "file": "system-design.md",
+          "priority": "high",
+          "use_cases": ["Scalability", "Distributed systems", "System integration"],
+          "triggers": ["performance issues", "scale planning", "integration"]
+        },
+        {
+          "id": "api-design",
+          "name": "API Designer",
+          "file": "api-design.md",
+          "priority": "high",
+          "use_cases": ["REST API design", "API standards", "Interface contracts"],
+          "triggers": ["new endpoints", "api changes", "integration"]
+        },
+        {
+          "id": "db-architect",
+          "name": "Database Architect",
+          "file": "db-architect.md",
+          "priority": "critical",
+          "use_cases": ["Database design", "Schema modeling", "Data relationships"],
+          "triggers": ["schema changes", "data modeling", "performance"]
+        }
+      ]
+    },
+    "development": {
+      "description": "Software development and implementation",
+      "agents": [
+        {
+          "id": "frontend-development",
+          "name": "Frontend Developer",
+          "file": "frontend-development.md",
+          "priority": "high",
+          "use_cases": ["React development", "UI components", "State management"],
+          "triggers": ["ui changes", "frontend bugs", "new features"]
+        },
+        {
+          "id": "backend-development",
+          "name": "Backend Developer",
+          "file": "backend-development.md",
+          "priority": "high",
+          "use_cases": ["API development", "Business logic", "Database operations"],
+          "triggers": ["api changes", "backend bugs", "new endpoints"]
+        },
+        {
+          "id": "feature-builder",
+          "name": "Feature Builder",
+          "file": "feature-builder.md",
+          "priority": "high",
+          "use_cases": ["End-to-end features", "Full-stack implementation", "Integration"],
+          "triggers": ["new feature request", "module creation"]
+        },
+        {
+          "id": "tech-lead",
+          "name": "Technical Lead",
+          "file": "tech-lead.md",
+          "priority": "critical",
+          "use_cases": ["Technical decisions", "Team coordination", "Architecture review"],
+          "triggers": ["major decisions", "conflicts", "planning"]
+        }
+      ]
+    },
+    "quality": {
+      "description": "Testing, quality assurance, and code review",
+      "agents": [
+        {
+          "id": "test-generator",
+          "name": "Test Generator",
+          "file": "test-generator.md",
+          "priority": "critical",
+          "use_cases": ["Generate tests", "Test automation", "Coverage improvement"],
+          "triggers": ["new code", "missing tests", "coverage gaps"]
+        },
+        {
+          "id": "test-engineer",
+          "name": "Test Engineer",
+          "file": "test-engineer.md",
+          "priority": "high",
+          "use_cases": ["Test strategy", "Test frameworks", "QA processes"],
+          "triggers": ["test planning", "qa setup", "test issues"]
+        },
+        {
+          "id": "testing",
+          "name": "Testing Specialist",
+          "file": "testing.md",
+          "priority": "high",
+          "use_cases": ["Test execution", "Test planning", "Bug verification"],
+          "triggers": ["test runs", "bug fixes", "qa cycles"]
+        },
+        {
+          "id": "code-quality",
+          "name": "Code Quality Analyst",
+          "file": "code-quality.md",
+          "priority": "high",
+          "use_cases": ["Code standards", "Quality metrics", "Technical debt"],
+          "triggers": ["code review", "quality issues", "refactoring"]
+        },
+        {
+          "id": "code-review",
+          "name": "Code Reviewer",
+          "file": "code-review.md",
+          "priority": "high",
+          "use_cases": ["PR reviews", "Code feedback", "Best practices"],
+          "triggers": ["pull requests", "code changes", "reviews"]
+        },
+        {
+          "id": "code-reviewer",
+          "name": "Advanced Code Reviewer",
+          "file": "code-reviewer.md",
+          "priority": "high",
+          "use_cases": ["Deep code analysis", "Security review", "Performance review"],
+          "triggers": ["complex changes", "security concerns", "optimization"]
+        },
+        {
+          "id": "auditor",
+          "name": "Quality Auditor",
+          "file": "auditor.md",
+          "priority": "medium",
+          "use_cases": ["Quality audits", "Compliance checks", "Process review"],
+          "triggers": ["audits", "compliance review", "quality gates"]
+        }
+      ]
+    },
+    "security": {
+      "description": "Security, compliance, and vulnerability management",
+      "agents": [
+        {
+          "id": "security-audit",
+          "name": "Security Auditor",
+          "file": "security-audit.md",
+          "priority": "critical",
+          "use_cases": ["Security scans", "Vulnerability detection", "Security review"],
+          "triggers": ["security review", "deployment", "new features"]
+        },
+        {
+          "id": "application-security",
+          "name": "Application Security Specialist",
+          "file": "application-security.md",
+          "priority": "critical",
+          "use_cases": ["App security", "Auth/authz", "Input validation"],
+          "triggers": ["auth changes", "security issues", "vulnerabilities"]
+        },
+        {
+          "id": "security",
+          "name": "Security Engineer",
+          "file": "security.md",
+          "priority": "critical",
+          "use_cases": ["Security best practices", "Threat modeling", "Security architecture"],
+          "triggers": ["security planning", "threats", "incidents"]
+        },
+        {
+          "id": "compliance",
+          "name": "Compliance Specialist",
+          "file": "compliance.md",
+          "priority": "high",
+          "use_cases": ["GDPR compliance", "Data privacy", "Regulatory compliance"],
+          "triggers": ["compliance review", "data handling", "privacy"]
+        }
+      ]
+    },
+    "infrastructure": {
+      "description": "DevOps, cloud, and platform operations",
+      "agents": [
+        {
+          "id": "devops",
+          "name": "DevOps Engineer",
+          "file": "devops.md",
+          "priority": "critical",
+          "use_cases": ["CI/CD", "Automation", "Deployment pipelines"],
+          "triggers": ["deployment", "pipeline changes", "automation"]
+        },
+        {
+          "id": "cloud-infrastructure",
+          "name": "Cloud Infrastructure Engineer",
+          "file": "cloud-infrastructure.md",
+          "priority": "high",
+          "use_cases": ["Cloud deployment", "Infrastructure as code", "Resource management"],
+          "triggers": ["cloud setup", "scaling", "infrastructure changes"]
+        },
+        {
+          "id": "site-reliability",
+          "name": "Site Reliability Engineer",
+          "file": "site-reliability.md",
+          "priority": "critical",
+          "use_cases": ["Monitoring", "Incident response", "System reliability"],
+          "triggers": ["incidents", "monitoring", "reliability issues"]
+        },
+        {
+          "id": "platform-integration",
+          "name": "Platform Integration Specialist",
+          "file": "platform-integration.md",
+          "priority": "medium",
+          "use_cases": ["Third-party integration", "APIs", "Webhooks"],
+          "triggers": ["integration", "external apis", "webhooks"]
+        }
+      ]
+    },
+    "performance": {
+      "description": "Performance optimization and data processing",
+      "agents": [
+        {
+          "id": "performance-monitor",
+          "name": "Performance Monitor",
+          "file": "performance-monitor.md",
+          "priority": "high",
+          "use_cases": ["Performance analysis", "Bottleneck detection", "Optimization"],
+          "triggers": ["slow performance", "optimization", "monitoring"]
+        },
+        {
+          "id": "performance",
+          "name": "Performance Engineer",
+          "file": "performance.md",
+          "priority": "high",
+          "use_cases": ["Performance tuning", "Load testing", "Optimization strategies"],
+          "triggers": ["performance issues", "load testing", "optimization"]
+        },
+        {
+          "id": "database-optimization",
+          "name": "Database Optimization Specialist",
+          "file": "database-optimization.md",
+          "priority": "high",
+          "use_cases": ["Query optimization", "Indexing", "Database performance"],
+          "triggers": ["slow queries", "database performance", "optimization"]
+        },
+        {
+          "id": "data-pipeline",
+          "name": "Data Pipeline Engineer",
+          "file": "data-pipeline.md",
+          "priority": "medium",
+          "use_cases": ["ETL processes", "Data transformation", "Data workflows"],
+          "triggers": ["data processing", "etl", "data migration"]
+        },
+        {
+          "id": "machine-learning",
+          "name": "Machine Learning Engineer",
+          "file": "machine-learning.md",
+          "priority": "low",
+          "use_cases": ["ML models", "AI features", "Predictive analytics"],
+          "triggers": ["ml features", "ai implementation", "analytics"]
+        }
+      ]
+    },
+    "documentation": {
+      "description": "Documentation and knowledge management",
+      "agents": [
+        {
+          "id": "api-documenter",
+          "name": "API Documentation Specialist",
+          "file": "api-documenter.md",
+          "priority": "high",
+          "use_cases": ["API docs", "OpenAPI specs", "Endpoint documentation"],
+          "triggers": ["api changes", "documentation", "new endpoints"]
+        },
+        {
+          "id": "documentation",
+          "name": "Documentation Writer",
+          "file": "documentation.md",
+          "priority": "high",
+          "use_cases": ["Technical docs", "User guides", "Architecture docs"],
+          "triggers": ["documentation", "new features", "updates"]
+        }
+      ]
+    },
+    "product": {
+      "description": "Product strategy, UX, and customer support",
+      "agents": [
+        {
+          "id": "product-strategy",
+          "name": "Product Strategist",
+          "file": "product-strategy.md",
+          "priority": "high",
+          "use_cases": ["Product roadmap", "Feature planning", "Requirements"],
+          "triggers": ["planning", "roadmap", "requirements"]
+        },
+        {
+          "id": "growth-strategy",
+          "name": "Growth Strategist",
+          "file": "growth-strategy.md",
+          "priority": "medium",
+          "use_cases": ["Growth planning", "Scaling strategy", "Market expansion"],
+          "triggers": ["growth", "scaling", "expansion"]
+        },
+        {
+          "id": "user-experience",
+          "name": "UX Designer",
+          "file": "user-experience.md",
+          "priority": "high",
+          "use_cases": ["UI/UX design", "User research", "Usability"],
+          "triggers": ["ui changes", "ux issues", "design"]
+        },
+        {
+          "id": "customer-support",
+          "name": "Customer Support Specialist",
+          "file": "customer-support.md",
+          "priority": "medium",
+          "use_cases": ["User support", "Troubleshooting", "Training"],
+          "triggers": ["support", "user issues", "training"]
+        }
+      ]
+    },
+    "specialized": {
+      "description": "Specialized operational agents",
+      "agents": [
+        {
+          "id": "deployment-validator",
+          "name": "Deployment Validator",
+          "file": "deployment-validator.md",
+          "priority": "critical",
+          "use_cases": ["Deployment validation", "Pre-flight checks", "Release verification"],
+          "triggers": ["deployment", "release", "validation"]
+        },
+        {
+          "id": "type-safety",
+          "name": "TypeScript Safety Specialist",
+          "file": "type-safety.md",
+          "priority": "high",
+          "use_cases": ["Type improvements", "TypeScript migration", "Type safety"],
+          "triggers": ["type errors", "typescript", "type safety"]
+        },
+        {
+          "id": "migration-specialist",
+          "name": "Migration Specialist",
+          "file": "migration-specialist.md",
+          "priority": "high",
+          "use_cases": ["Data migration", "System migration", "Version upgrades"],
+          "triggers": ["migration", "upgrade", "data transfer"]
+        }
+      ]
+    }
+  },
+  "workflows": {
+    "new_feature": [
+      "product-strategy",
+      "architect",
+      "api-design",
+      "db-architect",
+      "feature-builder",
+      "test-generator",
+      "security-audit",
+      "code-review",
+      "documentation",
+      "deployment-validator"
+    ],
+    "bug_fix": [
+      "auditor",
+      "backend-development or frontend-development",
+      "test-generator",
+      "code-review",
+      "deployment-validator"
+    ],
+    "performance_optimization": [
+      "performance-monitor",
+      "performance",
+      "database-optimization or frontend-development or backend-development",
+      "test-engineer",
+      "deployment-validator"
+    ],
+    "security_review": [
+      "security-audit",
+      "application-security",
+      "compliance",
+      "code-reviewer"
+    ],
+    "deployment": [
+      "test-engineer",
+      "security-audit",
+      "deployment-validator",
+      "devops",
+      "site-reliability"
+    ]
+  },
+  "priority_levels": {
+    "critical": ["architect", "tech-lead", "security-audit", "application-security", "security", "devops", "site-reliability", "test-generator", "deployment-validator", "db-architect"],
+    "high": ["system-design", "api-design", "frontend-development", "backend-development", "feature-builder", "test-engineer", "testing", "code-quality", "code-review", "code-reviewer", "compliance", "cloud-infrastructure", "performance-monitor", "performance", "database-optimization", "api-documenter", "documentation", "product-strategy", "user-experience", "type-safety", "migration-specialist"],
+    "medium": ["auditor", "platform-integration", "data-pipeline", "growth-strategy", "customer-support"],
+    "low": ["machine-learning"]
+  }
+}

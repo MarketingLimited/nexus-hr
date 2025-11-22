@@ -1,0 +1,1 @@
+Generate and apply Prisma database migrations. Ask for a descriptive migration name, validate the schema, review the generated SQL, and apply the migration safely. Use the Database Migration agent for complex migrations.

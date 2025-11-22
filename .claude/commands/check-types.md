@@ -1,0 +1,1 @@
+Run TypeScript type checking on both frontend and backend without emitting files. Report any type errors and suggest fixes. Use the Type Safety agent if major issues are found.

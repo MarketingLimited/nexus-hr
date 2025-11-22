@@ -1,0 +1,1 @@
+Run tests with coverage report for both frontend and backend. Show coverage percentages and identify files that need more test coverage.

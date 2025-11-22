@@ -1,0 +1,1 @@
+Run the test suite for both frontend and backend. Report any failures with details.
