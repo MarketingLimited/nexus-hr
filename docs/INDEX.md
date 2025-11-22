@@ -24,7 +24,17 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
 
 ## 📚 Core Documentation
 
-### For All Users
+### For End Users
+
+- **[User Guide](./USER_GUIDE.md)** - Complete guide for HR system users ⭐ NEW
+  - Getting started and logging in
+  - Dashboard and navigation
+  - Employee management
+  - Attendance tracking
+  - Leave management
+  - Performance reviews
+  - Documents and payroll
+  - Common tasks and troubleshooting
 
 - **[README](../README.md)** - Project overview and quick start
   - Feature list
@@ -33,6 +43,28 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
   - Default credentials
 
 ### For Developers
+
+#### Developer Guides
+
+- **[Frontend Developer Guide](./DEVELOPER_GUIDE_FRONTEND.md)** - Frontend development ⭐ NEW
+  - React, TypeScript, Tailwind CSS
+  - Component development
+  - State management with React Query
+  - API integration patterns
+  - Testing and best practices
+
+- **[Backend Developer Guide](./DEVELOPER_GUIDE_BACKEND.md)** - Backend development ⭐ NEW
+  - Node.js, Express, Prisma
+  - Database and migrations
+  - API development patterns
+  - Authentication & authorization
+  - Testing and best practices
+
+- **[API Documentation](./API.md)** - Complete API reference
+  - Authentication endpoints
+  - All resource endpoints
+  - Request/response examples
+  - Error codes and handling
 
 #### Setup & Configuration
 
@@ -60,18 +92,7 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
   - Authentication & authorization
   - Deployment architecture
 
-- **[API Documentation](./API.md)** - Complete API reference
-  - Authentication endpoints
-  - Employee management
-  - Leave management
-  - Payroll endpoints
-  - Attendance tracking
-  - Performance management
-  - Asset management
-  - Rate limiting
-  - Error codes
-
-#### Development
+#### Development & Contribution
 
 - **[Contributing](./CONTRIBUTING.md)** - Contribution guidelines
   - Code of conduct
@@ -171,13 +192,34 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
 
 ### I want to...
 
+#### Learn How to Use the HR System
+
+1. [User Guide](./USER_GUIDE.md) ⭐ START HERE
+2. [Troubleshooting](./TROUBLESHOOTING.md) (for common issues)
+
 #### Set Up Development Environment
 
 1. [Getting Started](./GETTING_STARTED.md)
-2. [Frontend-Backend Integration](./FRONTEND_BACKEND_INTEGRATION.md)
-3. [Troubleshooting](./TROUBLESHOOTING.md) (if issues arise)
+2. [Frontend Developer Guide](./DEVELOPER_GUIDE_FRONTEND.md) (for frontend)
+3. [Backend Developer Guide](./DEVELOPER_GUIDE_BACKEND.md) (for backend)
+4. [Troubleshooting](./TROUBLESHOOTING.md) (if issues arise)
 
-#### Understand the System
+#### Develop Frontend Features
+
+1. [Frontend Developer Guide](./DEVELOPER_GUIDE_FRONTEND.md) ⭐ START HERE
+2. [API Documentation](./API.md)
+3. [Frontend-Backend Integration](./FRONTEND_BACKEND_INTEGRATION.md)
+4. [Testing](./TESTING.md)
+
+#### Develop Backend Features
+
+1. [Backend Developer Guide](./DEVELOPER_GUIDE_BACKEND.md) ⭐ START HERE
+2. [API Documentation](./API.md)
+3. [Architecture](./ARCHITECTURE.md)
+4. [Security](./SECURITY.md)
+5. [Testing](./TESTING.md)
+
+#### Understand the System Architecture
 
 1. [Architecture](./ARCHITECTURE.md)
 2. [API Documentation](./API.md)
@@ -186,8 +228,8 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
 #### Contribute Code
 
 1. [Contributing](./CONTRIBUTING.md)
-2. [Testing](./TESTING.md)
-3. [Architecture](./ARCHITECTURE.md)
+2. [Frontend Developer Guide](./DEVELOPER_GUIDE_FRONTEND.md) or [Backend Developer Guide](./DEVELOPER_GUIDE_BACKEND.md)
+3. [Testing](./TESTING.md)
 
 #### Deploy to Production
 
@@ -224,14 +266,24 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
 
 ## 🔍 Documentation by Role
 
+### End User (Employee/Manager/HR)
+
+**Essential**:
+- [User Guide](./USER_GUIDE.md) ⭐ Complete user manual
+
+**Helpful**:
+- [Troubleshooting](./TROUBLESHOOTING.md) (for common issues)
+- [README](../README.md) (system overview)
+
 ### Frontend Developer
 
 **Essential**:
+- [Frontend Developer Guide](./DEVELOPER_GUIDE_FRONTEND.md) ⭐ Complete frontend guide
 - [Getting Started](./GETTING_STARTED.md)
-- [Frontend-Backend Integration](./FRONTEND_BACKEND_INTEGRATION.md)
 - [API Documentation](./API.md)
 
 **Recommended**:
+- [Frontend-Backend Integration](./FRONTEND_BACKEND_INTEGRATION.md)
 - [Architecture](./ARCHITECTURE.md) (frontend architecture section)
 - [Testing](./TESTING.md) (frontend testing)
 - [Performance](./PERFORMANCE.md) (frontend optimization)
@@ -239,12 +291,13 @@ Complete guide to all Nexus HR documentation. This index helps you find the righ
 ### Backend Developer
 
 **Essential**:
+- [Backend Developer Guide](./DEVELOPER_GUIDE_BACKEND.md) ⭐ Complete backend guide
 - [Getting Started](./GETTING_STARTED.md)
-- [Backend README](../server/README.md)
 - [Architecture](./ARCHITECTURE.md)
 
 **Recommended**:
 - [API Documentation](./API.md)
+- [Backend README](../server/README.md)
 - [Security](./SECURITY.md)
 - [Testing](./TESTING.md) (backend testing)
 - [Performance](./PERFORMANCE.md) (backend & database optimization)
@@ -338,7 +391,10 @@ nexus-hr/
 ├── README.md                          # Project overview
 ├── docs/
 │   ├── INDEX.md                       # This file (navigation)
+│   ├── USER_GUIDE.md                 # ⭐ End-user manual
 │   ├── GETTING_STARTED.md            # Setup guide
+│   ├── DEVELOPER_GUIDE_FRONTEND.md   # ⭐ Frontend development guide
+│   ├── DEVELOPER_GUIDE_BACKEND.md    # ⭐ Backend development guide
 │   ├── ARCHITECTURE.md               # System architecture
 │   ├── API.md                        # API reference
 │   ├── FRONTEND_BACKEND_INTEGRATION.md # Integration guide
@@ -406,6 +462,20 @@ Can't find what you need?
 
 ---
 
+---
+
+## 📖 New Documentation (November 22, 2025)
+
+We've added comprehensive guides for different audiences:
+
+- **[User Guide](./USER_GUIDE.md)** - For employees, managers, and HR staff using the system
+- **[Frontend Developer Guide](./DEVELOPER_GUIDE_FRONTEND.md)** - For React/TypeScript developers
+- **[Backend Developer Guide](./DEVELOPER_GUIDE_BACKEND.md)** - For Node.js/Express developers
+
+These guides complement our existing technical documentation with practical, role-specific information.
+
+---
+
 **Last Updated**: November 22, 2025
-**Documentation Version**: 2.0
+**Documentation Version**: 2.1
 **Maintained By**: Nexus HR Team

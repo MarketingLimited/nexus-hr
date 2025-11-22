@@ -106,7 +106,22 @@ After running the database seed, use these accounts to log in:
 
 ## 📖 Documentation
 
-### Quick Links
+### 👥 For End Users
+
+- **[📘 User Guide](docs/USER_GUIDE.md)** - Complete guide for employees, managers, and HR staff
+  - How to use the HR system
+  - Common tasks and workflows
+  - Troubleshooting tips
+
+### 💻 For Developers
+
+#### Quick Start Guides
+
+- **[🚀 Getting Started](docs/GETTING_STARTED.md)** - Setup guide (start here!)
+- **[⚛️ Frontend Developer Guide](docs/DEVELOPER_GUIDE_FRONTEND.md)** - React/TypeScript development
+- **[🔧 Backend Developer Guide](docs/DEVELOPER_GUIDE_BACKEND.md)** - Node.js/Express development
+
+#### Technical Documentation
 
 - **[📘 Getting Started](docs/GETTING_STARTED.md)** - Complete setup guide (start here!)
 - **[📑 Documentation Index](docs/INDEX.md)** - Complete documentation navigation
@@ -118,7 +133,7 @@ After running the database seed, use these accounts to log in:
 - **[🚀 Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
 - **[🔧 Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
-### Backend Documentation
+#### Component-Specific Docs
 
 - **[Backend API Documentation](server/README.md)** - Backend-specific reference
 - **[Kubernetes Deployment](k8s/README.md)** - K8s deployment guide
