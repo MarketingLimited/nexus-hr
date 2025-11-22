@@ -471,3 +471,13 @@ npx prisma migrate reset
 ## License
 
 MIT
+
+---
+
+## Documentation
+
+- [Complete Documentation Index](../docs/INDEX.md)
+- [Getting Started Guide](../docs/GETTING_STARTED.md)
+- [API Documentation](../docs/API.md)
+- [Security Guide](../docs/SECURITY.md)
+- [Troubleshooting](../docs/TROUBLESHOOTING.md)

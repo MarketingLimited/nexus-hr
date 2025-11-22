@@ -640,8 +640,8 @@ sudo certbot certificates
 
 For deployment issues:
 - Check logs: `docker-compose logs -f`
-- Database issues: See [BACKEND_SETUP.md](BACKEND_SETUP.md)
-- API issues: See [server/README.md](server/README.md)
+- Database issues: See [GETTING_STARTED.md](./GETTING_STARTED.md)
+- API issues: See [server/README.md](../server/README.md)
 
 ---
 

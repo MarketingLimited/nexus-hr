@@ -106,10 +106,22 @@ After running the database seed, use these accounts to log in:
 
 ## 📖 Documentation
 
-- **[Backend Setup Guide](BACKEND_SETUP.md)** - Detailed backend installation
-- **[Integration Guide](INTEGRATION_GUIDE.md)** - Frontend-backend integration
-- **[Backend API Documentation](server/README.md)** - Complete API reference
-- **[Deployment Guide](DEPLOYMENT.md)** - Production deployment instructions
+### Quick Links
+
+- **[📘 Getting Started](docs/GETTING_STARTED.md)** - Complete setup guide (start here!)
+- **[📑 Documentation Index](docs/INDEX.md)** - Complete documentation navigation
+- **[🔗 Frontend-Backend Integration](docs/FRONTEND_BACKEND_INTEGRATION.md)** - How the system works
+- **[🏗️ Architecture](docs/ARCHITECTURE.md)** - System design and architecture
+- **[🔌 API Reference](docs/API.md)** - Complete API documentation
+- **[🔒 Security Guide](docs/SECURITY.md)** - Security best practices
+- **[🧪 Testing Guide](docs/TESTING.md)** - Testing strategies
+- **[🚀 Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
+- **[🔧 Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
+### Backend Documentation
+
+- **[Backend API Documentation](server/README.md)** - Backend-specific reference
+- **[Kubernetes Deployment](k8s/README.md)** - K8s deployment guide
 
 ## 🛠️ Development
 
@@ -200,7 +212,7 @@ docker-compose down
 
 ## 🚀 Production Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed production deployment instructions including:
+See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed production deployment instructions including:
 
 - Docker production builds
 - Kubernetes deployment
@@ -274,11 +286,16 @@ VITE_API_URL=/api
 
 ## 🤝 Contributing
 
+We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
+
+**Quick steps**:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+For detailed guidelines, coding standards, and best practices, see [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## 📝 License
 
@@ -286,10 +303,27 @@ This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-- **Documentation**: Check the guides in the repository
-- **Issues**: [GitHub Issues](https://github.com/your-org/nexus-hr/issues)
+### Documentation
+- **[Complete Documentation Index](docs/INDEX.md)** - Find any documentation quickly
+- **[Getting Started Guide](docs/GETTING_STARTED.md)** - Setup and installation help
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
+### Getting Help
+- **Issues**: [GitHub Issues](https://github.com/MarketingLimited/nexus-hr/issues)
 - **Backend Logs**: `docker-compose logs backend`
-- **Database**: Access via Prisma Studio (`npm run prisma:studio`)
+- **Database**: Access via Prisma Studio (`cd server && npm run prisma:studio`)
+
+### Quick Debug Commands
+```bash
+# Check backend health
+curl http://localhost:3001/health
+
+# View logs
+docker-compose logs -f
+
+# Database access
+cd server && npm run prisma:studio
+```
 
 ## 🎯 Roadmap
 

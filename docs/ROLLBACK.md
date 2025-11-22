@@ -533,8 +533,10 @@ Maintain list of emergency contacts:
 
 ## References
 
+- [Complete Documentation Index](./INDEX.md)
 - [Deployment Guide](./DEPLOYMENT.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING.md)
+- [Getting Started](./GETTING_STARTED.md)
 - [Backup Scripts](../scripts/backup.sh)
 - [Rollback Scripts](../scripts/rollback.sh)
 

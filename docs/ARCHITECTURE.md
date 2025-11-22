@@ -588,3 +588,7 @@ Content-Security-Policy: default-src 'self'
 - [Security Guide](./SECURITY.md)
 - [Deployment Guide](./DEPLOYMENT.md)
 - [Testing Guide](./TESTING.md)
+
+---
+
+**Documentation Index**: [INDEX.md](./INDEX.md) | **Getting Started**: [GETTING_STARTED.md](./GETTING_STARTED.md)
