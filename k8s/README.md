@@ -377,3 +377,12 @@ kubectl delete -f secrets.yaml
 For issues and questions:
 - GitHub Issues: https://github.com/MarketingLimited/nexus-hr/issues
 - Documentation: `/docs` directory
+
+---
+
+## Additional Documentation
+
+- [Documentation Index](../docs/INDEX.md) - Complete documentation navigation
+- [Deployment Guide](../docs/DEPLOYMENT.md) - General deployment guide
+- [Troubleshooting](../docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Security](../docs/SECURITY.md) - Security best practices
